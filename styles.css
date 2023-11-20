@@ -1,11 +1,116 @@
 body {
-    background-color: black;
+    background-color: #333333;
+    font-family: 'Hack', sans-serif;
 }
+
+/* Basic styling for the hamburger menu */
+/* Styling for the hamburger menu */
+.menu-toggle {
+    display: flex;
+    flex-direction: column;
+    cursor: pointer;
+    position: absolute;
+    top: 12.5px;
+    left: 12.5px;
+    z-index: 2;
+}
+
+.bar {
+    width: 25px;
+    height: 1px;
+    background-color: #fff; /* Change the background color to white */
+    margin: 4px 0;
+}
+
+
+.navbar {
+    display: none;
+    flex-direction: column;
+    background-color: #333;
+    position: fixed;
+    top: 0;
+    left: 0; /* Change left to 0 to start from the left */
+    width: 0; /* Initially set width to 0 */
+    height: 100%;
+    z-index: 1;
+    transition: width 0.3s ease; /* Use width for sliding effect */
+}
+
+
+ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+li {
+    margin-bottom: 20px;
+}
+
+a {
+    text-decoration: none;
+    color: white;
+    font-weight: bold;
+}
+
+/* Styling for the website title */
+h1 {
+    margin-left: 50px; /* Adjust the margin to create space */
+}
+
+/* Centering for the button and additional styles */
+.center {
+    text-align: center;
+    margin-top: 50px;
+}
+
+.custom-button {
+    background-color: #3498db;
+    color: white;
+    font-size: 20px;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.custom-button:hover {
+    background-color: #2980b9;
+}
+
+
+
 h1 {
     color: white;
-    text-align: center;
+    text-align: left;
+    font-size: 20px;
 }
 h2 {
     color: white;
     text-align: center;
 }
+
+.center {
+    text-align: center;
+    margin-top: 50px; 
+}
+
+.custom-button {
+    background-color: #3498db;
+    color: white;
+    font-size: 20px;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: transform 0.3s, background-color 0.3s, color 0.3s;
+}
+
+.custom-button:hover {
+    transform: translateY(-2px);
+    background-color: #2980b9;
+    color: var(--clr-light);
+}
+
