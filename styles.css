@@ -3,56 +3,72 @@ body {
     font-family: 'Hack', sans-serif;
 }
 
-/* Basic styling for the hamburger menu */
-/* Styling for the hamburger menu */
-.menu-toggle {
-    display: flex;
-    flex-direction: column;
+.hamburger {
+    position: relative;
+    width: 35px;
+    top: -42px;
+    left: 4px;
     cursor: pointer;
-    position: absolute;
-    top: 12.5px;
-    left: 12.5px;
-    z-index: 2;
+    appearance: none;
+    background: none;
+    outline: none;
+    border: none;
 }
 
-.bar {
-    width: 25px;
-    height: 1px;
-    background-color: #fff; /* Change the background color to white */
-    margin: 4px 0;
+.hamburger .bar, .hamburger:after, .hamburger::before {
+    content: '';
+    display: block;
+    width: 100%;
+    height: 3px;
+    background-color: #FFF;
+    margin: 6px 0px;
+    transition: 0.4s;
 }
 
+.hamburger.is-active:before {
+    transform: rotate(-45deg) translate(-6px, 5px);
+}
 
-.navbar {
-    display: none;
-    flex-direction: column;
-    background-color: #333;
+.hamburger.is-active:after {
+    transform: rotate(45deg) translate(-8px, -6px);
+}
+
+.hamburger.is-active .bar {
+    opacity: 0;
+}
+
+.in-menu {
     position: fixed;
-    top: 0;
-    left: 0; /* Change left to 0 to start from the left */
-    width: 0; /* Initially set width to 0 */
-    height: 100%;
-    z-index: 1;
-    transition: width 0.3s ease; /* Use width for sliding effect */
+    top: -10px; /* Adjust the top position to expose the menu */
+    left: -100%;
+    width: 100%;
+    min-height: 10vh;
+    display: block;
+    z-index: 99;
+    padding-top: 70px;
+    transition: left 0.3s;
 }
 
-
-ul {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    display: flex;
-    flex-direction: column;
+.in-menu.is-active {
+    left: 0%;
 }
 
-li {
-    margin-bottom: 20px;
-}
+.in-menu a {
+    display: block;
+    top: -10px;
+    width: 50%;
+    max-width: 200px;
+    margin-bottom: 0 auto 16px;
+    text-align: left;
+    padding:12px 16px;
+    z-index:100;
 
-a {
+    color: #FFF;
     text-decoration: none;
-    color: white;
-    font-weight: bold;
+}
+
+in-menu a:hover {
+    background-color: #24014f;
 }
 
 /* Styling for the website title */
@@ -81,6 +97,7 @@ h1 {
 }
 
 
+/* Body content CSS*/
 
 h1 {
     color: white;
@@ -97,7 +114,7 @@ h2 {
     margin-top: 50px; 
 }
 
-.custom-button {
+.myButton {
     background-color: #3498db;
     color: white;
     font-size: 20px;
@@ -108,8 +125,8 @@ h2 {
     transition: transform 0.3s, background-color 0.3s, color 0.3s;
 }
 
-.custom-button:hover {
-    transform: translateY(-2px);
+.myButton:hover {
+    transform: translateY(-5px);
     background-color: #2980b9;
     color: var(--clr-light);
 }
