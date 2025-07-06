@@ -1,6 +1,12 @@
 /* GLOBAL STYLES */
 html {
   scroll-behavior: smooth;
+  /* Prevent zoom on mobile */
+  -webkit-text-size-adjust: 100%;
+  -moz-text-size-adjust: 100%;
+  -ms-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  touch-action: pan-y;
 }
 
 body {
@@ -10,6 +16,12 @@ body {
   background: #000000;
   color: white;
   overflow-x: hidden;
+  /* Prevent zoom on mobile */
+  -webkit-text-size-adjust: 100%;
+  -moz-text-size-adjust: 100%;
+  -ms-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  touch-action: pan-y;
 }
 
 /* INDEX PAGE SPECIFIC BACKGROUND */
@@ -71,14 +83,14 @@ body.index-page .hamburger .bar {
 
 /* Hamburger to X animation */
 .hamburger.is-active .bar:nth-child(1) {
-  transform: rotate(45deg) translate(5px, 5px);
+  transform: rotate(45deg) translate(7px, 6px);
 }
 .hamburger.is-active .bar:nth-child(2) {
   opacity: 0;
   transform: scale(0);
 }
 .hamburger.is-active .bar:nth-child(3) {
-  transform: rotate(-45deg) translate(5px, -5px);
+  transform: rotate(-45deg) translate(7px, -6px);
 }
 
 /* HEADER LEFT SECTION */
@@ -1086,37 +1098,73 @@ p {
     line-height: 1.4;
   }
   
-  /* Project card mobile adjustments */
+  /* Project card mobile adjustments - Much more compact */
   .project-card {
-    padding: 12px 10px;
-    width: calc(100% - 12px);
-    margin: 10px 6px;
-    border-radius: 10px;
+    padding: 8px 6px;
+    width: calc(100% - 8px);
+    margin: 6px 4px;
+    border-radius: 8px;
+  }
+  
+  .project-header {
+    margin-bottom: 6px;
+    gap: 4px;
   }
   
   .project-header h3 {
-    font-size: 16px !important;
-    margin-bottom: 6px;
+    font-size: 14px !important;
+    margin-bottom: 4px;
+    line-height: 1.1;
   }
   
   .project-badge {
-    font-size: 9px;
-    padding: 5px 10px;
+    font-size: 8px;
+    padding: 3px 8px;
+  }
+  
+  .project-description {
+    margin-bottom: 8px;
   }
   
   .project-description p {
-    font-size: 12px;
+    font-size: 11px;
     line-height: 1.3;
+    margin-bottom: 6px;
+  }
+  
+  .tech-stack, .project-highlights {
+    margin-bottom: 8px;
+  }
+  
+  .tech-stack h4, .project-highlights h4 {
+    font-size: 12px;
+    margin-bottom: 4px;
+  }
+  
+  .tech-tags {
+    gap: 4px;
   }
   
   .tech-tag {
+    font-size: 9px;
+    padding: 2px 5px;
+  }
+  
+  .project-highlights li {
     font-size: 10px;
-    padding: 3px 6px;
+    padding: 2px 0;
+    padding-left: 16px;
+    line-height: 1.3;
+  }
+  
+  .project-links {
+    margin-top: 8px;
+    gap: 6px;
   }
   
   .project-btn {
-    font-size: 11px;
-    padding: 8px 14px;
+    font-size: 10px;
+    padding: 6px 12px;
   }
 
   /* Scroll sections mobile */
@@ -1508,62 +1556,62 @@ p {
   
   /* Projects section iPhone - Much more compact */
   .projects-grid {
-    gap: 8px;
+    gap: 6px;
   }
   
   .project-card {
-    padding: 10px 8px;
-    margin: 5px 2px;
-    width: calc(100% - 4px);
-    border-radius: 8px;
+    padding: 6px 5px;
+    margin: 3px 1px;
+    width: calc(100% - 2px);
+    border-radius: 6px;
   }
   
   .project-header {
     flex-direction: column;
     align-items: flex-start;
-    margin-bottom: 8px;
-    gap: 4px;
+    margin-bottom: 6px;
+    gap: 3px;
   }
   
   .project-header h3 {
-    font-size: 16px !important;
-    margin-bottom: 2px;
+    font-size: 14px !important;
+    margin-bottom: 1px;
     line-height: 1.1;
   }
   
   .project-badge {
-    font-size: 8px;
-    padding: 3px 8px;
-    border-radius: 12px;
+    font-size: 7px;
+    padding: 2px 6px;
+    border-radius: 10px;
   }
   
   .project-description {
-    margin-bottom: 8px;
-  }
-  
-  .project-description p {
-    font-size: 11px;
-    line-height: 1.3;
     margin-bottom: 6px;
   }
   
-  .tech-stack, .project-highlights {
-    margin-bottom: 8px;
-  }
-  
-  .tech-stack h4, .project-highlights h4 {
-    font-size: 12px;
+  .project-description p {
+    font-size: 10px;
+    line-height: 1.2;
     margin-bottom: 4px;
   }
   
+  .tech-stack, .project-highlights {
+    margin-bottom: 6px;
+  }
+  
+  .tech-stack h4, .project-highlights h4 {
+    font-size: 11px;
+    margin-bottom: 3px;
+  }
+  
   .tech-tags {
-    gap: 4px;
+    gap: 3px;
   }
   
   .tech-tag {
-    font-size: 8px;
-    padding: 2px 6px;
-    border-radius: 10px;
+    font-size: 7px;
+    padding: 1px 4px;
+    border-radius: 8px;
   }
   
   .project-highlights ul {
@@ -1572,25 +1620,25 @@ p {
   }
   
   .project-highlights li {
-    font-size: 10px;
-    padding: 2px 0;
-    padding-left: 16px;
-    line-height: 1.3;
+    font-size: 9px;
+    padding: 1px 0;
+    padding-left: 14px;
+    line-height: 1.2;
   }
   
   .project-highlights li:before {
-    font-size: 10px;
+    font-size: 9px;
   }
   
   .project-links {
-    margin-top: 8px;
-    gap: 6px;
+    margin-top: 6px;
+    gap: 4px;
   }
   
   .project-btn {
-    font-size: 10px;
-    padding: 8px 12px;
-    border-radius: 16px;
+    font-size: 9px;
+    padding: 6px 10px;
+    border-radius: 14px;
     width: 100%;
     justify-content: center;
   }
@@ -2112,10 +2160,10 @@ p {
   
   /* Make sure hamburger animation works on mobile */
   .hamburger.is-active .bar:nth-child(1) {
-    transform: rotate(45deg) translate(3px, 3px);
+    transform: rotate(45deg) translate(4px, 4px);
   }
   
   .hamburger.is-active .bar:nth-child(3) {
-    transform: rotate(-45deg) translate(3px, -3px);
+    transform: rotate(-45deg) translate(4px, -4px);
   }
 }
