@@ -515,6 +515,217 @@ p {
   transform: translateY(-2px);
 }
 
+/* ABOUT PAGE STYLES */
+.about-content {
+  max-width: 900px;
+  width: 100%;
+  text-align: left;
+}
+
+.intro-section {
+  margin-bottom: 40px;
+  text-align: center;
+}
+
+.intro-text {
+  font-size: 20px;
+  line-height: 1.7;
+  color: #e0e0e0;
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.education-section, .skills-section, .strengths-section {
+  margin-bottom: 50px;
+}
+
+.education-item {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  padding: 25px;
+  border-left: 4px solid #3498db;
+}
+
+.education-item h4 {
+  color: #3498db;
+  font-size: 22px;
+  margin: 0 0 10px 0;
+}
+
+.degree {
+  font-size: 18px;
+  color: #ffffff;
+  margin: 5px 0;
+  font-weight: 600;
+}
+
+.graduation {
+  color: #b0b0b0;
+  font-size: 16px;
+  margin: 5px 0;
+}
+
+.skills-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 25px;
+}
+
+.skill-category {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.skill-category h4 {
+  color: #3498db;
+  font-size: 18px;
+  margin: 0 0 15px 0;
+}
+
+.skill-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.skill-tag {
+  background: rgba(52, 152, 219, 0.2);
+  color: #3498db;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 500;
+  border: 1px solid rgba(52, 152, 219, 0.3);
+  transition: all 0.3s ease;
+}
+
+.skill-tag:hover {
+  background: rgba(52, 152, 219, 0.3);
+  transform: translateY(-2px);
+}
+
+.strengths-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+}
+
+.strength-item {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+  transition: transform 0.3s ease;
+}
+
+.strength-item:hover {
+  transform: translateY(-5px);
+}
+
+.strength-item h4 {
+  color: #3498db;
+  font-size: 18px;
+  margin: 0 0 10px 0;
+}
+
+.strength-item p {
+  color: #b0b0b0;
+  font-size: 14px;
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* CONTACT PAGE STYLES */
+.contact-content {
+  max-width: 800px;
+  width: 100%;
+}
+
+.contact-intro {
+  margin-bottom: 40px;
+  text-align: center;
+}
+
+.contact-methods {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 25px;
+  margin-bottom: 40px;
+}
+
+.contact-card {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  padding: 30px 20px;
+  text-align: center;
+  transition: all 0.3s ease;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.contact-card:hover {
+  background: rgba(255, 255, 255, 0.08);
+  transform: translateY(-5px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.contact-icon {
+  color: #3498db;
+  margin-bottom: 15px;
+}
+
+.contact-card h3 {
+  color: #ffffff;
+  font-size: 20px;
+  margin: 0 0 8px 0;
+}
+
+.contact-card p {
+  color: #888;
+  font-size: 14px;
+  margin: 0 0 15px 0;
+}
+
+.contact-link {
+  color: #3498db;
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.3s ease;
+}
+
+.contact-link:hover {
+  color: #2980b9;
+  text-decoration: underline;
+}
+
+.contact-text {
+  color: #e0e0e0;
+  font-weight: 500;
+}
+
+.availability-section {
+  background: rgba(52, 152, 219, 0.1);
+  border-radius: 12px;
+  padding: 25px;
+  border-left: 4px solid #3498db;
+}
+
+.availability-section h3 {
+  color: #3498db;
+  margin: 0 0 15px 0;
+}
+
+.availability-info p {
+  color: #e0e0e0;
+  line-height: 1.8;
+  margin: 0;
+}
+
+/* SECONDARY PROJECT BADGE */
+.project-badge.secondary {
+  background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+}
+
 .project-highlights ul {
   list-style: none;
   padding: 0;
