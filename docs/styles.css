@@ -1,30 +1,35 @@
 /* Base styling */
-body {
+html, body {
+  height: 100%;
   margin: 0;
   padding: 0;
   font-family: "Hack", sans-serif;
-  background: url("image.png") no-repeat center center fixed;
-  background-size: cover;
-  height: 100vh;
   color: white;
+  background: url("background.png") no-repeat center center fixed;
+  background-size: cover;
 }
 
-/* Header */
+/* Header: hamburger + Xeoul */
 header {
   display: flex;
   align-items: center;
-  padding: 15px 20px;
-  background-color: rgba(0, 0, 0, 0.5);
+  padding: 10px 20px;
+  position: relative;
+  z-index: 100;
 }
 
 .hamburger {
-  width: 30px;
-  height: 25px;
-  position: relative;
+  width: 35px;
+  height: 30px;
+  cursor: pointer;
   background: none;
   border: none;
-  cursor: pointer;
-  margin-right: 15px;
+  appearance: none;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  z-index: 101;
+  margin-right: 10px;
 }
 
 .hamburger .bar,
@@ -32,9 +37,10 @@ header {
 .hamburger::after {
   content: "";
   display: block;
+  width: 100%;
   height: 3px;
   background-color: white;
-  margin: 5px 0;
+  margin: 4px 0;
   transition: 0.4s;
 }
 
@@ -51,20 +57,23 @@ header {
 }
 
 h1 {
-  font-size: 24px;
+  font-size: 20px;
   margin: 0;
 }
 
-/* Navigation menu */
+/* Slide-in vertical menu */
 .in-menu {
   position: fixed;
   top: 0;
-  left: -100%;
+  left: -200px;
   width: 200px;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.85);
-  padding-top: 60px;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.95);
   z-index: 99;
+  padding-top: 60px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
   transition: left 0.3s ease;
 }
 
@@ -73,54 +82,65 @@ h1 {
 }
 
 .in-menu a {
-  display: block;
-  padding: 15px 20px;
-  color: white;
+  padding: 12px 20px;
   text-decoration: none;
+  color: white;
+  width: 100%;
+  display: block;
+  box-sizing: border-box;
 }
 
 .in-menu a:hover {
-  background-color: #444;
+  background-color: #24014f;
 }
 
-/* Center content */
+/* Main content */
 .center {
   text-align: center;
-  margin-top: 15vh;
+  margin-top: 50px;
 }
 
 h2 {
-  font-size: 28px;
+  color: white;
+  font-size: 26px;
   margin-bottom: 20px;
 }
 
+/* Button */
 .myButton {
   background-color: #3498db;
   color: white;
-  font-size: 18px;
-  padding: 10px 25px;
+  font-size: 20px;
+  padding: 10px 20px;
   border: none;
   border-radius: 5px;
   cursor: pointer;
   text-decoration: none;
+  transition: transform 0.3s, background-color 0.3s, color 0.3s;
 }
 
 .myButton:hover {
+  transform: translateY(-5px);
   background-color: #2980b9;
+  color: var(--clr-light);
 }
 
-/* Responsive */
+/* Responsive adjustments */
 @media (max-width: 600px) {
-  .center {
-    margin-top: 20vh;
+  h1 {
+    font-size: 18px;
   }
 
   h2 {
-    font-size: 24px;
+    font-size: 22px;
   }
 
   .myButton {
-    font-size: 16px;
-    padding: 8px 20px;
+    font-size: 18px;
+    padding: 8px 16px;
+  }
+
+  .center {
+    margin-top: 70px;
   }
 }
