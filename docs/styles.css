@@ -18,7 +18,7 @@ body.index-page {
 header {
   display: flex;
   align-items: center;
-  justify-content: flex-start;
+  justify-content: space-between;
   gap: 10px;
   position: fixed;
   top: 0;
@@ -77,8 +77,21 @@ body.index-page .hamburger .bar {
   transform: rotate(-45deg) translate(6px, -6px);
 }
 
-/* TITLE TO THE RIGHT OF MENU */
-header h1 {
+/* HEADER LEFT SECTION */
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* CLICKABLE HEADER TITLE */
+.header-title {
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+}
+
+.header-title h1 {
   font-family: "Hack", "Fira Code", "Source Code Pro", "Monaco", "Consolas", monospace;
   font-size: 22px;
   font-weight: 600;
@@ -90,10 +103,40 @@ header h1 {
   transition: all 0.3s ease;
 }
 
-header h1:hover {
+.header-title:hover h1 {
   color: #3498db;
   text-shadow: 0 0 12px rgba(52, 152, 219, 0.4);
   transform: scale(1.02);
+}
+
+/* GITHUB ICON */
+.github-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  color: #ffffff;
+  text-decoration: none;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+}
+
+.github-icon:hover {
+  color: #00ff41;
+  background: rgba(0, 255, 65, 0.2);
+  box-shadow: 0 0 15px rgba(0, 255, 65, 0.3);
+  transform: scale(1.1);
+}
+
+.github-icon svg {
+  transition: transform 0.3s ease;
+}
+
+.github-icon:hover svg {
+  transform: rotate(360deg);
 }
 
 /* NAV MENU */
