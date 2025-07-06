@@ -24,13 +24,14 @@
     </header>
 
     <nav class="in-menu">
-        <a href="index.html">Home</a>
-        <a href="projects.html">Projects</a>
-        <a href="about.html">About</a>
-        <a href="contact.html">Contact</a>
+        <a href="#home" class="nav-link">Home</a>
+        <a href="#about" class="nav-link">About</a>
+        <a href="#projects" class="nav-link">Projects</a>
+        <a href="#contact" class="nav-link">Contact</a>
     </nav>
 
-    <main class="hero-section">
+    <!-- HOME SECTION -->
+    <section id="home" class="hero-section scroll-section">
         <div class="hero-content">
             <div class="hero-text">
                 <h1 class="hero-title">
@@ -61,13 +62,13 @@
                 </div>
                 
                 <div class="hero-actions">
-                    <a href="projects.html" class="cta-primary">
+                    <a href="#projects" class="cta-primary nav-link">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
                             <path d="M19,3H5C3.89,3 3,3.89 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5C3.89,3 3,3.89 3H19M19,5V19H5V5H19Z"/>
                         </svg>
                         View My Work
                     </a>
-                    <a href="contact.html" class="cta-secondary">
+                    <a href="#contact" class="cta-secondary nav-link">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
                             <path d="M20,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V6C2.89,4 2,4.89 4H20M20,8L12,13L4,8V6L12,11L20,6V8Z"/>
                         </svg>
@@ -109,7 +110,205 @@
                 </svg>
             </div>
         </div>
-    </main>
+    </section>
+
+    <!-- ABOUT SECTION -->
+    <section id="about" class="scroll-section about-section">
+        <div class="section-content">
+            <div class="section-header">
+                <h2 class="section-title">About Vincent Lam</h2>
+                <div class="section-subtitle">Get to know me better</div>
+            </div>
+            
+            <div class="about-grid">
+                <div class="about-text">
+                    <p class="intro-text">
+                        Recent Computer Science graduate from Sacramento State University with a passion for 
+                        applying technical skills in challenging roles that foster growth, innovation, and 
+                        organizational success.
+                    </p>
+                    
+                    <div class="education-highlight">
+                        <h3>Education</h3>
+                        <div class="education-item">
+                            <h4>Sacramento State University</h4>
+                            <p class="degree">Bachelor of Arts in Computer Science</p>
+                            <p class="graduation">Graduated Summer 2025</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="skills-showcase">
+                    <div class="skills-grid">
+                        <div class="skill-category">
+                            <h4>Programming</h4>
+                            <div class="skill-tags">
+                                <span class="skill-tag">Java</span>
+                                <span class="skill-tag">Python</span>
+                                <span class="skill-tag">SQL</span>
+                                <span class="skill-tag">JavaScript</span>
+                            </div>
+                        </div>
+                        
+                        <div class="skill-category">
+                            <h4>Technologies</h4>
+                            <div class="skill-tags">
+                                <span class="skill-tag">Docker</span>
+                                <span class="skill-tag">MySQL</span>
+                                <span class="skill-tag">Jersey</span>
+                                <span class="skill-tag">SharePoint</span>
+                            </div>
+                        </div>
+                        
+                        <div class="skill-category">
+                            <h4>Systems</h4>
+                            <div class="skill-tags">
+                                <span class="skill-tag">Windows</span>
+                                <span class="skill-tag">macOS</span>
+                                <span class="skill-tag">Linux</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- PROJECTS SECTION -->
+    <section id="projects" class="scroll-section projects-section">
+        <div class="section-content">
+            <div class="section-header">
+                <h2 class="section-title">My Projects</h2>
+                <div class="section-subtitle">Showcasing my latest work</div>
+            </div>
+            
+            <div class="projects-grid">
+                <!-- Element-115 Project -->
+                <div class="project-card">
+                    <div class="project-header">
+                        <h3>Element-115</h3>
+                        <span class="project-badge">Senior Project</span>
+                    </div>
+                    
+                    <div class="project-description">
+                        <p>Developed for the Department of Consumer Affairs to manage 3.4 million licenses and forms. A comprehensive tool designed to streamline updates across test, development, and production environments with database integration.</p>
+                    </div>
+                    
+                    <div class="tech-stack">
+                        <div class="tech-tags">
+                            <span class="tech-tag">Database Management</span>
+                            <span class="tech-tag">Data Migration</span>
+                            <span class="tech-tag">Production Systems</span>
+                            <span class="tech-tag">Full-Stack</span>
+                        </div>
+                    </div>
+                    
+                    <div class="project-links">
+                        <a href="https://github.com/ecolchado1/Element-115" target="_blank" class="project-btn">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.30.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                            </svg>
+                            View on GitHub
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- Movie Recommendation Project -->
+                <div class="project-card">
+                    <div class="project-header">
+                        <h3>Movie Recommendation Service</h3>
+                        <span class="project-badge secondary">Team Project</span>
+                    </div>
+                    
+                    <div class="project-description">
+                        <p>Collaborated in a team to build a full CRUD REST API and front-end movie recommendation app. Implemented using Java, Jersey, Docker, and MySQL with Scrum methodology for agile development.</p>
+                    </div>
+                    
+                    <div class="tech-stack">
+                        <div class="tech-tags">
+                            <span class="tech-tag">Java</span>
+                            <span class="tech-tag">Jersey</span>
+                            <span class="tech-tag">Docker</span>
+                            <span class="tech-tag">MySQL</span>
+                            <span class="tech-tag">REST API</span>
+                        </div>
+                    </div>
+                    
+                    <div class="project-links">
+                        <a href="#" class="project-btn" onclick="alert('Repository access may be restricted')">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.30.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                            </svg>
+                            View Repository
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CONTACT SECTION -->
+    <section id="contact" class="scroll-section contact-section">
+        <div class="section-content">
+            <div class="section-header">
+                <h2 class="section-title">Get In Touch</h2>
+                <div class="section-subtitle">Let's connect and collaborate</div>
+            </div>
+            
+            <div class="contact-grid">
+                <div class="contact-info">
+                    <p class="contact-intro">
+                        I'm always interested in new opportunities and collaborations. 
+                        Feel free to reach out if you'd like to discuss projects, opportunities, or just connect!
+                    </p>
+                    
+                    <div class="availability-info">
+                        <div class="status-item">
+                            <strong>Status:</strong> Available for new opportunities
+                        </div>
+                        <div class="status-item">
+                            <strong>Response Time:</strong> Within 24 hours
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="contact-methods">
+                    <div class="contact-card">
+                        <div class="contact-icon">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M20,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V6C2.89,4 2,4.89 4H20M20,8L12,13L4,8V6L12,11L20,6V8Z"/>
+                            </svg>
+                        </div>
+                        <h3>Email</h3>
+                        <p>Primary contact method</p>
+                        <a href="mailto:v812.io@gmail.com" class="contact-link">v812.io@gmail.com</a>
+                    </div>
+                    
+                    <div class="contact-card">
+                        <div class="contact-icon">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M6.62,10.79C8.06,13.62 10.38,15.94 13.21,17.38L15.41,15.18C15.69,14.9 16.08,14.82 16.43,14.93C17.55,15.3 18.75,15.5 20,15.5A1,1 0 0,1 21,16.5V20A1,1 0 0,1 20,21A17,17 0 0,1 3,4A1,1 0 0,1 4,3H7.5A1,1 0 0,1 8.5,4C8.5,5.25 8.7,6.45 9.07,7.57C9.18,7.92 9.1,8.31 8.82,8.59L6.62,10.79Z"/>
+                            </svg>
+                        </div>
+                        <h3>Phone</h3>
+                        <p>Available for calls</p>
+                        <a href="tel:916-425-5938" class="contact-link">(916) 425-5938</a>
+                    </div>
+                    
+                    <div class="contact-card">
+                        <div class="contact-icon">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12,2C8.13,2 5,5.13 5,9C5,14.25 12,22 12,22C12,22 19,14.25 19,9C19,5.13 15.87,2 12,2M12,11.5A2.5,2.5 0 0,1 9.5,9A2.5,2.5 0 0,1 12,6.5A2.5,2.5 0 0,1 14.5,9A2.5,2.5 0 0,1 12,11.5Z"/>
+                            </svg>
+                        </div>
+                        <h3>Location</h3>
+                        <p>Based in Sacramento area</p>
+                        <span class="contact-text">Sacramento, CA 95835</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
 
     <script src="script.js"></script>
 </body>
