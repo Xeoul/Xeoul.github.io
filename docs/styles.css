@@ -1,112 +1,114 @@
-/* Base styling */
-html, body {
-  height: 100%;
+/* GLOBAL STYLES */
+body {
   margin: 0;
   padding: 0;
   font-family: "Hack", sans-serif;
-  color: white;
-  background: url("background.png") no-repeat center center fixed;
+  background: url('background.png') no-repeat center center fixed;
   background-size: cover;
+  color: white;
+  height: 100vh;
 }
 
-/* Header: hamburger + Xeoul */
+/* HEADER */
 header {
   display: flex;
   align-items: center;
-  padding: 10px 20px;
-  position: relative;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  padding: 15px 20px;
+  background: rgba(0, 0, 0, 0.7);
   z-index: 100;
 }
 
+/* HAMBURGER MENU ICON (LEFT) */
 .hamburger {
-  width: 35px;
-  height: 30px;
-  cursor: pointer;
   background: none;
   border: none;
-  appearance: none;
+  cursor: pointer;
+  padding: 0;
+  margin-right: 12px;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  z-index: 101;
-  margin-right: 10px;
 }
 
-.hamburger .bar,
-.hamburger::before,
-.hamburger::after {
-  content: "";
-  display: block;
-  width: 100%;
+.hamburger .bar {
+  width: 25px;
   height: 3px;
-  background-color: white;
   margin: 4px 0;
-  transition: 0.4s;
+  background-color: white;
+  transition: 0.3s;
 }
 
-.hamburger.is-active::before {
-  transform: rotate(-45deg) translate(-6px, 6px);
+.hamburger.is-active .bar:nth-child(1) {
+  transform: rotate(-45deg) translate(-5px, 6px);
 }
 
-.hamburger.is-active::after {
-  transform: rotate(45deg) translate(-6px, -6px);
-}
-
-.hamburger.is-active .bar {
+.hamburger.is-active .bar:nth-child(2) {
   opacity: 0;
 }
 
-h1 {
-  font-size: 20px;
-  margin: 0;
+.hamburger.is-active .bar:nth-child(3) {
+  transform: rotate(45deg) translate(-5px, -6px);
 }
 
-/* Slide-in vertical menu */
+/* "Xeoul" Title */
+header h1 {
+  margin: 0;
+  font-size: 24px;
+}
+
+/* SLIDE-OUT MENU */
 .in-menu {
   position: fixed;
-  top: 0;
-  left: -200px;
-  width: 200px;
-  height: 100vh;
-  background-color: rgba(0, 0, 0, 0.95);
+  top: 60px;
+  left: -250px;
+  background: rgba(0, 0, 0, 0.95);
+  padding: 20px;
+  transition: left 0.3s ease;
   z-index: 99;
-  padding-top: 60px;
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  transition: left 0.3s ease;
+  gap: 12px;
 }
 
-.in-menu.is-active {
+.in-menu.active {
   left: 0;
 }
 
 .in-menu a {
-  padding: 12px 20px;
-  text-decoration: none;
   color: white;
-  width: 100%;
-  display: block;
-  box-sizing: border-box;
+  text-decoration: none;
+  font-size: 18px;
+  display: inline; /* Make only the text clickable */
+  width: fit-content;
+  padding: 5px 0;
 }
 
 .in-menu a:hover {
-  background-color: #24014f;
+  background-color: transparent;
+  text-decoration: underline;
 }
 
-/* Main content */
+/* MAIN CENTERING */
 .center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
   text-align: center;
-  margin-top: 50px;
+  padding-top: 60px;
 }
 
 h2 {
-  color: white;
-  font-size: 26px;
+  font-size: 28px;
   margin-bottom: 20px;
 }
 
-/* Button */
+/* BUTTON */
 .myButton {
   background-color: #3498db;
   color: white;
@@ -115,32 +117,27 @@ h2 {
   border: none;
   border-radius: 5px;
   cursor: pointer;
+  transition: transform 0.3s, background-color 0.3s;
   text-decoration: none;
-  transition: transform 0.3s, background-color 0.3s, color 0.3s;
 }
 
 .myButton:hover {
-  transform: translateY(-5px);
+  transform: translateY(-3px);
   background-color: #2980b9;
-  color: var(--clr-light);
 }
 
-/* Responsive adjustments */
-@media (max-width: 600px) {
-  h1 {
-    font-size: 18px;
-  }
-
-  h2 {
-    font-size: 22px;
-  }
-
-  .myButton {
-    font-size: 18px;
-    padding: 8px 16px;
-  }
-
+/* RESPONSIVE */
+@media screen and (max-width: 768px) {
   .center {
-    margin-top: 70px;
+    padding-top: 80px;
+  }
+
+  .in-menu {
+    width: auto;
+    left: -100%;
+  }
+
+  .in-menu.active {
+    left: 0;
   }
 }
