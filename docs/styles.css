@@ -1,29 +1,39 @@
-/* Base reset and body setup */
+/* Reset and full-screen background */
 html, body {
   height: 100%;
   margin: 0;
   padding: 0;
   font-family: "Hack", sans-serif;
   color: white;
-  background-image: url('background.png'); /* Ensure file is in same folder */
+  background-image: url('background.png'); /* ✅ Image path */
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
   background-attachment: fixed;
 }
 
-/* Hamburger button */
+/* HEADER TITLE */
+h1 {
+  color: white;
+  font-size: 20px;
+  margin: 20px;
+  margin-bottom: 0;
+  text-align: left;
+}
+
+/* HAMBURGER MENU BUTTON */
 .hamburger {
-  position: relative;
-  z-index: 999;
+  position: absolute;           /* ✅ Keeps it top-left */
+  top: 20px;
+  left: 20px;
   width: 35px;
-  top: -42px;
-  left: 4px;
+  height: auto;
+  z-index: 999;
   cursor: pointer;
   appearance: none;
   background: none;
-  outline: none;
   border: none;
+  outline: none;
 }
 
 .hamburger .bar,
@@ -50,15 +60,16 @@ html, body {
   opacity: 0;
 }
 
-/* Navigation menu */
+/* SIDE MENU */
 .in-menu {
   position: fixed;
-  top: -10px;
+  top: 0;
   left: -100%;
   width: 100%;
   min-height: 10vh;
-  z-index: 99;
-  padding-top: 70px;
+  z-index: 998;
+  padding-top: 80px;
+  background-color: rgba(0, 0, 0, 0.9);
   transition: left 0.3s;
   display: flex;
   flex-direction: column;
@@ -66,33 +77,24 @@ html, body {
 }
 
 .in-menu.is-active {
-  left: 0%;
+  left: 0;
 }
 
 .in-menu a {
   display: inline-block;
-  padding: 12px 16px;
-  color: #fff;
+  padding: 12px 20px;
+  font-size: 18px;
+  color: white;
   text-decoration: none;
-  text-align: left;
-  box-sizing: border-box;
 }
 
 .in-menu a:hover {
   background-color: #24014f;
 }
 
-/* Header */
-h1 {
-  margin-left: 50px;
-  color: white;
-  text-align: left;
-  font-size: 20px;
-}
-
-/* Centered content area */
+/* MAIN CONTENT */
 .main-content {
-  min-height: calc(100vh - 70px);
+  height: 100vh;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -101,14 +103,12 @@ h1 {
   padding: 20px;
 }
 
-/* Subheading */
 h2 {
-  color: white;
   font-size: 26px;
   margin-bottom: 20px;
 }
 
-/* Main button */
+/* BUTTON */
 .myButton {
   background-color: #3498db;
   color: white;
@@ -127,11 +127,11 @@ h2 {
   color: var(--clr-light);
 }
 
-/* Responsive layout */
+/* RESPONSIVE TWEAKS */
 @media (max-width: 600px) {
   h1 {
     font-size: 18px;
-    margin-left: 20px;
+    margin: 16px;
   }
 
   .myButton {
