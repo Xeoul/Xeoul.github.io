@@ -883,6 +883,14 @@ p {
     gap: 25px;
     text-align: center;
     max-width: 100%;
+    justify-items: center;
+  }
+  
+  .hero-text {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
   }
   
   .hero-title .greeting {
@@ -931,6 +939,7 @@ p {
     gap: 12px;
     max-width: 280px;
     margin: 0 auto;
+    align-items: center;
   }
   
   .cta-primary, .cta-secondary {
@@ -938,6 +947,8 @@ p {
     justify-content: center;
     padding: 12px 20px;
     font-size: 14px;
+    text-align: center;
+    box-sizing: border-box;
   }
   
   .code-window {
