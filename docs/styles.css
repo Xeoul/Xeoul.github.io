@@ -46,11 +46,14 @@ body {
   left: -100%;
   width: 100%;
   min-height: 10vh;
-  display: block;
   z-index: 99;
   padding-top: 70px;
   transition: left 0.3s;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
 }
+
 
 .in-menu.is-active {
   left: 0%;
