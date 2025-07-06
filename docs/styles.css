@@ -871,6 +871,55 @@ p {
     box-sizing: border-box;
   }
   
+  /* Main content container for mobile */
+  .center {
+    padding-top: 55px;
+    padding-left: 10px;
+    padding-right: 10px;
+    padding-bottom: 20px;
+  }
+  
+  /* About page content adjustments */
+  .about-content {
+    padding: 0 5px;
+    max-width: 100%;
+  }
+  
+  .intro-section {
+    margin-bottom: 30px;
+  }
+  
+  .intro-text {
+    font-size: 14px !important;
+    line-height: 1.5;
+    margin-bottom: 20px;
+  }
+  
+  .education-section, .skills-section, .strengths-section {
+    margin-bottom: 35px;
+  }
+  
+  .education-item {
+    padding: 20px;
+    margin-bottom: 15px;
+  }
+  
+  .skills-grid {
+    gap: 15px;
+  }
+  
+  .skill-category {
+    padding: 15px;
+  }
+  
+  .strengths-grid {
+    gap: 15px;
+  }
+  
+  .strength-item {
+    padding: 18px;
+  }
+  
   .header-title h1 {
     font-size: 16px !important;
     letter-spacing: 0.3px;
@@ -1204,6 +1253,14 @@ p {
     height: 40px;
   }
   
+  /* Main content container for iPhone */
+  .center {
+    padding-top: 50px;
+    padding-left: 5px;
+    padding-right: 5px;
+    padding-bottom: 20px;
+  }
+  
   .header-title h1 {
     font-size: 14px !important;
     letter-spacing: 0.2px;
@@ -1348,18 +1405,33 @@ p {
   }
   
   /* About section iPhone */
+  .about-content {
+    padding: 0 5px;
+    max-width: 100%;
+  }
+  
   .about-grid {
-    gap: 18px;
+    gap: 15px;
+  }
+  
+  .intro-section {
+    margin-bottom: 25px;
   }
   
   .intro-text {
     font-size: 13px !important;
-    margin-bottom: 18px;
+    margin-bottom: 15px;
     padding: 0 3px;
+    line-height: 1.4;
+  }
+  
+  .education-section, .skills-section, .strengths-section {
+    margin-bottom: 30px;
   }
   
   .education-highlight {
-    padding: 12px;
+    padding: 15px;
+    margin-bottom: 15px;
   }
   
   .education-highlight h3 {
@@ -1367,16 +1439,23 @@ p {
     margin-bottom: 10px;
   }
   
+  .education-item {
+    padding: 15px;
+  }
+  
   .education-item h4 {
     font-size: 15px;
+    margin-bottom: 8px;
   }
   
   .degree {
     font-size: 13px;
+    margin: 3px 0;
   }
   
   .graduation {
     font-size: 12px;
+    margin: 3px 0;
   }
   
   .skills-grid {
@@ -1385,58 +1464,129 @@ p {
   
   .skill-category {
     padding: 12px;
+    margin-bottom: 10px;
   }
   
   .skill-category h4 {
-    font-size: 15px;
+    font-size: 14px;
     margin-bottom: 8px;
   }
   
+  .skill-tags {
+    gap: 6px;
+  }
+  
   .skill-tag {
-    font-size: 10px;
+    font-size: 9px;
     padding: 3px 6px;
+  }
+  
+  .strengths-grid {
+    gap: 12px;
+  }
+  
+  .strength-item {
+    padding: 15px;
+    margin-bottom: 10px;
+  }
+  
+  .strength-item h4 {
+    font-size: 14px;
+    margin-bottom: 6px;
+  }
+  
+  .strength-item p {
+    font-size: 11px;
+    line-height: 1.4;
   }
   
   /* Projects section iPhone */
   .projects-grid {
-    gap: 18px;
+    gap: 15px;
   }
   
   .project-card {
-    padding: 12px 10px;
-    margin: 12px 5px;
+    padding: 15px 12px;
+    margin: 10px 3px;
+    width: calc(100% - 6px);
+    border-radius: 10px;
   }
   
   .project-header {
     flex-direction: column;
     align-items: flex-start;
-    margin-bottom: 10px;
+    margin-bottom: 12px;
+    gap: 8px;
   }
   
   .project-header h3 {
-    font-size: 16px !important;
-    margin-bottom: 6px;
+    font-size: 18px !important;
+    margin-bottom: 4px;
+    line-height: 1.2;
   }
   
   .project-badge {
     font-size: 9px;
-    padding: 4px 8px;
+    padding: 4px 10px;
+    border-radius: 15px;
+  }
+  
+  .project-description {
+    margin-bottom: 15px;
   }
   
   .project-description p {
     font-size: 12px;
     line-height: 1.4;
-    margin-bottom: 12px;
+    margin-bottom: 10px;
+  }
+  
+  .tech-stack, .project-highlights {
+    margin-bottom: 15px;
+  }
+  
+  .tech-stack h4, .project-highlights h4 {
+    font-size: 14px;
+    margin-bottom: 8px;
+  }
+  
+  .tech-tags {
+    gap: 6px;
   }
   
   .tech-tag {
-    font-size: 10px;
-    padding: 3px 6px;
+    font-size: 9px;
+    padding: 3px 8px;
+    border-radius: 12px;
+  }
+  
+  .project-highlights ul {
+    margin: 0;
+    padding: 0;
+  }
+  
+  .project-highlights li {
+    font-size: 11px;
+    padding: 4px 0;
+    padding-left: 20px;
+    line-height: 1.4;
+  }
+  
+  .project-highlights li:before {
+    font-size: 12px;
+  }
+  
+  .project-links {
+    margin-top: 15px;
+    gap: 8px;
   }
   
   .project-btn {
     font-size: 11px;
-    padding: 8px 14px;
+    padding: 10px 16px;
+    border-radius: 20px;
+    width: 100%;
+    justify-content: center;
   }
   
   /* Contact section iPhone */
