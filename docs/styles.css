@@ -49,10 +49,12 @@ body {
   z-index: 99;
   padding-top: 70px;
   transition: left 0.3s;
+
   display: flex;
-  flex-direction: row;
+  flex-direction: column; /* ✅ makes links stack vertically */
   align-items: flex-start;
 }
+
 
 
 
