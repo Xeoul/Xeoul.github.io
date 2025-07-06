@@ -79,8 +79,21 @@ body.index-page .hamburger .bar {
 
 /* TITLE TO THE RIGHT OF MENU */
 header h1 {
-  font-size: 24px;
+  font-family: "Hack", "Fira Code", "Source Code Pro", "Monaco", "Consolas", monospace;
+  font-size: 22px;
+  font-weight: 600;
   margin: 0;
+  color: #00ff41;
+  text-shadow: 0 0 8px rgba(0, 255, 65, 0.3);
+  letter-spacing: 0.5px;
+  user-select: none;
+  transition: all 0.3s ease;
+}
+
+header h1:hover {
+  color: #3498db;
+  text-shadow: 0 0 12px rgba(52, 152, 219, 0.4);
+  transform: scale(1.02);
 }
 
 /* NAV MENU */
