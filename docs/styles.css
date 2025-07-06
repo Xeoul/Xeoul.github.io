@@ -1,6 +1,11 @@
 body {
-  background-color: #333333;
+  background-image: url('background.jpg');
+  background-size: cover;        /* Cover entire screen */
+  background-position: center;   /* Center the image */
+  background-repeat: no-repeat;
+  background-attachment: fixed;  /* Optional: for parallax effect */
   font-family: "Hack", sans-serif;
+  color: white; /* ensure text is readable */
 }
 
 .hamburger {
