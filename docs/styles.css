@@ -1,13 +1,18 @@
-body {
-  background-image: url('background.png');
-  background-size: cover;        /* Cover entire screen */
-  background-position: center;   /* Center the image */
-  background-repeat: no-repeat;
-  background-attachment: fixed;  /* Optional: for parallax effect */
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
   font-family: "Hack", sans-serif;
-  color: white; /* ensure text is readable */
+  background-color: #000;
+  color: white;
+  background-image: url('background.jpg'); /* Optional: replace with your image */
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-attachment: fixed;
 }
 
+/* Hamburger Menu */
 .hamburger {
   position: relative;
   z-index: 999;
@@ -45,6 +50,7 @@ body {
   opacity: 0;
 }
 
+/* Navigation Menu */
 .in-menu {
   position: fixed;
   top: -10px;
@@ -54,14 +60,10 @@ body {
   z-index: 99;
   padding-top: 70px;
   transition: left 0.3s;
-
   display: flex;
-  flex-direction: column; /* ✅ makes links stack vertically */
+  flex-direction: column;
   align-items: flex-start;
 }
-
-
-
 
 .in-menu.is-active {
   left: 0%;
@@ -76,12 +78,11 @@ body {
   box-sizing: border-box;
 }
 
-
 .in-menu a:hover {
   background-color: #24014f;
 }
 
-/* Styling for the website title */
+/* Title */
 h1 {
   margin-left: 50px;
   color: white;
@@ -89,30 +90,24 @@ h1 {
   font-size: 20px;
 }
 
+/* Centered main content */
+.main-content {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+/* Page subtitle */
 h2 {
   color: white;
-  text-align: center;
+  font-size: 24px;
+  margin-bottom: 20px;
 }
 
-.center {
-  text-align: center;
-  margin-top: 50px;
-}
-
-.custom-button {
-  background-color: #3498db;
-  color: white;
-  font-size: 20px;
-  padding: 10px 20px;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-}
-
-.custom-button:hover {
-  background-color: #2980b9;
-}
-
+/* Button styling */
 .myButton {
   background-color: #3498db;
   color: white;
@@ -121,6 +116,7 @@ h2 {
   border: none;
   border-radius: 5px;
   cursor: pointer;
+  text-decoration: none;
   transition: transform 0.3s, background-color 0.3s, color 0.3s;
 }
 
