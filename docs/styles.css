@@ -50,7 +50,7 @@ body {
   padding-top: 70px;
   transition: left 0.3s;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: flex-start;
 }
 
