@@ -31,31 +31,37 @@ header {
   background: none;
   border: none;
   cursor: pointer;
-  padding: 0;
+  padding: 8px;
   display: flex;
   flex-direction: column;
   justify-content: center;
+  align-items: center;
+  width: 40px;
+  height: 40px;
   z-index: 101;
   margin-right: 12px; /* space between icon and "Xeoul" */
 }
 
-
 .hamburger .bar {
   width: 25px;
   height: 3px;
-  margin: 4px 0;
+  margin: 3px 0;
   background-color: white;
-  transition: 0.3s;
+  transition: all 0.3s ease;
+  border-radius: 1px;
+  transform-origin: center;
 }
 
+/* Hamburger to X animation */
 .hamburger.is-active .bar:nth-child(1) {
-  transform: rotate(-45deg) translate(-5px, 6px);
+  transform: rotate(45deg) translate(6px, 6px);
 }
 .hamburger.is-active .bar:nth-child(2) {
   opacity: 0;
+  transform: scale(0);
 }
 .hamburger.is-active .bar:nth-child(3) {
-  transform: rotate(45deg) translate(-5px, -6px);
+  transform: rotate(-45deg) translate(6px, -6px);
 }
 
 /* TITLE TO THE RIGHT OF MENU */
