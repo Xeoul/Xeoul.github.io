@@ -13,25 +13,27 @@ body {
 header {
   display: flex;
   align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   padding: 15px 20px;
-  background: rgba(0, 0, 0, 0.7);
+  background: rgba(0, 0, 0, 0.6);
   z-index: 100;
 }
 
-/* HAMBURGER MENU ICON (LEFT) */
+/* HAMBURGER BUTTON (TOP LEFT) */
 .hamburger {
   background: none;
   border: none;
   cursor: pointer;
   padding: 0;
-  margin-right: 12px;
   display: flex;
   flex-direction: column;
   justify-content: center;
+  z-index: 101;
 }
 
 .hamburger .bar {
@@ -45,33 +47,31 @@ header {
 .hamburger.is-active .bar:nth-child(1) {
   transform: rotate(-45deg) translate(-5px, 6px);
 }
-
 .hamburger.is-active .bar:nth-child(2) {
   opacity: 0;
 }
-
 .hamburger.is-active .bar:nth-child(3) {
   transform: rotate(45deg) translate(-5px, -6px);
 }
 
-/* "Xeoul" Title */
+/* TITLE TO THE RIGHT OF MENU */
 header h1 {
-  margin: 0;
   font-size: 24px;
+  margin: 0;
 }
 
-/* SLIDE-OUT MENU */
+/* NAV MENU */
 .in-menu {
   position: fixed;
   top: 60px;
-  left: -250px;
-  background: rgba(0, 0, 0, 0.95);
+  left: -220px;
+  background: rgba(0, 0, 0, 0.9);
   padding: 20px;
-  transition: left 0.3s ease;
-  z-index: 99;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
+  transition: left 0.3s ease;
+  z-index: 99;
 }
 
 .in-menu.active {
@@ -82,24 +82,23 @@ header h1 {
   color: white;
   text-decoration: none;
   font-size: 18px;
-  display: inline; /* Make only the text clickable */
+  display: inline-block;
   width: fit-content;
-  padding: 5px 0;
+  padding: 4px 0;
 }
 
 .in-menu a:hover {
-  background-color: transparent;
   text-decoration: underline;
 }
 
-/* MAIN CENTERING */
+/* MAIN CENTERED CONTENT */
 .center {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 100vh;
   text-align: center;
+  height: 100vh;
   padding-top: 60px;
 }
 
@@ -117,23 +116,19 @@ h2 {
   border: none;
   border-radius: 5px;
   cursor: pointer;
-  transition: transform 0.3s, background-color 0.3s;
   text-decoration: none;
+  transition: 0.3s;
 }
 
 .myButton:hover {
-  transform: translateY(-3px);
   background-color: #2980b9;
+  transform: translateY(-3px);
 }
 
 /* RESPONSIVE */
 @media screen and (max-width: 768px) {
-  .center {
-    padding-top: 80px;
-  }
-
   .in-menu {
-    width: auto;
+    width: 100%;
     left: -100%;
   }
 
