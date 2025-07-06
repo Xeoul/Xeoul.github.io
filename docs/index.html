@@ -23,10 +23,84 @@
         <a href="contact.html">Contact</a>
     </nav>
 
-    <div class="center">
-        <h2>Welcome to my Webpage</h2>
-        <a href="https://www.youtube.com/watch?v=dQw4w9WgXcQ" class="myButton">Learn more</a>
-    </div>
+    <main class="hero-section">
+        <div class="hero-content">
+            <div class="hero-text">
+                <h1 class="hero-title">
+                    <span class="greeting">Hello, I'm</span>
+                    <span class="name">Vincent</span>
+                    <span class="role">Full-Stack Developer</span>
+                </h1>
+                
+                <p class="hero-description">
+                    I create innovative web applications and digital experiences using modern technologies. 
+                    Passionate about clean code, user experience, and bringing ideas to life through software.
+                </p>
+                
+                <div class="hero-stats">
+                    <div class="stat-item">
+                        <span class="stat-number">2+</span>
+                        <span class="stat-label">Years Experience</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">5+</span>
+                        <span class="stat-label">Projects Completed</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">100%</span>
+                        <span class="stat-label">Dedication</span>
+                    </div>
+                </div>
+                
+                <div class="hero-actions">
+                    <a href="projects.html" class="cta-primary">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M19,3H5C3.89,3 3,3.89 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5C3.89,3 3,3.89 3H19M19,5V19H5V5H19Z"/>
+                        </svg>
+                        View My Work
+                    </a>
+                    <a href="contact.html" class="cta-secondary">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M20,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V6C2.89,4 2,4.89 4H20M20,8L12,13L4,8V6L12,11L20,6V8Z"/>
+                        </svg>
+                        Get In Touch
+                    </a>
+                </div>
+            </div>
+            
+            <div class="hero-visual">
+                <div class="code-window">
+                    <div class="window-header">
+                        <div class="window-controls">
+                            <span class="control close"></span>
+                            <span class="control minimize"></span>
+                            <span class="control maximize"></span>
+                        </div>
+                        <span class="window-title">vincent.js</span>
+                    </div>
+                    <div class="code-content">
+                        <div class="code-line"><span class="keyword">const</span> <span class="variable">developer</span> = {</div>
+                        <div class="code-line">  <span class="property">name</span>: <span class="string">'Vincent'</span>,</div>
+                        <div class="code-line">  <span class="property">role</span>: <span class="string">'Full-Stack Developer'</span>,</div>
+                        <div class="code-line">  <span class="property">skills</span>: [<span class="string">'JavaScript'</span>, <span class="string">'React'</span>, <span class="string">'Node.js'</span>],</div>
+                        <div class="code-line">  <span class="property">passion</span>: <span class="string">'Building amazing things'</span></div>
+                        <div class="code-line">};</div>
+                        <div class="code-line"></div>
+                        <div class="code-line"><span class="variable">developer</span>.<span class="method">code</span>();</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="scroll-indicator">
+            <span>Scroll to explore</span>
+            <div class="scroll-arrow">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M7.41,8.58L12,13.17L16.59,8.58L18,10L12,16L6,10L7.41,8.58Z"/>
+                </svg>
+            </div>
+        </div>
+    </main>
 
     <script src="script.js"></script>
 </body>
