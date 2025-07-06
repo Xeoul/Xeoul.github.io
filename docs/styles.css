@@ -87,14 +87,17 @@ header h1 {
 .in-menu {
   position: fixed;
   top: 60px;
-  left: -220px;
-  background: rgba(0, 0, 0, 0.9);
+  left: -250px;
+  width: 220px;
+  background: rgba(0, 0, 0, 0.95);
   padding: 20px;
   display: flex;
   flex-direction: column;
   gap: 10px;
   transition: left 0.3s ease;
-  z-index: 99;
+  z-index: 98;
+  height: calc(100vh - 60px);
+  overflow: hidden;
 }
 
 .in-menu.is-active {
@@ -185,6 +188,7 @@ p {
   transition: transform 0.3s ease, box-shadow 0.3s ease;
   position: relative;
   overflow: hidden;
+  z-index: 1;
 }
 
 .project-card::before {
@@ -381,13 +385,18 @@ p {
   
   /* Adjust navigation menu for mobile */
   .in-menu {
-    width: 100%;
-    left: -100%;
+    width: 280px;
+    left: -300px;
     top: 50px; /* Match header height */
+    height: calc(100vh - 50px);
+    z-index: 102;
+    background: rgba(0, 0, 0, 0.98);
+    padding: 25px 20px;
   }
 
   .in-menu.is-active {
     left: 0;
+    width: 280px;
   }
   
   /* Main content adjustments for mobile */
