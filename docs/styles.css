@@ -26,6 +26,7 @@ header {
 
 /* HAMBURGER BUTTON (TOP LEFT) */
 .hamburger {
+  position: relative;
   background: none;
   border: none;
   cursor: pointer;
@@ -34,7 +35,9 @@ header {
   flex-direction: column;
   justify-content: center;
   z-index: 101;
+  margin-right: 12px; /* space between icon and "Xeoul" */
 }
+
 
 .hamburger .bar {
   width: 25px;
