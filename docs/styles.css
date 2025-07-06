@@ -1086,9 +1086,81 @@ p {
     padding: 4px 8px;
   }
   
+  /* Projects section mobile optimizations */
+  .projects-section {
+    padding: 40px 15px;
+  }
+  
   .projects-grid {
     grid-template-columns: 1fr;
     gap: 20px;
+  }
+  
+  .project-card {
+    padding: 20px;
+    margin-bottom: 20px;
+    border-radius: 16px;
+  }
+  
+  .project-header {
+    flex-direction: column;
+    align-items: flex-start;
+    text-align: left;
+    margin-bottom: 15px;
+    gap: 8px;
+  }
+  
+  .project-header h3 {
+    font-size: 20px;
+    margin-bottom: 8px;
+    line-height: 1.3;
+  }
+  
+  .project-badge {
+    font-size: 11px;
+    padding: 6px 12px;
+    border-radius: 16px;
+  }
+  
+  .project-description {
+    margin-bottom: 20px;
+  }
+  
+  .project-description p {
+    font-size: 14px;
+    line-height: 1.5;
+    margin: 0;
+  }
+  
+  .tech-stack {
+    margin-bottom: 25px;
+  }
+  
+  .tech-tags {
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  
+  .tech-tag {
+    font-size: 11px;
+    padding: 6px 12px;
+    border-radius: 20px;
+    white-space: nowrap;
+  }
+  
+  .project-links {
+    margin-top: 20px;
+  }
+  
+  .project-btn {
+    justify-content: center;
+    width: 100%;
+    padding: 12px 20px;
+    font-size: 14px;
+    border-radius: 25px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
   }
   
   .contact-grid {
@@ -1395,93 +1467,80 @@ p {
     margin: 0;
   }
   
-  /* Projects section iPhone - Much more compact */
+  /* Projects section iPhone - Improved readability */
+  .projects-section {
+    padding: 30px 10px;
+  }
+  
   .projects-grid {
-    gap: 6px;
+    gap: 15px;
   }
   
   .project-card {
-    padding: 6px 5px;
-    margin: 3px 1px;
-    width: calc(100% - 2px);
-    border-radius: 6px;
+    padding: 15px;
+    margin-bottom: 15px;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
   }
   
   .project-header {
     flex-direction: column;
     align-items: flex-start;
-    margin-bottom: 6px;
-    gap: 3px;
+    margin-bottom: 12px;
+    gap: 6px;
   }
   
   .project-header h3 {
-    font-size: 14px !important;
-    margin-bottom: 1px;
-    line-height: 1.1;
+    font-size: 18px !important;
+    margin-bottom: 4px;
+    line-height: 1.2;
   }
   
   .project-badge {
-    font-size: 7px;
-    padding: 2px 6px;
-    border-radius: 10px;
+    font-size: 9px;
+    padding: 4px 8px;
+    border-radius: 12px;
   }
   
   .project-description {
-    margin-bottom: 6px;
+    margin-bottom: 15px;
   }
   
   .project-description p {
-    font-size: 10px;
-    line-height: 1.2;
-    margin-bottom: 4px;
+    font-size: 12px;
+    line-height: 1.4;
+    margin-bottom: 0;
   }
   
-  .tech-stack, .project-highlights {
-    margin-bottom: 6px;
-  }
-  
-  .tech-stack h4, .project-highlights h4 {
-    font-size: 11px;
-    margin-bottom: 3px;
+  .tech-stack {
+    margin-bottom: 18px;
   }
   
   .tech-tags {
-    gap: 3px;
+    gap: 6px;
+    flex-wrap: wrap;
   }
   
   .tech-tag {
-    font-size: 7px;
-    padding: 1px 4px;
-    border-radius: 8px;
-  }
-  
-  .project-highlights ul {
-    margin: 0;
-    padding: 0;
-  }
-  
-  .project-highlights li {
     font-size: 9px;
-    padding: 1px 0;
-    padding-left: 14px;
-    line-height: 1.2;
-  }
-  
-  .project-highlights li:before {
-    font-size: 9px;
+    padding: 4px 8px;
+    border-radius: 15px;
+    white-space: nowrap;
   }
   
   .project-links {
-    margin-top: 6px;
-    gap: 4px;
+    margin-top: 15px;
   }
   
   .project-btn {
-    font-size: 9px;
-    padding: 6px 10px;
-    border-radius: 14px;
+    font-size: 12px;
+    padding: 10px 16px;
+    border-radius: 20px;
     width: 100%;
     justify-content: center;
+    display: flex;
+    align-items: center;
+    gap: 6px;
   }
   
   /* Contact section iPhone */
