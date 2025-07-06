@@ -1010,9 +1010,9 @@ p {
 
   /* Scroll sections mobile */
   .scroll-section {
-    padding: 100px 12px 40px;
+    padding: 80px 12px 60px;
     min-height: 100vh;
-    align-items: flex-start;
+    align-items: center;
   }
   
   .section-content {
@@ -1361,8 +1361,8 @@ p {
   
   /* Scroll sections for iPhone */
   .scroll-section {
-    padding: 80px 10px 35px;
-    align-items: flex-start;
+    padding: 60px 10px 50px;
+    align-items: center;
   }
   
   .section-content {
@@ -1634,9 +1634,9 @@ p {
 .scroll-section {
   min-height: 100vh;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
-  padding: 120px 40px 80px;
+  padding: 60px 40px 100px;
   position: relative;
   opacity: 0;
   transform: translateY(50px);
