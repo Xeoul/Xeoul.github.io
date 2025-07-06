@@ -17,9 +17,12 @@ menuItems.forEach((menuItem) => {
 });
 
 document.addEventListener('click', (event) => {
-    const isClickInside = menu_btn.contains(event.target) || hamburg_menu.contains(event.target);
-    if (!isClickInside) {
-        hamburg_menu.classList.remove('is-active');
-        menu_btn.classList.remove('is-active');
-    }
+    setTimeout(() => {
+        const isClickInside = menu_btn.contains(event.target) || hamburg_menu.contains(event.target);
+        if (!isClickInside) {
+            hamburg_menu.classList.remove('is-active');
+            menu_btn.classList.remove('is-active');
+        }
+    }, 0);
 });
+
