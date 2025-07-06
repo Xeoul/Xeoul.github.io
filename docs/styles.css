@@ -330,36 +330,129 @@ p {
 
 /* RESPONSIVE */
 @media screen and (max-width: 768px) {
+  /* Adjust header for mobile */
+  header {
+    padding: 12px 15px;
+    height: 50px;
+    box-sizing: border-box;
+  }
+  
+  header h1 {
+    font-size: 20px;
+  }
+  
+  .hamburger {
+    width: 35px;
+    height: 35px;
+    padding: 6px;
+    margin-right: 10px;
+  }
+  
+  .hamburger .bar {
+    width: 20px;
+    height: 2px;
+    margin: 2px 0;
+  }
+  
+  /* Adjust navigation menu for mobile */
   .in-menu {
     width: 100%;
     left: -100%;
+    top: 50px; /* Match header height */
   }
 
   .in-menu.is-active {
     left: 0;
   }
   
+  /* Main content adjustments for mobile */
+  .center {
+    padding-top: 80px; /* More space from header */
+    padding-left: 10px;
+    padding-right: 10px;
+    min-height: calc(100vh - 80px);
+  }
+  
+  /* Mobile typography adjustments */
+  h2 {
+    font-size: 24px;
+    margin-bottom: 15px;
+    margin-top: 20px;
+  }
+  
+  p {
+    font-size: 16px;
+    margin-bottom: 25px;
+  }
+  
+  /* Project card mobile adjustments */
   .project-card {
-    padding: 20px;
-    width: 95%;
+    padding: 20px 15px;
+    width: calc(100% - 20px);
+    margin: 20px 10px;
+    border-radius: 12px;
   }
   
   .project-header {
     flex-direction: column;
     align-items: flex-start;
     text-align: left;
+    margin-bottom: 15px;
   }
   
   .project-header h3 {
-    font-size: 28px;
+    font-size: 24px;
+    margin-bottom: 10px;
+  }
+  
+  .project-badge {
+    font-size: 12px;
+    padding: 6px 12px;
+  }
+  
+  .project-description p {
+    font-size: 14px;
+    line-height: 1.6;
+  }
+  
+  .tech-stack h4, .project-highlights h4 {
+    font-size: 16px;
+    margin-bottom: 10px;
+  }
+  
+  .tech-tags {
+    gap: 8px;
+  }
+  
+  .tech-tag {
+    font-size: 12px;
+    padding: 5px 10px;
+  }
+  
+  .project-highlights li {
+    font-size: 14px;
+    padding: 6px 0;
   }
   
   .project-links {
     flex-direction: column;
+    gap: 10px;
+    margin-top: 20px;
   }
   
   .project-btn {
     justify-content: center;
     width: 100%;
+    padding: 14px 20px;
+    font-size: 15px;
+  }
+  
+  /* Make sure hamburger animation works on mobile */
+  .hamburger.is-active .bar:nth-child(1) {
+    transform: rotate(45deg) translate(4px, 4px);
+  }
+  
+  .hamburger.is-active .bar:nth-child(3) {
+    transform: rotate(-45deg) translate(4px, -4px);
   }
 }
