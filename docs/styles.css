@@ -22,6 +22,7 @@ header {
   padding: 15px 20px;
   background: rgba(0, 0, 0, 0.6);
   z-index: 100;
+  box-sizing: border-box;
 }
 
 /* HAMBURGER BUTTON (TOP LEFT) */
@@ -77,7 +78,7 @@ header h1 {
   z-index: 99;
 }
 
-.in-menu.active {
+.in-menu.is-active {
   left: 0;
 }
 
@@ -135,7 +136,7 @@ h2 {
     left: -100%;
   }
 
-  .in-menu.active {
+  .in-menu.is-active {
     left: 0;
   }
 }
