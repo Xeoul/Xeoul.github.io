@@ -15,3 +15,11 @@ menuItems.forEach((menuItem) => {
         document.body.classList.remove('menu-open'); // Add this line
     });
 });
+
+document.addEventListener('click', (event) => {
+    const isClickInside = menu_btn.contains(event.target) || hamburg_menu.contains(event.target);
+    if (!isClickInside) {
+        hamburg_menu.classList.remove('is-active');
+        menu_btn.classList.remove('is-active');
+    }
+});
