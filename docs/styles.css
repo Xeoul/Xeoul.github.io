@@ -5,6 +5,7 @@ body {
 
 .hamburger {
   position: relative;
+  z-index: 999; /* ✅ Keeps button clickable when menu is open */
   width: 35px;
   top: -42px;
   left: 4px;
@@ -41,7 +42,7 @@ body {
 
 .in-menu {
   position: fixed;
-  top: -10px; /* Adjust the top position to expose the menu */
+  top: -10px;
   left: -100%;
   width: 100%;
   min-height: 10vh;
@@ -57,7 +58,7 @@ body {
 
 .in-menu a {
   display: block;
-  width: 100%; /* full width of nav menu */
+  width: 100%;
   padding: 12px 16px;
   color: #fff;
   text-decoration: none;
@@ -71,10 +72,17 @@ body {
 
 /* Styling for the website title */
 h1 {
-  margin-left: 50px; /* Adjust the margin to create space */
+  margin-left: 50px;
+  color: white;
+  text-align: left;
+  font-size: 20px;
 }
 
-/* Centering for the button and additional styles */
+h2 {
+  color: white;
+  text-align: center;
+}
+
 .center {
   text-align: center;
   margin-top: 50px;
@@ -92,23 +100,6 @@ h1 {
 
 .custom-button:hover {
   background-color: #2980b9;
-}
-
-/* Body content CSS*/
-
-h1 {
-  color: white;
-  text-align: left;
-  font-size: 20px;
-}
-h2 {
-  color: white;
-  text-align: center;
-}
-
-.center {
-  text-align: center;
-  margin-top: 50px;
 }
 
 .myButton {
