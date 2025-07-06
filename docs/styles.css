@@ -84,14 +84,14 @@ body.index-page .hamburger .bar {
 
 /* Hamburger to X animation */
 .hamburger.is-active .bar:nth-child(1) {
-  transform: rotate(45deg) translate(5px, 5px);
+  transform: translateY(6px) rotate(45deg);
 }
 .hamburger.is-active .bar:nth-child(2) {
   opacity: 0;
   transform: scale(0);
 }
 .hamburger.is-active .bar:nth-child(3) {
-  transform: rotate(-45deg) translate(5px, -5px);
+  transform: translateY(-6px) rotate(-45deg);
 }
 
 /* HEADER LEFT SECTION */
@@ -837,10 +837,10 @@ p {
   
   /* Mobile hamburger to X animation adjustments */
   .hamburger.is-active .bar:nth-child(1) {
-    transform: rotate(45deg) translate(4px, 4px);
+    transform: translateY(4px) rotate(45deg);
   }
   .hamburger.is-active .bar:nth-child(3) {
-    transform: rotate(-45deg) translate(4px, -4px);
+    transform: translateY(-4px) rotate(-45deg);
   }
   
   /* Adjust navigation menu for mobile */
@@ -1277,10 +1277,10 @@ p {
   
   /* iPhone hamburger to X animation adjustments */
   .hamburger.is-active .bar:nth-child(1) {
-    transform: rotate(45deg) translate(3px, 3px);
+    transform: translateY(3px) rotate(45deg);
   }
   .hamburger.is-active .bar:nth-child(3) {
-    transform: rotate(-45deg) translate(3px, -3px);
+    transform: translateY(-3px) rotate(-45deg);
   }
   
   /* Extra compact menu */
