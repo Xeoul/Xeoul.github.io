@@ -1794,6 +1794,8 @@ p {
   opacity: 0;
   transform: translateY(50px) scale(0.95);
   backdrop-filter: blur(10px);
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 .scroll-section.visible .project-card:nth-child(1) {
@@ -1889,6 +1891,11 @@ p {
   font-size: 14px;
   transition: all 0.3s ease;
   box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+  box-sizing: border-box;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .project-btn:hover {
