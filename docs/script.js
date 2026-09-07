@@ -30,6 +30,15 @@ document.addEventListener('click', (e) => {
     }
 });
 
+// RESTRICTED REPOSITORY LINK
+const restrictedRepoLink = document.getElementById('restricted-repo-link');
+if (restrictedRepoLink) {
+    restrictedRepoLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        alert('Repository access may be restricted');
+    });
+}
+
 // APPLE-STYLE SCROLL ANIMATIONS
 // Intersection Observer for scroll animations
 const observerOptions = {
