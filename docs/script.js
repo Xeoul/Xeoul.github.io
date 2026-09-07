@@ -66,26 +66,9 @@ navLinks.forEach(link => {
     });
 });
 
-// PARALLAX SCROLL EFFECTS
-window.addEventListener('scroll', () => {
-    const scrolled = window.pageYOffset;
-    const parallaxElements = document.querySelectorAll('.scroll-section');
-    
-    parallaxElements.forEach((element, index) => {
-        const rate = scrolled * -0.5;
-        const yPos = -(rate / (index + 1));
-        
-        // Apply subtle parallax effect
-        if (element.classList.contains('visible')) {
-            element.style.transform = `translate3d(0, ${yPos * 0.1}px, 0)`;
-        }
-    });
-});
-
-// ENHANCED SCROLL INDICATOR ANIMATION
+// SCROLL INDICATOR PULSE ANIMATION
 const scrollIndicator = document.querySelector('.scroll-indicator');
 if (scrollIndicator) {
-    // Add pulsing animation
     setInterval(() => {
         const arrow = scrollIndicator.querySelector('.scroll-arrow');
         if (arrow) {
@@ -95,27 +78,46 @@ if (scrollIndicator) {
             }, 500);
         }
     }, 2000);
-    
-    // Hide scroll indicator when user starts scrolling
-    let scrollTimeout;
-    window.addEventListener('scroll', () => {
-        if (window.scrollY > 100) {
+}
+
+// COMBINED SCROLL EFFECTS: parallax, scroll indicator visibility, header opacity
+const header = document.querySelector('header');
+const parallaxElements = document.querySelectorAll('.scroll-section');
+
+let ticking = false;
+function onScroll() {
+    const scrolled = window.pageYOffset;
+
+    parallaxElements.forEach((element, index) => {
+        if (element.classList.contains('visible')) {
+            const rate = scrolled * -0.5;
+            const yPos = -(rate / (index + 1));
+            element.style.transform = `translate3d(0, ${yPos * 0.1}px, 0)`;
+        }
+    });
+
+    if (scrollIndicator) {
+        if (scrolled > 100) {
             scrollIndicator.style.opacity = '0';
             scrollIndicator.style.transform = 'translateY(20px)';
         } else {
             scrollIndicator.style.opacity = '1';
             scrollIndicator.style.transform = 'translateY(0)';
         }
-    });
-}
+    }
 
-// HEADER BACKGROUND OPACITY ON SCROLL
-const header = document.querySelector('header');
-window.addEventListener('scroll', () => {
-    const scrolled = window.scrollY;
     const opacity = Math.min(scrolled / 100, 0.95);
     header.style.backgroundColor = `rgba(0, 0, 0, ${opacity})`;
-});
+
+    ticking = false;
+}
+
+window.addEventListener('scroll', () => {
+    if (!ticking) {
+        requestAnimationFrame(onScroll);
+        ticking = true;
+    }
+}, { passive: true });
 
 // STAGGERED ANIMATION FOR PROJECT CARDS
 const projectCards = document.querySelectorAll('.project-card');

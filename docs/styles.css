@@ -13,7 +13,8 @@ body {
   margin: 0;
   padding: 0;
   font-family: "Hack", sans-serif;
-  background: #000000;
+  background: url('background.png') no-repeat center center fixed;
+  background-size: cover;
   color: white;
   overflow-x: hidden;
   /* Prevent zoom on mobile */
@@ -22,12 +23,6 @@ body {
   -ms-text-size-adjust: 100%;
   text-size-adjust: 100%;
   touch-action: pan-y;
-}
-
-/* INDEX PAGE SPECIFIC BACKGROUND */
-body.index-page {
-  background: url('background.png') no-repeat center center fixed;
-  background-size: cover;
 }
 
 /* HEADER */
@@ -76,12 +71,6 @@ header {
   display: block;
 }
 
-/* Ensure bars stay white on index page */
-body.index-page .hamburger .bar {
-  background-color: #ffffff !important;
-  background: #ffffff !important;
-}
-
 /* Hamburger to X animation */
 .hamburger.is-active .bar:nth-child(1) {
   transform: translateY(6px) rotate(45deg);
@@ -92,13 +81,6 @@ body.index-page .hamburger .bar {
 }
 .hamburger.is-active .bar:nth-child(3) {
   transform: translateY(-6px) rotate(-45deg);
-}
-
-/* HEADER LEFT SECTION */
-.header-left {
-  display: flex;
-  align-items: center;
-  gap: 12px;
 }
 
 /* CLICKABLE HEADER TITLE */
@@ -188,21 +170,6 @@ body.index-page .hamburger .bar {
 
 .in-menu a:hover {
   text-decoration: underline;
-}
-
-/* MAIN CENTERED CONTENT */
-.center {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-start;
-  text-align: center;
-  min-height: 100vh;
-  padding-top: 80px;
-  padding-bottom: 40px;
-  width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
 }
 
 /* HERO SECTION STYLES */
@@ -458,118 +425,13 @@ p {
   text-align: center;
 }
 
-/* BUTTON */
-.myButton {
-  background-color: #3498db;
-  color: white;
-  font-size: 20px;
-  padding: 10px 20px;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  text-decoration: none;
-  transition: 0.3s;
-}
-
-.myButton:hover {
-  background-color: #2980b9;
-  transform: translateY(-3px);
-}
-
-/* PROJECTS MINIMAL LIST STYLING */
-.projects-minimal {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    margin-top: 30px;
-    width: 100%;
-    max-width: 800px;
-    text-align: left; /* Ensures text aligns left inside the center container */
-}
-
-.project-entry {
-    background: rgba(255, 255, 255, 0.05); /* Subtle dark box */
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    padding: 25px;
-    border-radius: 12px;
-    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-    backdrop-filter: blur(5px);
-}
-
-.project-entry:hover {
-    background: rgba(255, 255, 255, 0.08);
-    border-color: #3498db; /* Blue border on hover */
-    transform: translateY(-5px);
-    box-shadow: 0 10px 30px rgba(52, 152, 219, 0.2);
-}
-
-.project-line {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 12px;
-}
-
-.project-name {
-    font-size: 1.4em;
-    font-weight: 700;
-    color: #ffffff;
-}
-
-.project-type {
-    font-size: 0.75em;
-    text-transform: uppercase;
-    letter-spacing: 1.5px;
-    color: #3498db;
-    background: rgba(52, 152, 219, 0.1);
-    padding: 6px 12px;
-    border-radius: 6px;
-    font-weight: 600;
-}
-
-.project-info {
-    font-size: 0.95em;
-    color: #888;
-    margin-bottom: 15px;
-    font-family: "Hack", monospace;
-}
-
-.project-github {
-    display: inline-flex;
-    align-items: center;
-    color: #3498db;
-    text-decoration: none;
-    font-weight: 600;
-    font-size: 0.9em;
-    transition: color 0.2s;
-}
-
-.project-github:hover {
-    color: #ffffff;
-    text-decoration: underline;
-}
-/* ABOUT PAGE STYLES */
-.about-content {
-  max-width: 900px;
-  width: 100%;
-  text-align: left;
-}
-
-.intro-section {
-  margin-bottom: 40px;
-  text-align: center;
-}
-
+/* ABOUT SECTION SHARED COMPONENTS */
 .intro-text {
   font-size: 20px;
   line-height: 1.7;
   color: #e0e0e0;
   max-width: 700px;
   margin: 0 auto;
-}
-
-.education-section, .skills-section, .strengths-section {
-  margin-bottom: 50px;
 }
 
 .education-item {
@@ -669,12 +531,7 @@ p {
   margin: 0;
 }
 
-/* CONTACT PAGE STYLES */
-.contact-content {
-  max-width: 800px;
-  width: 100%;
-}
-
+/* CONTACT SECTION SHARED COMPONENTS */
 .contact-intro {
   margin-bottom: 40px;
   text-align: center;
@@ -736,24 +593,6 @@ p {
   font-weight: 500;
 }
 
-.availability-section {
-  background: rgba(52, 152, 219, 0.1);
-  border-radius: 12px;
-  padding: 25px;
-  border-left: 4px solid #3498db;
-}
-
-.availability-section h3 {
-  color: #3498db;
-  margin: 0 0 15px 0;
-}
-
-.availability-info p {
-  color: #e0e0e0;
-  line-height: 1.8;
-  margin: 0;
-}
-
 /* SECONDARY PROJECT BADGE */
 .project-badge.secondary {
   background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
@@ -769,34 +608,12 @@ p {
     box-sizing: border-box;
   }
   
-  /* Main content container for mobile */
-  .center {
-    padding-top: 55px;
-    padding-left: 10px;
-    padding-right: 10px;
-    padding-bottom: 20px;
-  }
-  
-  /* About page content adjustments */
-  .about-content {
-    padding: 0 5px;
-    max-width: 100%;
-  }
-  
-  .intro-section {
-    margin-bottom: 30px;
-  }
-  
   .intro-text {
     font-size: 14px !important;
     line-height: 1.5;
     margin-bottom: 20px;
   }
-  
-  .education-section, .skills-section, .strengths-section {
-    margin-bottom: 35px;
-  }
-  
+
   .education-item {
     padding: 20px;
     margin-bottom: 15px;
@@ -873,14 +690,6 @@ p {
   .in-menu a {
     font-size: 16px;
     padding: 3px 0;
-  }
-  
-  /* Main content adjustments for mobile */
-  .center {
-    padding-top: 55px;
-    padding-left: 8px;
-    padding-right: 8px;
-    min-height: calc(100vh - 55px);
   }
   
   /* Hero section mobile adjustments */
@@ -1003,42 +812,6 @@ p {
     line-height: 1.4;
   }
   
-  /* Minimal project mobile adjustments */
-  .projects-minimal {
-    margin: 0 -10px;
-  }
-  
-  .project-entry {
-    margin-bottom: 16px;
-    padding: 0 10px 12px 10px;
-  }
-  
-  .project-line {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 2px;
-    margin-bottom: 3px;
-  }
-  
-  .project-name {
-    font-size: 16px;
-    line-height: 1.2;
-  }
-  
-  .project-type {
-    font-size: 11px;
-  }
-  
-  .project-info {
-    font-size: 13px;
-    margin-bottom: 5px;
-    line-height: 1.3;
-  }
-  
-  .project-github {
-    font-size: 12px;
-  }
-
   /* Scroll sections mobile */
   .scroll-section {
     padding: 60px 12px 80px;
@@ -1262,14 +1035,6 @@ p {
     height: 40px;
   }
   
-  /* Main content container for iPhone */
-  .center {
-    padding-top: 50px;
-    padding-left: 5px;
-    padding-right: 5px;
-    padding-bottom: 20px;
-  }
-  
   .header-title h1 {
     font-size: 14px !important;
     letter-spacing: 0.2px;
@@ -1423,35 +1188,17 @@ p {
   }
   
   /* About section iPhone - Much more compact */
-  .about-content {
-    padding: 0 3px;
-    max-width: 100%;
-  }
-  
   .about-grid {
     gap: 8px;
   }
-  
-  .intro-section {
-    margin-bottom: 15px;
-  }
-  
+
   .intro-text {
     font-size: 11px !important;
     margin-bottom: 10px;
     padding: 0 2px;
     line-height: 1.3;
   }
-  
-  .education-section, .skills-section, .strengths-section {
-    margin-bottom: 20px;
-  }
-  
-  .education-section h3, .skills-section h3, .strengths-section h3 {
-    font-size: 16px;
-    margin-bottom: 8px;
-  }
-  
+
   .education-highlight {
     padding: 10px;
     margin-bottom: 10px;
@@ -2090,67 +1837,4 @@ p {
 
 .scroll-section.visible::before {
   opacity: 1;
-}
-  .project-header {
-    flex-direction: column;
-    align-items: flex-start;
-    text-align: left;
-    margin-bottom: 15px;
-  }
-  
-  .project-header h3 {
-    font-size: 24px;
-    margin-bottom: 10px;
-  }
-  
-  .project-badge {
-    font-size: 12px;
-    padding: 6px 12px;
-  }
-  
-  .project-description p {
-    font-size: 14px;
-    line-height: 1.6;
-  }
-  
-  .tech-stack h4, .project-highlights h4 {
-    font-size: 16px;
-    margin-bottom: 10px;
-  }
-  
-  .tech-tags {
-    gap: 8px;
-  }
-  
-  .tech-tag {
-    font-size: 12px;
-    padding: 5px 10px;
-  }
-  
-  .project-highlights li {
-    font-size: 14px;
-    padding: 6px 0;
-  }
-  
-  .project-links {
-    flex-direction: column;
-    gap: 10px;
-    margin-top: 20px;
-  }
-  
-  .project-btn {
-    justify-content: center;
-    width: 100%;
-    padding: 14px 20px;
-    font-size: 15px;
-  }
-  
-  /* Make sure hamburger animation works on mobile */
-  .hamburger.is-active .bar:nth-child(1) {
-    transform: rotate(45deg) translate(4px, 4px);
-  }
-  
-  .hamburger.is-active .bar:nth-child(3) {
-    transform: rotate(-45deg) translate(4px, -4px);
-  }
 }
