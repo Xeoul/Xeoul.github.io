@@ -155,8 +155,8 @@ header {
   gap: 10px;
   transition: left 0.3s ease;
   z-index: 98;
-  height: calc(100vh - 60px);
-  overflow: hidden;
+  border-radius: 0 0 12px 0;
+  box-shadow: 6px 6px 24px rgba(0, 0, 0, 0.4);
 }
 
 .in-menu.is-active {
@@ -674,7 +674,6 @@ p {
     width: 250px;
     left: -270px;
     top: 45px;
-    height: calc(100vh - 45px);
     z-index: 102;
     background: rgba(0, 0, 0, 0.98);
     padding: 20px 15px;
