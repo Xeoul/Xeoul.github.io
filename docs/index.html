@@ -6,7 +6,7 @@
     <title>Vincent Lam - Portfolio</title>
     <link rel="stylesheet" href="styles.css">
 </head>
-<body class="index-page">
+<body>
     <header>
         <button class="hamburger">
             <div class="bar"></div>
@@ -56,7 +56,7 @@
                         <span class="stat-label">Years Experience</span>
                     </div>
                     <div class="stat-item">
-                        <span class="stat-number">2</span>
+                        <span class="stat-number">3</span>
                         <span class="stat-label">Major Projects</span>
                     </div>
                 </div>
@@ -64,13 +64,13 @@
                 <div class="hero-actions">
                     <a href="#projects" class="cta-primary nav-link">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M19,3H5C3.89,3 3,3.89 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5C3.89,3 3,3.89 3H19M19,5V19H5V5H19Z"/>
+                            <path d="M10,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V8C22,6.89 21.1,6 20,6H12L10,4Z"/>
                         </svg>
                         View My Work
                     </a>
                     <a href="#contact" class="cta-secondary nav-link">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M20,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V6C2.89,4 2,4.89 4H20M20,8L12,13L4,8V6L12,11L20,6V8Z"/>
+                            <path d="M20,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V6C22,4.89 21.1,4 20,4M20,8L12,13L4,8V6L12,11L20,6V8Z"/>
                         </svg>
                         Get In Touch
                     </a>
@@ -156,18 +156,49 @@
                                 <span class="skill-tag">Docker</span>
                                 <span class="skill-tag">MySQL</span>
                                 <span class="skill-tag">SharePoint</span>
+                                <span class="skill-tag">Microsoft Office Suite</span>
+                                <span class="skill-tag">Adobe Acrobat</span>
                             </div>
                         </div>
-                        
+
                         <div class="skill-category">
                             <h4>Systems</h4>
                             <div class="skill-tags">
-                                <span class="skill-tag">Windows</span>
+                                <span class="skill-tag">Windows 10/11</span>
                                 <span class="skill-tag">macOS</span>
                                 <span class="skill-tag">Linux</span>
                             </div>
                         </div>
+
+                        <div class="skill-category">
+                            <h4>AI &amp; Automation</h4>
+                            <div class="skill-tags">
+                                <span class="skill-tag">Ollama / Llama3</span>
+                                <span class="skill-tag">Prompt Engineering</span>
+                                <span class="skill-tag">Power Automate</span>
+                                <span class="skill-tag">Python Scripting</span>
+                            </div>
+                        </div>
                     </div>
+                </div>
+            </div>
+
+            <div class="strengths-grid">
+                <div class="strength-item">
+                    <h4>Communication</h4>
+                    <p>Strong interpersonal and communication skills, both verbally and in writing</p>
+                </div>
+                <div class="strength-item">
+                    <h4>Problem Solving</h4>
+                    <p>Excellent problem-solving skills with the ability to handle multiple tasks simultaneously</p>
+                </div>
+                <div class="strength-item">
+                    <h4>Data Analysis</h4>
+                    <p>Experience in performing analytical tasks and data analysis</p>
+                </div>
+                <div class="strength-item">
+                    <h4>Adaptability</h4>
+                    <p>Ability to remain flexible and adaptable in fast-paced environments</p>
                 </div>
             </div>
         </div>
@@ -182,6 +213,35 @@
             </div>
             
             <div class="projects-grid">
+                <!-- Fedora Sentinel Project -->
+                <div class="project-card">
+                    <div class="project-header">
+                        <h3>Fedora Sentinel</h3>
+                        <span class="project-badge secondary">AI System Agent</span>
+                    </div>
+
+                    <div class="project-description">
+                        <p>Automated Linux diagnostics agent that uses a locally-hosted LLM to monitor system health and surface issues before they become problems.</p>
+                    </div>
+
+                    <div class="tech-stack">
+                        <div class="tech-tags">
+                            <span class="tech-tag">Python</span>
+                            <span class="tech-tag">Bash</span>
+                            <span class="tech-tag">Ollama (Llama3)</span>
+                        </div>
+                    </div>
+
+                    <div class="project-links">
+                        <a href="https://github.com/xeoul/sentinel" target="_blank" class="project-btn">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.30.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                            </svg>
+                            View on GitHub
+                        </a>
+                    </div>
+                </div>
+
                 <!-- Element-115 Project -->
                 <div class="project-card">
                     <div class="project-header">
@@ -266,23 +326,26 @@
                             <strong>Status:</strong> Available for new opportunities
                         </div>
                         <div class="status-item">
+                            <strong>Preferred Contact:</strong> Email for initial contact
+                        </div>
+                        <div class="status-item">
                             <strong>Response Time:</strong> Within 24 hours
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="contact-methods">
                     <div class="contact-card">
                         <div class="contact-icon">
                             <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M20,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V6C2.89,4 2,4.89 4H20M20,8L12,13L4,8V6L12,11L20,6V8Z"/>
+                                <path d="M20,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V6C22,4.89 21.1,4 20,4M20,8L12,13L4,8V6L12,11L20,6V8Z"/>
                             </svg>
                         </div>
                         <h3>Email</h3>
                         <p>Primary contact method</p>
                         <a href="mailto:v812.io@gmail.com" class="contact-link">v812.io@gmail.com</a>
                     </div>
-                    
+
                     <div class="contact-card">
                         <div class="contact-icon">
                             <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
@@ -302,6 +365,16 @@
                         <h3>LinkedIn</h3>
                         <p>Professional network</p>
                         <a href="https://www.linkedin.com/in/vincentlam812" class="contact-link" target="_blank">vincentlam812</a>
+                    </div>
+                    <div class="contact-card">
+                        <div class="contact-icon">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12,2A10,10 0 0,0 2,12C2,16.42 4.87,20.17 8.84,21.5C9.34,21.58 9.5,21.27 9.5,21C9.5,20.77 9.5,20.14 9.5,19.31C6.73,19.91 6.14,17.97 6.14,17.97C5.68,16.81 5.03,16.5 5.03,16.5C4.12,15.88 5.1,15.9 5.1,15.9C6.1,15.97 6.63,16.93 6.63,16.93C7.5,18.45 8.97,18 9.54,17.76C9.63,17.11 9.89,16.67 10.17,16.42C7.95,16.17 5.62,15.31 5.62,11.5C5.62,10.39 6,9.5 6.65,8.79C6.55,8.54 6.2,7.5 6.75,6.15C6.75,6.15 7.59,5.88 9.5,7.17C10.29,6.95 11.15,6.84 12,6.84C12.85,6.84 13.71,6.95 14.5,7.17C16.41,5.88 17.25,6.15 17.25,6.15C17.8,7.5 17.45,8.54 17.35,8.79C18,9.5 18.38,10.39 18.38,11.5C18.38,15.32 16.04,16.16 13.81,16.41C14.17,16.72 14.5,17.33 14.5,18.26C14.5,19.6 14.5,20.68 14.5,21C14.5,21.27 14.66,21.59 15.17,21.5C19.14,20.16 22,16.42 22,12A10,10 0 0,0 12,2Z"/>
+                            </svg>
+                        </div>
+                        <h3>GitHub</h3>
+                        <p>Check out my projects</p>
+                        <a href="https://github.com/Xeoul" target="_blank" class="contact-link">github.com/Xeoul</a>
                     </div>
                 </div>
             </div>
