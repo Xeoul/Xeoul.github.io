@@ -93,9 +93,10 @@ if (scrollIndicator) {
     }, 2000);
 }
 
-// COMBINED SCROLL EFFECTS: parallax, scroll indicator visibility, header opacity
+// COMBINED SCROLL EFFECTS: parallax, scroll indicator visibility, header opacity, progress bar
 const header = document.querySelector('header');
 const parallaxElements = document.querySelectorAll('.scroll-section');
+const scrollProgress = document.querySelector('.scroll-progress');
 
 let ticking = false;
 function onScroll() {
@@ -121,6 +122,12 @@ function onScroll() {
 
     const opacity = Math.min(scrolled / 100, 0.95);
     header.style.backgroundColor = `rgba(0, 0, 0, ${opacity})`;
+
+    if (scrollProgress) {
+        const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+        const progress = docHeight > 0 ? (scrolled / docHeight) * 100 : 0;
+        scrollProgress.style.width = `${Math.min(progress, 100)}%`;
+    }
 
     ticking = false;
 }
@@ -182,6 +189,116 @@ contactCards.forEach(card => {
     });
 });
 
+// SCROLL-SPY NAV HIGHLIGHTING
+// Highlights whichever section is currently near the vertical center of
+// the viewport. Scoped to `.in-menu a` only - `.nav-link` is also used by
+// the hero CTA buttons, which shouldn't get the "active" treatment.
+const spySections = document.querySelectorAll('section[id]');
+const spyLinks = document.querySelectorAll('.in-menu a[href^="#"]');
+
+if (spySections.length && spyLinks.length) {
+    const spyObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const id = entry.target.getAttribute('id');
+                spyLinks.forEach(link => {
+                    link.classList.toggle('active', link.getAttribute('href') === `#${id}`);
+                });
+            }
+        });
+    }, { rootMargin: '-40% 0px -55% 0px', threshold: 0 });
+
+    spySections.forEach(section => spyObserver.observe(section));
+}
+
+// ANIMATED STAT COUNTERS (2025 / 3+ / 3, counting up from 0)
+function animateStatCounters() {
+    document.querySelectorAll('.stat-number[data-count]').forEach(el => {
+        const target = parseInt(el.getAttribute('data-count'), 10);
+        const suffix = el.getAttribute('data-suffix') || '';
+        const duration = 1200;
+        const startTime = performance.now();
+
+        function tick(now) {
+            const progress = Math.min((now - startTime) / duration, 1);
+            const eased = 1 - Math.pow(1 - progress, 3);
+            el.textContent = Math.round(target * eased) + suffix;
+            if (progress < 1) {
+                requestAnimationFrame(tick);
+            }
+        }
+        requestAnimationFrame(tick);
+    });
+}
+
+// TYPEWRITER-STYLE REVEAL FOR THE HERO CODE WINDOW
+// Reveals each line in sequence with a briefly-blinking cursor, rather than
+// animating individual characters - keeps the existing syntax-highlight
+// spans intact instead of having to type through nested HTML.
+function typeCodeLines() {
+    const lines = document.querySelectorAll('.code-window .code-line');
+    lines.forEach((line, index) => {
+        setTimeout(() => {
+            line.classList.add('visible', 'typing');
+            setTimeout(() => line.classList.remove('typing'), 350);
+        }, index * 220);
+    });
+}
+
+// LIVE GITHUB REPO STATS (stars, last updated) ON PROJECT CARDS
+function timeAgo(dateStr) {
+    const seconds = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);
+    const units = [
+        ['year', 31536000],
+        ['month', 2592000],
+        ['week', 604800],
+        ['day', 86400],
+        ['hour', 3600],
+        ['minute', 60]
+    ];
+    for (const [unit, secondsInUnit] of units) {
+        const value = Math.floor(seconds / secondsInUnit);
+        if (value >= 1) {
+            return `Updated ${value} ${unit}${value > 1 ? 's' : ''} ago`;
+        }
+    }
+    return 'Updated just now';
+}
+
+document.querySelectorAll('.repo-stats[data-repo]').forEach(async (el) => {
+    const repo = el.getAttribute('data-repo');
+    try {
+        const res = await fetch(`https://api.github.com/repos/${repo}`, {
+            headers: { 'Accept': 'application/vnd.github+json' }
+        });
+        if (!res.ok) throw new Error(`GitHub API error ${res.status}`);
+        const data = await res.json();
+        const starsEl = el.querySelector('.repo-stat-value');
+        const updatedEl = el.querySelector('.repo-updated');
+        if (starsEl) starsEl.textContent = data.stargazers_count;
+        if (updatedEl) updatedEl.textContent = timeAgo(data.pushed_at || data.updated_at);
+    } catch (err) {
+        // API unreachable or rate-limited - hide the row rather than show stale dashes
+        el.style.display = 'none';
+    }
+});
+
+// CONTACT FORM: builds a mailto: link client-side and hands off to the
+// visitor's own email app. No third-party form service, no API key, and
+// nothing is transmitted from this page - matches the static-site CSP.
+const contactForm = document.getElementById('contact-form');
+if (contactForm) {
+    contactForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const name = document.getElementById('cf-name').value.trim();
+        const email = document.getElementById('cf-email').value.trim();
+        const message = document.getElementById('cf-message').value.trim();
+        const subject = `Portfolio contact from ${name}`;
+        const body = `${message}\n\n— ${name} (${email})`;
+        window.location.href = `mailto:v812.io@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    });
+}
+
 // INITIALIZE ON PAGE LOAD
 document.addEventListener('DOMContentLoaded', () => {
     // Add visible class to home section immediately
@@ -191,7 +308,10 @@ document.addEventListener('DOMContentLoaded', () => {
             homeSection.classList.add('visible');
         }, 100);
     }
-    
+
+    animateStatCounters();
+    typeCodeLines();
+
     // Smooth scroll to top on page refresh
     window.scrollTo({
         top: 0,
