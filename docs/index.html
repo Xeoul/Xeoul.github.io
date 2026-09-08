@@ -10,12 +10,32 @@
     <meta name="twitter:card" content="summary">
     <meta name="twitter:title" content="Vincent Lam - Portfolio">
     <meta name="twitter:description" content="Computer Science graduate from Sacramento State University specializing in full-stack development, database systems, and automation.">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none';">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; connect-src 'self' https://api.github.com; object-src 'none'; base-uri 'self'; form-action 'none';">
     <title>Vincent Lam - Portfolio</title>
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <link rel="stylesheet" href="styles.css">
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "Person",
+        "name": "Vincent Lam",
+        "url": "https://xeoul.github.io/",
+        "jobTitle": "Computer Science Graduate",
+        "alumniOf": {
+            "@type": "CollegeOrUniversity",
+            "name": "Sacramento State University"
+        },
+        "email": "mailto:v812.io@gmail.com",
+        "sameAs": [
+            "https://github.com/Xeoul",
+            "https://www.linkedin.com/in/vincentlam812"
+        ]
+    }
+    </script>
 </head>
 <body>
+    <div class="scroll-progress"></div>
+
     <header>
         <button class="hamburger">
             <div class="bar"></div>
@@ -71,15 +91,15 @@
                 
                 <div class="hero-stats">
                     <div class="stat-item">
-                        <span class="stat-number">2025</span>
+                        <span class="stat-number" data-count="2025">0</span>
                         <span class="stat-label">Graduate</span>
                     </div>
                     <div class="stat-item">
-                        <span class="stat-number">3+</span>
+                        <span class="stat-number" data-count="3" data-suffix="+">0</span>
                         <span class="stat-label">Years Experience</span>
                     </div>
                     <div class="stat-item">
-                        <span class="stat-number">3</span>
+                        <span class="stat-number" data-count="3">0</span>
                         <span class="stat-label">Major Projects</span>
                     </div>
                 </div>
@@ -243,6 +263,14 @@
                         <span class="project-badge secondary">AI System Agent</span>
                     </div>
 
+                    <div class="repo-stats" data-repo="xeoul/sentinel">
+                        <span class="repo-stat repo-stars">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12,17.27L18.18,21L16.54,13.97L22,9.24L14.81,8.62L12,2L9.19,8.62L2,9.24L7.46,13.97L5.82,21L12,17.27Z"/></svg>
+                            <span class="repo-stat-value">–</span>
+                        </span>
+                        <span class="repo-stat repo-updated">–</span>
+                    </div>
+
                     <div class="project-description">
                         <p>Automated Linux diagnostics agent that uses a locally-hosted LLM to monitor system health and surface issues before they become problems.</p>
                     </div>
@@ -271,7 +299,15 @@
                         <h3>Element-115</h3>
                         <span class="project-badge">Senior Project</span>
                     </div>
-                    
+
+                    <div class="repo-stats" data-repo="ecolchado1/Element-115">
+                        <span class="repo-stat repo-stars">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12,17.27L18.18,21L16.54,13.97L22,9.24L14.81,8.62L12,2L9.19,8.62L2,9.24L7.46,13.97L5.82,21L12,17.27Z"/></svg>
+                            <span class="repo-stat-value">–</span>
+                        </span>
+                        <span class="repo-stat repo-updated">–</span>
+                    </div>
+
                     <div class="project-description">
                         <p>Developed for the Department of Consumer Affairs to manage 3.4 million licenses and forms. A comprehensive tool designed to streamline updates across test, development, and production environments with database integration.</p>
                     </div>
@@ -401,6 +437,31 @@
                     </div>
                 </div>
             </div>
+
+            <form class="contact-form" id="contact-form">
+                <h3>Send a Message</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="cf-name">Name</label>
+                        <input type="text" id="cf-name" name="name" autocomplete="name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="cf-email">Your Email</label>
+                        <input type="email" id="cf-email" name="email" autocomplete="email" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="cf-message">Message</label>
+                    <textarea id="cf-message" name="message" rows="5" required></textarea>
+                </div>
+                <button type="submit" class="cta-primary">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M20,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V6C22,4.89 21.1,4 20,4M20,8L12,13L4,8V6L12,11L20,6V8Z"/>
+                    </svg>
+                    Send Message
+                </button>
+                <p class="form-note">Opens your email app with this pre-filled — nothing is sent from this page or stored anywhere.</p>
+            </form>
         </div>
     </section>
 
