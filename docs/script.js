@@ -139,55 +139,27 @@ window.addEventListener('scroll', () => {
     }
 }, { passive: true });
 
-// STAGGERED ANIMATION FOR PROJECT CARDS
-const projectCards = document.querySelectorAll('.project-card');
-const projectObserver = new IntersectionObserver((entries) => {
-    entries.forEach((entry, index) => {
-        if (entry.isIntersecting) {
-            setTimeout(() => {
-                entry.target.style.opacity = '1';
-                entry.target.style.transform = 'translateY(0) scale(1)';
-            }, index * 200); // Stagger the animation
-        }
-    });
-}, { threshold: 0.2 });
-
-projectCards.forEach(card => {
-    projectObserver.observe(card);
-});
-
 // SKILL TAGS ANIMATION
+// Toggles a .revealed class rather than writing inline styles - an inline
+// style beats any CSS selector regardless of specificity, so setting
+// element.style.transform here would have permanently blocked the
+// .skill-tag:hover/.tech-tag:hover CSS rules from ever taking visual
+// effect after the tag's first reveal. (The project-card entrance
+// animation had this same bug via its own inline-style observer; that one
+// is removed outright since .scroll-section.visible .project-card:nth-child(n)
+// in styles.css already handles the identical reveal via CSS alone.)
 const skillTags = document.querySelectorAll('.skill-tag, .tech-tag');
 const tagObserver = new IntersectionObserver((entries) => {
     entries.forEach((entry, index) => {
         if (entry.isIntersecting) {
             setTimeout(() => {
-                entry.target.style.opacity = '1';
-                entry.target.style.transform = 'translateY(0)';
+                entry.target.classList.add('revealed');
             }, index * 50); // Quick stagger
         }
     });
 }, { threshold: 0.5 });
 
-skillTags.forEach(tag => {
-    // Initially hide tags
-    tag.style.opacity = '0';
-    tag.style.transform = 'translateY(20px)';
-    tag.style.transition = 'all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
-    tagObserver.observe(tag);
-});
-
-// CONTACT CARDS HOVER EFFECT ENHANCEMENT
-const contactCards = document.querySelectorAll('.contact-card');
-contactCards.forEach(card => {
-    card.addEventListener('mouseenter', () => {
-        card.style.transform = 'translateY(-10px) scale(1.02)';
-    });
-    
-    card.addEventListener('mouseleave', () => {
-        card.style.transform = 'translateY(0) scale(1)';
-    });
-});
+skillTags.forEach(tag => tagObserver.observe(tag));
 
 // SCROLL-SPY NAV HIGHLIGHTING
 // Highlights whichever section is currently near the vertical center of
