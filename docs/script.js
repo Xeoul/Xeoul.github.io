@@ -248,6 +248,65 @@ if (githubStats) {
         });
 }
 
+// GITHUB ACTIVITY HEATMAP: built from GitHub's own public Events API
+// (first-party, same trust level as the profile stats above) rather than a
+// third-party rendering service - the tradeoff is that endpoint only
+// retains roughly the last 90 days of public events, so this covers ~90
+// days, not the full year GitHub's own contribution graph shows, and
+// counts public events (pushes, PRs, issues, stars, etc.), not GitHub's
+// internal "contributions" definition. Fails closed like the stats above.
+const ghHeatmap = document.querySelector('.gh-heatmap[data-github-user]');
+if (ghHeatmap) {
+    const username = ghHeatmap.getAttribute('data-github-user');
+    fetch(`https://api.github.com/users/${username}/events/public?per_page=100`, {
+        headers: { 'Accept': 'application/vnd.github+json' }
+    })
+        .then(res => {
+            if (!res.ok) throw new Error(`GitHub API error ${res.status}`);
+            return res.json();
+        })
+        .then(events => {
+            const counts = {};
+            events.forEach(ev => {
+                const day = ev.created_at.slice(0, 10); // YYYY-MM-DD, UTC
+                counts[day] = (counts[day] || 0) + 1;
+            });
+
+            const msPerDay = 24 * 60 * 60 * 1000;
+            const today = new Date();
+            today.setUTCHours(0, 0, 0, 0);
+            const rangeStart = new Date(today.getTime() - 89 * msPerDay);
+            const gridStart = new Date(rangeStart);
+            gridStart.setUTCDate(gridStart.getUTCDate() - gridStart.getUTCDay()); // back up to Sunday
+
+            const totalDays = Math.round((today - gridStart) / msPerDay) + 1;
+            const fragment = document.createDocumentFragment();
+
+            for (let i = 0; i < totalDays; i++) {
+                const d = new Date(gridStart.getTime() + i * msPerDay);
+                const key = d.toISOString().slice(0, 10);
+                const count = counts[key] || 0;
+                let level = 0;
+                if (count >= 5) level = 4;
+                else if (count >= 3) level = 3;
+                else if (count >= 2) level = 2;
+                else if (count >= 1) level = 1;
+
+                const cell = document.createElement('span');
+                cell.className = 'gh-heat-cell';
+                cell.setAttribute('data-level', level);
+                cell.title = `${key}: ${count} event${count === 1 ? '' : 's'}`;
+                fragment.appendChild(cell);
+            }
+
+            ghHeatmap.appendChild(fragment);
+        })
+        .catch(() => {
+            const wrapper = ghHeatmap.closest('.github-activity');
+            if (wrapper) wrapper.style.display = 'none';
+        });
+}
+
 // CONTACT FORM: builds a mailto: link client-side and hands off to the
 // visitor's own email app. No third-party form service, no API key, and
 // nothing is transmitted from this page - matches the static-site CSP.
