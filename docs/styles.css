@@ -1781,26 +1781,6 @@ p {
   letter-spacing: 0.5px;
 }
 
-.repo-stats {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  margin-bottom: 16px;
-  font-family: "Hack", monospace;
-  font-size: 13px;
-  color: #888;
-}
-
-.repo-stat {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-}
-
-.repo-stars svg {
-  color: #f1c40f;
-}
-
 .project-description {
   margin-bottom: 25px;
 }
