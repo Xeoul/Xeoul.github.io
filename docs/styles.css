@@ -652,7 +652,15 @@ p {
 
 .contact-icon {
   color: #3498db;
-  margin-bottom: 15px;
+  margin: 0 auto 15px;
+  width: 56px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(52, 152, 219, 0.12);
+  border: 1px solid rgba(52, 152, 219, 0.25);
+  border-radius: 50%;
 }
 
 .contact-card h3 {
