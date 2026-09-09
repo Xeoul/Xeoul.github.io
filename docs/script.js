@@ -245,44 +245,6 @@ function typeCodeLines() {
     });
 }
 
-// LIVE GITHUB REPO STATS (stars, last updated) ON PROJECT CARDS
-function timeAgo(dateStr) {
-    const seconds = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);
-    const units = [
-        ['year', 31536000],
-        ['month', 2592000],
-        ['week', 604800],
-        ['day', 86400],
-        ['hour', 3600],
-        ['minute', 60]
-    ];
-    for (const [unit, secondsInUnit] of units) {
-        const value = Math.floor(seconds / secondsInUnit);
-        if (value >= 1) {
-            return `Updated ${value} ${unit}${value > 1 ? 's' : ''} ago`;
-        }
-    }
-    return 'Updated just now';
-}
-
-document.querySelectorAll('.repo-stats[data-repo]').forEach(async (el) => {
-    const repo = el.getAttribute('data-repo');
-    try {
-        const res = await fetch(`https://api.github.com/repos/${repo}`, {
-            headers: { 'Accept': 'application/vnd.github+json' }
-        });
-        if (!res.ok) throw new Error(`GitHub API error ${res.status}`);
-        const data = await res.json();
-        const starsEl = el.querySelector('.repo-stat-value');
-        const updatedEl = el.querySelector('.repo-updated');
-        if (starsEl) starsEl.textContent = data.stargazers_count;
-        if (updatedEl) updatedEl.textContent = timeAgo(data.pushed_at || data.updated_at);
-    } catch (err) {
-        // API unreachable or rate-limited - hide the row rather than show stale dashes
-        el.style.display = 'none';
-    }
-});
-
 // CONTACT FORM: builds a mailto: link client-side and hands off to the
 // visitor's own email app. No third-party form service, no API key, and
 // nothing is transmitted from this page - matches the static-site CSP.
