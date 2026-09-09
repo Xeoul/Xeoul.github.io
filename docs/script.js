@@ -217,6 +217,37 @@ function typeCodeLines() {
     });
 }
 
+// LIVE GITHUB PROFILE STATS (public repo count, followers) on the GitHub
+// contact card. Pulled from the public GitHub Users API - profile-level
+// rather than tied to any one repo, so it keeps working regardless of
+// which individual repos are public or private. Fails closed: on any
+// error or rate-limit response, the row hides itself instead of showing
+// stale placeholder dashes.
+const githubStats = document.querySelector('.github-stats[data-github-user]');
+if (githubStats) {
+    const username = githubStats.getAttribute('data-github-user');
+    fetch(`https://api.github.com/users/${username}`, {
+        headers: { 'Accept': 'application/vnd.github+json' }
+    })
+        .then(res => {
+            if (!res.ok) throw new Error(`GitHub API error ${res.status}`);
+            return res.json();
+        })
+        .then(data => {
+            const setStat = (selector, count, noun) => {
+                const el = githubStats.querySelector(selector);
+                if (!el) return;
+                el.querySelector('.gh-stat-value').textContent = count;
+                el.querySelector('.gh-stat-label').textContent = count === 1 ? noun : `${noun}s`;
+            };
+            setStat('.gh-stat-repos', data.public_repos, 'repo');
+            setStat('.gh-stat-followers', data.followers, 'follower');
+        })
+        .catch(() => {
+            githubStats.style.display = 'none';
+        });
+}
+
 // CONTACT FORM: builds a mailto: link client-side and hands off to the
 // visitor's own email app. No third-party form service, no API key, and
 // nothing is transmitted from this page - matches the static-site CSP.
