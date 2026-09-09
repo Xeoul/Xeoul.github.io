@@ -583,7 +583,14 @@ p {
   font-size: 13px;
   font-weight: 500;
   border: 1px solid rgba(52, 152, 219, 0.3);
-  transition: all 0.3s ease;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.skill-tag.revealed {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .skill-tag:hover {
@@ -683,7 +690,7 @@ p {
 }
 
 .contact-link:hover {
-  color: #2980b9;
+  color: #5dade2;
   text-decoration: underline;
 }
 
@@ -1750,7 +1757,12 @@ p {
   transition-delay: 0.6s;
 }
 
-.project-card:hover {
+/* Scoped under .scroll-section.visible to match (and, by coming after
+   them in source order, beat) the .project-card:nth-child(n) reveal
+   rules above on specificity - a bare .project-card:hover has fewer
+   simple selectors than those and was silently losing every time,
+   so the hover lift never visually applied. */
+.scroll-section.visible .project-card:hover {
   transform: translateY(-10px) scale(1.02);
   box-shadow: 0 25px 50px rgba(52, 152, 219, 0.2);
   border-color: rgba(52, 152, 219, 0.3);
@@ -1810,7 +1822,14 @@ p {
   font-size: 13px;
   font-weight: 500;
   border: 1px solid rgba(52, 152, 219, 0.3);
-  transition: all 0.3s ease;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.tech-tag.revealed {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .tech-tag:hover {
@@ -1951,7 +1970,7 @@ p {
 }
 
 .contact-link:hover {
-  color: #2980b9;
+  color: #5dade2;
   transform: translateY(-1px);
 }
 
