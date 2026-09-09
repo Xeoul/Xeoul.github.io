@@ -699,6 +699,31 @@ p {
   font-weight: 500;
 }
 
+/* LIVE GITHUB PROFILE STATS (public repo count, followers) on the GitHub
+   contact card. Declared here, ahead of the @media blocks, for the same
+   cascade-ordering reason as the contact form below. */
+.github-stats {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  margin-bottom: 12px;
+  font-family: "Hack", monospace;
+  font-size: 12px;
+  color: #888;
+}
+
+.gh-stat {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.gh-stat svg {
+  color: #3498db;
+  opacity: 0.8;
+}
+
 /* CONTACT FORM (mailto-based - no third-party service, nothing leaves the browser).
    Declared here, ahead of the responsive @media blocks below, so their
    .form-row overrides win the cascade instead of being shadowed by a
