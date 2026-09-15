@@ -237,7 +237,9 @@ if (githubStats) {
             const setStat = (selector, count, noun) => {
                 const el = githubStats.querySelector(selector);
                 if (!el) return;
-                el.querySelector('.gh-stat-value').textContent = count;
+                const valueEl = el.querySelector('.gh-stat-value');
+                valueEl.textContent = count;
+                valueEl.classList.remove('skeleton');
                 el.querySelector('.gh-stat-label').textContent = count === 1 ? noun : `${noun}s`;
             };
             setStat('.gh-stat-repos', data.public_repos, 'repo');
@@ -258,6 +260,25 @@ if (githubStats) {
 const ghHeatmap = document.querySelector('.gh-heatmap[data-github-user]');
 if (ghHeatmap) {
     const username = ghHeatmap.getAttribute('data-github-user');
+
+    const msPerDay = 24 * 60 * 60 * 1000;
+    const today = new Date();
+    today.setUTCHours(0, 0, 0, 0);
+    const rangeStart = new Date(today.getTime() - 89 * msPerDay);
+    const gridStart = new Date(rangeStart);
+    gridStart.setUTCDate(gridStart.getUTCDate() - gridStart.getUTCDay()); // back up to Sunday
+    const totalDays = Math.round((today - gridStart) / msPerDay) + 1;
+
+    // Shimmer placeholder grid while the fetch is in flight, so the
+    // section doesn't sit empty during the request.
+    const skeletonFragment = document.createDocumentFragment();
+    for (let i = 0; i < totalDays; i++) {
+        const cell = document.createElement('span');
+        cell.className = 'gh-heat-cell skeleton';
+        skeletonFragment.appendChild(cell);
+    }
+    ghHeatmap.appendChild(skeletonFragment);
+
     fetch(`https://api.github.com/users/${username}/events/public?per_page=100`, {
         headers: { 'Accept': 'application/vnd.github+json' }
     })
@@ -272,14 +293,6 @@ if (ghHeatmap) {
                 counts[day] = (counts[day] || 0) + 1;
             });
 
-            const msPerDay = 24 * 60 * 60 * 1000;
-            const today = new Date();
-            today.setUTCHours(0, 0, 0, 0);
-            const rangeStart = new Date(today.getTime() - 89 * msPerDay);
-            const gridStart = new Date(rangeStart);
-            gridStart.setUTCDate(gridStart.getUTCDate() - gridStart.getUTCDay()); // back up to Sunday
-
-            const totalDays = Math.round((today - gridStart) / msPerDay) + 1;
             const fragment = document.createDocumentFragment();
 
             for (let i = 0; i < totalDays; i++) {
@@ -299,6 +312,7 @@ if (ghHeatmap) {
                 fragment.appendChild(cell);
             }
 
+            ghHeatmap.innerHTML = '';
             ghHeatmap.appendChild(fragment);
         })
         .catch(() => {
@@ -321,6 +335,117 @@ if (contactForm) {
         const body = `${message}\n\n— ${name} (${email})`;
         window.location.href = `mailto:v812.io@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     });
+}
+
+// FINE-POINTER-ONLY INTERACTIONS: cursor glow, 3D tilt, custom cursor,
+// magnetic buttons. Gated on the same media feature the CSS checks, so
+// touch devices never attach listeners for effects they can't usefully
+// show (no hover state to track).
+if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
+
+    // CURSOR-REACTIVE GLOW (project + contact cards)
+    // Only ever sets custom properties, never transform/opacity directly -
+    // see the .project-card::before comment in styles.css for why that
+    // distinction matters (an inline style beats :hover regardless of
+    // specificity).
+    document.querySelectorAll('.project-card, .contact-card').forEach(card => {
+        card.addEventListener('mousemove', (e) => {
+            const rect = card.getBoundingClientRect();
+            card.style.setProperty('--mx', `${((e.clientX - rect.left) / rect.width) * 100}%`);
+            card.style.setProperty('--my', `${((e.clientY - rect.top) / rect.height) * 100}%`);
+        });
+    });
+
+    // 3D TILT (project cards only - the larger "hero" cards where it reads
+    // well; applying it to every small contact card would be overkill)
+    document.querySelectorAll('.project-card').forEach(card => {
+        card.addEventListener('mousemove', (e) => {
+            const rect = card.getBoundingClientRect();
+            const px = (e.clientX - rect.left) / rect.width - 0.5;
+            const py = (e.clientY - rect.top) / rect.height - 0.5;
+            const maxTilt = 6; // degrees
+            card.style.setProperty('--tiltY', `${px * maxTilt * 2}deg`);
+            card.style.setProperty('--tiltX', `${-py * maxTilt * 2}deg`);
+        });
+        card.addEventListener('mouseleave', () => {
+            card.style.setProperty('--tiltX', '0deg');
+            card.style.setProperty('--tiltY', '0deg');
+        });
+    });
+
+    // MAGNETIC BUTTON PULL (hero CTAs + project buttons)
+    document.querySelectorAll('.cta-primary, .cta-secondary, .project-btn').forEach(btn => {
+        btn.addEventListener('mousemove', (e) => {
+            const rect = btn.getBoundingClientRect();
+            const relX = e.clientX - rect.left - rect.width / 2;
+            const relY = e.clientY - rect.top - rect.height / 2;
+            const pull = 0.25;
+            const maxOffset = 10;
+            const mx = Math.max(-maxOffset, Math.min(maxOffset, relX * pull));
+            const my = Math.max(-maxOffset, Math.min(maxOffset, relY * pull));
+            btn.style.setProperty('--mx', `${mx}px`);
+            btn.style.setProperty('--my', `${my}px`);
+        });
+        btn.addEventListener('mouseleave', () => {
+            btn.style.setProperty('--mx', '0px');
+            btn.style.setProperty('--my', '0px');
+        });
+    });
+
+    // CUSTOM CURSOR: a dot that tracks the pointer exactly, and a ring that
+    // trails behind it with a little easing, expanding over interactive
+    // elements. Built and attached only here, so a device that doesn't
+    // match the media query above never gets `cursor: none` with nothing
+    // to replace it.
+    document.documentElement.classList.add('custom-cursor-active');
+
+    const cursorDot = document.createElement('div');
+    cursorDot.className = 'cursor-dot';
+    const cursorRing = document.createElement('div');
+    cursorRing.className = 'cursor-ring';
+    document.body.appendChild(cursorDot);
+    document.body.appendChild(cursorRing);
+
+    let mouseX = window.innerWidth / 2;
+    let mouseY = window.innerHeight / 2;
+    let ringX = mouseX;
+    let ringY = mouseY;
+
+    document.addEventListener('mousemove', (e) => {
+        mouseX = e.clientX;
+        mouseY = e.clientY;
+        cursorDot.style.transform = `translate3d(${mouseX}px, ${mouseY}px, 0) translate(-50%, -50%)`;
+    });
+
+    function animateCursorRing() {
+        ringX += (mouseX - ringX) * 0.2;
+        ringY += (mouseY - ringY) * 0.2;
+        cursorRing.style.transform = `translate3d(${ringX}px, ${ringY}px, 0) translate(-50%, -50%)`;
+        requestAnimationFrame(animateCursorRing);
+    }
+    requestAnimationFrame(animateCursorRing);
+
+    const cursorHoverTargets = 'a, button, input, textarea, .project-card, .contact-card, .skill-tag, .tech-tag';
+    document.addEventListener('mouseover', (e) => {
+        if (e.target.closest(cursorHoverTargets)) {
+            cursorRing.classList.add('cursor-hover');
+        }
+    });
+    document.addEventListener('mouseout', (e) => {
+        if (e.target.closest(cursorHoverTargets)) {
+            cursorRing.classList.remove('cursor-hover');
+        }
+    });
+
+    // Keep the cursor hidden until the real position is known, so it
+    // doesn't flash at a stale (0,0) or center coordinate on load.
+    cursorDot.style.opacity = '0';
+    cursorRing.style.opacity = '0';
+    document.addEventListener('mousemove', function revealCursor() {
+        cursorDot.style.opacity = '1';
+        cursorRing.style.opacity = '1';
+        document.removeEventListener('mousemove', revealCursor);
+    }, { once: true });
 }
 
 // INITIALIZE ON PAGE LOAD
