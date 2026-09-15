@@ -1,3 +1,18 @@
+/* DISPLAY FONT (self-hosted, SIL OFL licensed - see fonts/SpaceGrotesk-OFL.txt).
+   Headings only; code-flavored elements (the nav logo, the code window,
+   skill/tech tags) keep the existing Hack monospace on purpose. */
+@font-face {
+  font-family: 'Space Grotesk';
+  src: url('fonts/SpaceGrotesk-Variable.woff2') format('woff2');
+  font-weight: 300 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+h1, h2, h3, h4, .stat-number {
+  font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
 /* GLOBAL STYLES */
 html {
   scroll-behavior: smooth;
@@ -52,6 +67,50 @@ header {
   z-index: 103;
   transition: width 0.1s ease-out;
   pointer-events: none;
+}
+
+/* CUSTOM CURSOR - desktop with a precise pointer only (script.js checks
+   the same media feature before creating the elements at all, so a JS
+   failure never leaves a visitor with no cursor on a device this rule
+   didn't intend to touch). */
+@media (hover: hover) and (pointer: fine) {
+  html.custom-cursor-active,
+  html.custom-cursor-active * {
+    cursor: none;
+  }
+}
+
+.cursor-dot,
+.cursor-ring {
+  position: fixed;
+  top: 0;
+  left: 0;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9999;
+  will-change: transform;
+}
+
+.cursor-dot {
+  width: 6px;
+  height: 6px;
+  background: #3498db;
+  transform: translate3d(-50%, -50%, 0);
+}
+
+.cursor-ring {
+  width: 32px;
+  height: 32px;
+  border: 1.5px solid rgba(52, 152, 219, 0.5);
+  transform: translate3d(-50%, -50%, 0);
+  transition: width 0.2s ease, height 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+}
+
+.cursor-ring.cursor-hover {
+  width: 52px;
+  height: 52px;
+  border-color: #3498db;
+  background: rgba(52, 152, 219, 0.1);
 }
 
 /* HAMBURGER BUTTON (TOP LEFT) */
@@ -355,8 +414,13 @@ header {
 
 .cta-primary:hover {
   background: linear-gradient(135deg, #2980b9 0%, #3498db 100%);
-  transform: translateY(-3px);
+  transform: translate(var(--mx, 0px), calc(-3px + var(--my, 0px)));
   box-shadow: 0 8px 25px rgba(52, 152, 219, 0.4);
+}
+
+.cta-primary:active {
+  transform: translate(var(--mx, 0px), var(--my, 0px)) scale(0.96);
+  transition-duration: 0.1s;
 }
 
 .cta-secondary {
@@ -368,8 +432,13 @@ header {
 .cta-secondary:hover {
   background: #3498db;
   color: white;
-  transform: translateY(-3px);
+  transform: translate(var(--mx, 0px), calc(-3px + var(--my, 0px)));
   box-shadow: 0 8px 25px rgba(52, 152, 219, 0.3);
+}
+
+.cta-secondary:active {
+  transform: translate(var(--mx, 0px), var(--my, 0px)) scale(0.96);
+  transition-duration: 0.1s;
 }
 
 /* CODE WINDOW VISUAL */
@@ -656,6 +725,33 @@ p {
   height: 11px;
   border-radius: 2px;
   background: rgba(255, 255, 255, 0.06);
+}
+
+/* SHIMMER LOADING STATE (GitHub stats + heatmap, while the API fetch is in flight) */
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.skeleton {
+  color: transparent !important;
+  background: linear-gradient(100deg, rgba(255, 255, 255, 0.05) 30%, rgba(255, 255, 255, 0.15) 50%, rgba(255, 255, 255, 0.05) 70%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+  border-radius: 4px;
+  display: inline-block;
+  min-width: 1.4em;
+}
+
+@keyframes heatPulse {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 0.75; }
+}
+
+.gh-heat-cell.skeleton {
+  background: rgba(255, 255, 255, 0.08) !important;
+  animation: heatPulse 1.5s ease-in-out infinite;
+  min-width: 0;
 }
 
 .gh-heat-cell[data-level="1"] { background: rgba(52, 152, 219, 0.3); }
@@ -1835,6 +1931,30 @@ p {
   backdrop-filter: blur(10px);
   box-sizing: border-box;
   overflow: hidden;
+  position: relative;
+  /* Scopes z-index: -1 below to this card's own local stacking context,
+     so the cursor-glow pseudo-element can't bleed behind unrelated page
+     content - see the comment on .project-card::before. */
+  isolation: isolate;
+}
+
+/* Cursor-reactive glow: JS tracks the pointer inside the card and writes
+   --mx/--my as custom properties (never inline transform/opacity, to
+   avoid the inline-style-beats-:hover trap documented above), and this
+   pseudo-element just follows them. */
+.project-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background: radial-gradient(320px circle at var(--mx, 50%) var(--my, 50%), rgba(52, 152, 219, 0.18), transparent 65%);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+.project-card:hover::before {
+  opacity: 1;
 }
 
 .scroll-section.visible .project-card:nth-child(1) {
@@ -1855,7 +1975,7 @@ p {
    simple selectors than those and was silently losing every time,
    so the hover lift never visually applied. */
 .scroll-section.visible .project-card:hover {
-  transform: translateY(-10px) scale(1.02);
+  transform: perspective(1000px) rotateX(var(--tiltX, 0deg)) rotateY(var(--tiltY, 0deg)) translateY(-10px) scale(1.02);
   box-shadow: 0 25px 50px rgba(52, 152, 219, 0.2);
   border-color: rgba(52, 152, 219, 0.3);
 }
@@ -1951,8 +2071,13 @@ p {
 
 .project-btn:hover {
   background: linear-gradient(135deg, #2980b9 0%, #3498db 100%);
-  transform: translateY(-3px);
+  transform: translate(var(--mx, 0px), calc(-3px + var(--my, 0px)));
   box-shadow: 0 8px 25px rgba(52, 152, 219, 0.4);
+}
+
+.project-btn:active {
+  transform: translate(var(--mx, 0px), var(--my, 0px)) scale(0.96);
+  transition-duration: 0.1s;
 }
 
 /* CONTACT SECTION */
@@ -2021,6 +2146,24 @@ p {
   border: 1px solid rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(10px);
   margin-bottom: 20px;
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.contact-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background: radial-gradient(280px circle at var(--mx, 50%) var(--my, 50%), rgba(52, 152, 219, 0.18), transparent 65%);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+.contact-card:hover::before {
+  opacity: 1;
 }
 
 .contact-card:hover {
