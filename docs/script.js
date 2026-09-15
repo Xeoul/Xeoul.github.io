@@ -39,8 +39,7 @@ if (restrictedRepoLink) {
     });
 }
 
-// APPLE-STYLE SCROLL ANIMATIONS
-// Intersection Observer for scroll animations
+// SCROLL-DRIVEN SECTION REVEALS
 const observerOptions = {
     threshold: 0.1,
     rootMargin: '0px 0px -100px 0px'
@@ -54,7 +53,6 @@ const observer = new IntersectionObserver((entries) => {
     });
 }, observerOptions);
 
-// Observe all scroll sections
 const scrollSections = document.querySelectorAll('.scroll-section');
 scrollSections.forEach(section => {
     observer.observe(section);
@@ -66,10 +64,10 @@ const navLinks = document.querySelectorAll('.nav-link');
 navLinks.forEach(link => {
     link.addEventListener('click', (e) => {
         e.preventDefault();
-        
+
         const targetId = link.getAttribute('href');
         const targetSection = document.querySelector(targetId);
-        
+
         if (targetSection) {
             targetSection.scrollIntoView({
                 behavior: 'smooth',
@@ -93,22 +91,15 @@ if (scrollIndicator) {
     }, 2000);
 }
 
-// COMBINED SCROLL EFFECTS: parallax, scroll indicator visibility, header opacity, progress bar
-const header = document.querySelector('header');
-const parallaxElements = document.querySelectorAll('.scroll-section');
+// SCROLL INDICATOR VISIBILITY + PROGRESS BAR
+// The header itself no longer needs a scroll-driven background mutation -
+// it's a permanently frosted/blurred bar in CSS now (like Apple's own nav),
+// so there's nothing to compute here beyond the indicator and the bar.
 const scrollProgress = document.querySelector('.scroll-progress');
 
 let ticking = false;
 function onScroll() {
     const scrolled = window.pageYOffset;
-
-    parallaxElements.forEach((element, index) => {
-        if (element.classList.contains('visible')) {
-            const rate = scrolled * -0.5;
-            const yPos = -(rate / (index + 1));
-            element.style.transform = `translate3d(0, ${yPos * 0.1}px, 0)`;
-        }
-    });
 
     if (scrollIndicator) {
         if (scrolled > 100) {
@@ -119,9 +110,6 @@ function onScroll() {
             scrollIndicator.style.transform = 'translateY(0)';
         }
     }
-
-    const opacity = Math.min(scrolled / 100, 0.95);
-    header.style.backgroundColor = `rgba(0, 0, 0, ${opacity})`;
 
     if (scrollProgress) {
         const docHeight = document.documentElement.scrollHeight - window.innerHeight;
@@ -139,15 +127,12 @@ window.addEventListener('scroll', () => {
     }
 }, { passive: true });
 
-// SKILL TAGS ANIMATION
+// SKILL/TECH TAG REVEAL
 // Toggles a .revealed class rather than writing inline styles - an inline
 // style beats any CSS selector regardless of specificity, so setting
-// element.style.transform here would have permanently blocked the
+// element.style.transform here would permanently block the
 // .skill-tag:hover/.tech-tag:hover CSS rules from ever taking visual
-// effect after the tag's first reveal. (The project-card entrance
-// animation had this same bug via its own inline-style observer; that one
-// is removed outright since .scroll-section.visible .project-card:nth-child(n)
-// in styles.css already handles the identical reveal via CSS alone.)
+// effect after the tag's first reveal.
 const skillTags = document.querySelectorAll('.skill-tag, .tech-tag');
 const tagObserver = new IntersectionObserver((entries) => {
     entries.forEach((entry, index) => {
@@ -183,7 +168,7 @@ if (spySections.length && spyLinks.length) {
     spySections.forEach(section => spyObserver.observe(section));
 }
 
-// ANIMATED STAT COUNTERS (2025 / 3+ / 3, counting up from 0)
+// ANIMATED STAT COUNTERS (2025 / 3+ / 2, counting up from 0)
 function animateStatCounters() {
     document.querySelectorAll('.stat-number[data-count]').forEach(el => {
         const target = parseInt(el.getAttribute('data-count'), 10);
@@ -200,20 +185,6 @@ function animateStatCounters() {
             }
         }
         requestAnimationFrame(tick);
-    });
-}
-
-// TYPEWRITER-STYLE REVEAL FOR THE HERO CODE WINDOW
-// Reveals each line in sequence with a briefly-blinking cursor, rather than
-// animating individual characters - keeps the existing syntax-highlight
-// spans intact instead of having to type through nested HTML.
-function typeCodeLines() {
-    const lines = document.querySelectorAll('.code-window .code-line');
-    lines.forEach((line, index) => {
-        setTimeout(() => {
-            line.classList.add('visible', 'typing');
-            setTimeout(() => line.classList.remove('typing'), 350);
-        }, index * 220);
     });
 }
 
@@ -337,117 +308,6 @@ if (contactForm) {
     });
 }
 
-// FINE-POINTER-ONLY INTERACTIONS: cursor glow, 3D tilt, custom cursor,
-// magnetic buttons. Gated on the same media feature the CSS checks, so
-// touch devices never attach listeners for effects they can't usefully
-// show (no hover state to track).
-if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
-
-    // CURSOR-REACTIVE GLOW (project + contact cards)
-    // Only ever sets custom properties, never transform/opacity directly -
-    // see the .project-card::before comment in styles.css for why that
-    // distinction matters (an inline style beats :hover regardless of
-    // specificity).
-    document.querySelectorAll('.project-card, .contact-card').forEach(card => {
-        card.addEventListener('mousemove', (e) => {
-            const rect = card.getBoundingClientRect();
-            card.style.setProperty('--mx', `${((e.clientX - rect.left) / rect.width) * 100}%`);
-            card.style.setProperty('--my', `${((e.clientY - rect.top) / rect.height) * 100}%`);
-        });
-    });
-
-    // 3D TILT (project cards only - the larger "hero" cards where it reads
-    // well; applying it to every small contact card would be overkill)
-    document.querySelectorAll('.project-card').forEach(card => {
-        card.addEventListener('mousemove', (e) => {
-            const rect = card.getBoundingClientRect();
-            const px = (e.clientX - rect.left) / rect.width - 0.5;
-            const py = (e.clientY - rect.top) / rect.height - 0.5;
-            const maxTilt = 6; // degrees
-            card.style.setProperty('--tiltY', `${px * maxTilt * 2}deg`);
-            card.style.setProperty('--tiltX', `${-py * maxTilt * 2}deg`);
-        });
-        card.addEventListener('mouseleave', () => {
-            card.style.setProperty('--tiltX', '0deg');
-            card.style.setProperty('--tiltY', '0deg');
-        });
-    });
-
-    // MAGNETIC BUTTON PULL (hero CTAs + project buttons)
-    document.querySelectorAll('.cta-primary, .cta-secondary, .project-btn').forEach(btn => {
-        btn.addEventListener('mousemove', (e) => {
-            const rect = btn.getBoundingClientRect();
-            const relX = e.clientX - rect.left - rect.width / 2;
-            const relY = e.clientY - rect.top - rect.height / 2;
-            const pull = 0.25;
-            const maxOffset = 10;
-            const mx = Math.max(-maxOffset, Math.min(maxOffset, relX * pull));
-            const my = Math.max(-maxOffset, Math.min(maxOffset, relY * pull));
-            btn.style.setProperty('--mx', `${mx}px`);
-            btn.style.setProperty('--my', `${my}px`);
-        });
-        btn.addEventListener('mouseleave', () => {
-            btn.style.setProperty('--mx', '0px');
-            btn.style.setProperty('--my', '0px');
-        });
-    });
-
-    // CUSTOM CURSOR: a dot that tracks the pointer exactly, and a ring that
-    // trails behind it with a little easing, expanding over interactive
-    // elements. Built and attached only here, so a device that doesn't
-    // match the media query above never gets `cursor: none` with nothing
-    // to replace it.
-    document.documentElement.classList.add('custom-cursor-active');
-
-    const cursorDot = document.createElement('div');
-    cursorDot.className = 'cursor-dot';
-    const cursorRing = document.createElement('div');
-    cursorRing.className = 'cursor-ring';
-    document.body.appendChild(cursorDot);
-    document.body.appendChild(cursorRing);
-
-    let mouseX = window.innerWidth / 2;
-    let mouseY = window.innerHeight / 2;
-    let ringX = mouseX;
-    let ringY = mouseY;
-
-    document.addEventListener('mousemove', (e) => {
-        mouseX = e.clientX;
-        mouseY = e.clientY;
-        cursorDot.style.transform = `translate3d(${mouseX}px, ${mouseY}px, 0) translate(-50%, -50%)`;
-    });
-
-    function animateCursorRing() {
-        ringX += (mouseX - ringX) * 0.2;
-        ringY += (mouseY - ringY) * 0.2;
-        cursorRing.style.transform = `translate3d(${ringX}px, ${ringY}px, 0) translate(-50%, -50%)`;
-        requestAnimationFrame(animateCursorRing);
-    }
-    requestAnimationFrame(animateCursorRing);
-
-    const cursorHoverTargets = 'a, button, input, textarea, .project-card, .contact-card, .skill-tag, .tech-tag';
-    document.addEventListener('mouseover', (e) => {
-        if (e.target.closest(cursorHoverTargets)) {
-            cursorRing.classList.add('cursor-hover');
-        }
-    });
-    document.addEventListener('mouseout', (e) => {
-        if (e.target.closest(cursorHoverTargets)) {
-            cursorRing.classList.remove('cursor-hover');
-        }
-    });
-
-    // Keep the cursor hidden until the real position is known, so it
-    // doesn't flash at a stale (0,0) or center coordinate on load.
-    cursorDot.style.opacity = '0';
-    cursorRing.style.opacity = '0';
-    document.addEventListener('mousemove', function revealCursor() {
-        cursorDot.style.opacity = '1';
-        cursorRing.style.opacity = '1';
-        document.removeEventListener('mousemove', revealCursor);
-    }, { once: true });
-}
-
 // INITIALIZE ON PAGE LOAD
 document.addEventListener('DOMContentLoaded', () => {
     // Add visible class to home section immediately
@@ -459,7 +319,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     animateStatCounters();
-    typeCodeLines();
 
     // Smooth scroll to top on page refresh
     window.scrollTo({
