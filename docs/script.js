@@ -91,12 +91,10 @@ if (scrollIndicator) {
     }, 2000);
 }
 
-// SCROLL INDICATOR VISIBILITY + PROGRESS BAR
+// SCROLL INDICATOR VISIBILITY
 // The header itself no longer needs a scroll-driven background mutation -
 // it's a permanently frosted/blurred bar in CSS now (like Apple's own nav),
-// so there's nothing to compute here beyond the indicator and the bar.
-const scrollProgress = document.querySelector('.scroll-progress');
-
+// so there's nothing to compute here beyond the indicator.
 let ticking = false;
 function onScroll() {
     const scrolled = window.pageYOffset;
@@ -109,12 +107,6 @@ function onScroll() {
             scrollIndicator.style.opacity = '1';
             scrollIndicator.style.transform = 'translateY(0)';
         }
-    }
-
-    if (scrollProgress) {
-        const docHeight = document.documentElement.scrollHeight - window.innerHeight;
-        const progress = docHeight > 0 ? (scrolled / docHeight) * 100 : 0;
-        scrollProgress.style.width = `${Math.min(progress, 100)}%`;
     }
 
     ticking = false;

@@ -90,19 +90,6 @@ a {
   color: var(--color-accent);
 }
 
-/* SCROLL PROGRESS BAR */
-.scroll-progress {
-  position: fixed;
-  top: 0;
-  left: 0;
-  height: 2px;
-  width: 0%;
-  background: var(--color-accent);
-  z-index: 103;
-  transition: width 0.1s ease-out;
-  pointer-events: none;
-}
-
 /* ============================================================
    HEADER / NAV BAR
    Permanently frosted, like Apple's global nav - no scroll-driven
@@ -280,8 +267,8 @@ header {
   padding: 140px 24px;
   position: relative;
   opacity: 0;
-  transform: translateY(40px);
-  transition: opacity 0.8s var(--ease), transform 0.8s var(--ease);
+  transform: translateY(16px);
+  transition: opacity 0.6s var(--ease), transform 0.6s var(--ease);
 }
 
 .scroll-section.visible {
@@ -299,7 +286,7 @@ header {
   text-align: center;
   margin-bottom: 64px;
   opacity: 0;
-  transform: translateY(24px);
+  transform: translateY(12px);
   transition: opacity 0.8s var(--ease) 0.1s, transform 0.8s var(--ease) 0.1s;
 }
 
@@ -335,21 +322,6 @@ header {
   padding: calc(var(--nav-height) + 60px) 24px 60px;
   position: relative;
   overflow: hidden;
-}
-
-/* Soft gradient-mesh backdrop, in place of a product photo we don't have -
-   Apple's own keynote/event pages use exactly this kind of blurred pastel
-   blob field on an otherwise plain background. */
-.hero-section::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  background:
-    radial-gradient(600px circle at 20% 20%, rgba(0, 113, 227, 0.10), transparent 60%),
-    radial-gradient(500px circle at 85% 15%, rgba(191, 90, 242, 0.08), transparent 60%),
-    radial-gradient(700px circle at 50% 90%, rgba(255, 105, 180, 0.06), transparent 60%);
-  pointer-events: none;
 }
 
 .hero-content {
@@ -455,12 +427,6 @@ header {
 
 .cta-primary:hover {
   background: var(--color-accent-hover);
-  transform: scale(1.02);
-}
-
-.cta-primary:active {
-  transform: scale(0.98);
-  transition-duration: 0.1s;
 }
 
 .cta-secondary {
@@ -517,7 +483,7 @@ header {
 
 .about-text {
   opacity: 0;
-  transform: translateX(-24px);
+  transform: translateX(-12px);
   transition: opacity 0.8s var(--ease) 0.2s, transform 0.8s var(--ease) 0.2s;
 }
 
@@ -573,7 +539,7 @@ header {
 
 .skills-showcase {
   opacity: 0;
-  transform: translateX(24px);
+  transform: translateX(12px);
   transition: opacity 0.8s var(--ease) 0.3s, transform 0.8s var(--ease) 0.3s;
 }
 
@@ -641,11 +607,6 @@ header {
   border-radius: 16px;
   padding: 24px;
   text-align: center;
-  transition: transform 0.3s var(--ease);
-}
-
-.strength-item:hover {
-  transform: translateY(-4px);
 }
 
 .strength-item h4 {
@@ -762,27 +723,26 @@ header {
   border-radius: var(--radius-card);
   padding: 36px;
   border: 1px solid var(--color-border);
-  transition: transform 0.4s var(--ease), box-shadow 0.4s var(--ease);
+  transition: opacity 0.5s var(--ease), transform 0.5s var(--ease), border-color 0.2s ease;
   opacity: 0;
-  transform: translateY(30px);
+  transform: translateY(16px);
   box-sizing: border-box;
 }
 
 .scroll-section.visible .project-card:nth-child(1) {
   opacity: 1;
   transform: translateY(0);
-  transition-delay: 0.2s;
+  transition-delay: 0.1s;
 }
 
 .scroll-section.visible .project-card:nth-child(2) {
   opacity: 1;
   transform: translateY(0);
-  transition-delay: 0.3s;
+  transition-delay: 0.15s;
 }
 
 .scroll-section.visible .project-card:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.1);
+  border-color: var(--color-text-secondary);
 }
 
 .project-header {
@@ -879,12 +839,6 @@ header {
 
 .project-btn:hover {
   background: var(--color-accent-hover);
-  transform: scale(1.02);
-}
-
-.project-btn:active {
-  transform: scale(0.98);
-  transition-duration: 0.1s;
 }
 
 /* ============================================================
@@ -900,7 +854,7 @@ header {
 
 .contact-info {
   opacity: 0;
-  transform: translateX(-24px);
+  transform: translateX(-12px);
   transition: opacity 0.8s var(--ease) 0.2s, transform 0.8s var(--ease) 0.2s;
 }
 
@@ -940,7 +894,7 @@ header {
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 16px;
   opacity: 0;
-  transform: translateX(24px);
+  transform: translateX(12px);
   transition: opacity 0.8s var(--ease) 0.3s, transform 0.8s var(--ease) 0.3s;
 }
 
@@ -954,13 +908,12 @@ header {
   border-radius: 18px;
   padding: 26px 20px;
   text-align: center;
-  transition: transform 0.3s var(--ease), box-shadow 0.3s var(--ease);
+  transition: border-color 0.2s ease;
   border: 1px solid var(--color-border);
 }
 
 .contact-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.08);
+  border-color: var(--color-text-secondary);
 }
 
 .contact-icon {
