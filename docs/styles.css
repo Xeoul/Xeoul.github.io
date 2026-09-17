@@ -20,6 +20,12 @@
   --container-width: 1080px;
   --nav-height: 64px;
   --ease: cubic-bezier(0.16, 1, 0.3, 1);
+  /* Symmetric ease-in-out, used only for the panel slide - --ease above
+     is front-loaded (snappy start, long settle) which reads as quick
+     and a little abrupt at panel-sized distances. This curve accelerates
+     and decelerates evenly so the whole-screen slide feels smooth and
+     continuous rather than snapping into place. */
+  --ease-fluid: cubic-bezier(0.65, 0, 0.35, 1);
 }
 
 /* ============================================================
@@ -320,7 +326,7 @@ header {
   opacity: 0;
   transform: translateX(0);
   pointer-events: none;
-  transition: opacity 0.45s var(--ease), transform 0.45s var(--ease);
+  transition: opacity 0.7s var(--ease-fluid), transform 0.7s var(--ease-fluid);
   overflow-y: auto;
   z-index: 1;
 }
@@ -332,10 +338,19 @@ header {
   z-index: 2;
 }
 
-.panel.enter-from-right { transform: translateX(48px); }
-.panel.enter-from-left { transform: translateX(-48px); }
-.panel.exit-to-left { opacity: 0; transform: translateX(-48px); }
-.panel.exit-to-right { opacity: 0; transform: translateX(48px); }
+.panel.enter-from-right { transform: translateX(64px); }
+.panel.enter-from-left { transform: translateX(-64px); }
+.panel.exit-to-left { opacity: 0; transform: translateX(-64px); }
+.panel.exit-to-right { opacity: 0; transform: translateX(64px); }
+
+/* .panel's own transition is unconditional, so just adding an entry
+   class would itself animate from the resting translateX(0) out to the
+   +/-64px starting point instead of snapping there - leaving nothing
+   left to animate when we swap to .active moments later. This forces
+   that first move to happen instantly. */
+.panel.no-transition {
+  transition: none !important;
+}
 
 @media (prefers-reduced-motion: reduce) {
   .panel {

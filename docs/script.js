@@ -44,6 +44,7 @@ const panels = [...document.querySelectorAll('.panel')];
 const navLinks = document.querySelectorAll('.nav-link');
 const validPanelIds = new Set(panels.map(p => p.id));
 const TRANSITION_CLASSES = ['enter-from-right', 'enter-from-left', 'exit-to-left', 'exit-to-right'];
+let pendingFrame = null;
 
 function panelIndex(id) {
     return panels.findIndex(p => p.id === id);
@@ -56,6 +57,11 @@ function showPanel(id, updateHash = true, animate = true) {
     const next = panels.find(p => p.id === id);
     if (!next || next === current) return;
 
+    if (pendingFrame !== null) {
+        cancelAnimationFrame(pendingFrame);
+        pendingFrame = null;
+    }
+
     panels.forEach(p => p.classList.remove(...TRANSITION_CLASSES));
 
     if (current) {
@@ -65,14 +71,33 @@ function showPanel(id, updateHash = true, animate = true) {
             const forward = panelIndex(id) > panelIndex(current.id);
             current.classList.add(forward ? 'exit-to-left' : 'exit-to-right');
 
+            // .panel's own transition is unconditional, so just adding
+            // the entry class would itself animate out to the +/-64px
+            // starting point instead of snapping there - 'no-transition'
+            // forces that first move to happen instantly. The entry
+            // position also needs its own painted frame before we switch
+            // to the final position - one requestAnimationFrame only
+            // schedules a callback that still runs *before* that frame's
+            // paint, so swapping classes there collapses the off-screen
+            // state and the final state into a single paint. The nested
+            // rAF waits for the frame *after* the one that painted it.
             const entryClass = forward ? 'enter-from-right' : 'enter-from-left';
-            next.classList.add(entryClass);
-            void next.offsetWidth; // force a reflow so the entry position paints before animating away from it
-            next.classList.remove(entryClass);
+            next.classList.add(entryClass, 'no-transition');
+            void next.offsetWidth; // commit the off-screen starting position instantly
+            next.classList.remove('no-transition');
+            pendingFrame = requestAnimationFrame(() => {
+                pendingFrame = requestAnimationFrame(() => {
+                    next.classList.remove(entryClass);
+                    next.classList.add('active');
+                    pendingFrame = null;
+                });
+            });
+        } else {
+            next.classList.add('active');
         }
+    } else {
+        next.classList.add('active');
     }
-
-    next.classList.add('active');
 
     navLinks.forEach(link => {
         const targetId = link.getAttribute('href').replace('#', '');
