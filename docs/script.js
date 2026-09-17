@@ -1,29 +1,3 @@
-// HAMBURGER MENU FUNCTIONALITY
-const menu_btn = document.querySelector('.hamburger');
-const hamburg_menu = document.querySelector('.in-menu');
-const menu_backdrop = document.querySelector('.menu-backdrop');
-
-function closeMenu() {
-    menu_btn.classList.remove('is-active');
-    hamburg_menu.classList.remove('is-active');
-    menu_backdrop.classList.remove('is-active');
-}
-
-// Toggle menu when hamburger is clicked
-menu_btn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    menu_btn.classList.toggle('is-active');
-    hamburg_menu.classList.toggle('is-active');
-    menu_backdrop.classList.toggle('is-active');
-});
-
-// Close menu when clicking outside of it (including the backdrop)
-document.addEventListener('click', (e) => {
-    if (!menu_btn.contains(e.target) && !hamburg_menu.contains(e.target)) {
-        closeMenu();
-    }
-});
-
 // RESTRICTED REPOSITORY LINK
 const restrictedRepoLink = document.getElementById('restricted-repo-link');
 if (restrictedRepoLink) {
@@ -114,7 +88,6 @@ navLinks.forEach(link => {
         e.preventDefault();
         const targetId = link.getAttribute('href').replace('#', '');
         showPanel(targetId);
-        closeMenu();
     });
 });
 
@@ -122,6 +95,40 @@ window.addEventListener('popstate', () => {
     const id = window.location.hash.replace('#', '') || 'home';
     showPanel(id, false);
 });
+
+// SWIPE BETWEEN PANELS (touch only)
+// Complements the tab bar with the gesture that matches the slide
+// transition itself - swipe left to go forward a panel, right to go
+// back, same as paging through a deck. Only reacts to a swipe that's
+// clearly more horizontal than vertical, so a normal vertical scroll
+// inside an overflowing panel is left alone.
+const viewEl = document.querySelector('.view');
+if (viewEl) {
+    let touchStartX = 0;
+    let touchStartY = 0;
+
+    viewEl.addEventListener('touchstart', (e) => {
+        touchStartX = e.changedTouches[0].clientX;
+        touchStartY = e.changedTouches[0].clientY;
+    }, { passive: true });
+
+    viewEl.addEventListener('touchend', (e) => {
+        const dx = e.changedTouches[0].clientX - touchStartX;
+        const dy = e.changedTouches[0].clientY - touchStartY;
+        const SWIPE_THRESHOLD = 60;
+
+        if (Math.abs(dx) < SWIPE_THRESHOLD || Math.abs(dx) < Math.abs(dy) * 1.5) return;
+
+        const current = panels.find(p => p.classList.contains('active'));
+        if (!current) return;
+        const currentIndex = panelIndex(current.id);
+        const targetIndex = currentIndex + (dx < 0 ? 1 : -1);
+
+        if (targetIndex >= 0 && targetIndex < panels.length) {
+            showPanel(panels[targetIndex].id);
+        }
+    }, { passive: true });
+}
 
 // ANIMATED STAT COUNTERS (2025 / 3+ / 2, counting up from 0)
 function animateStatCounters() {
@@ -143,15 +150,17 @@ function animateStatCounters() {
     });
 }
 
-// LIVE GITHUB PROFILE STATS (public repo count, followers), embedded
-// directly in the nav menu. Pulled from the public GitHub Users API -
-// profile-level rather than tied to any one repo, so it keeps working
-// regardless of which individual repos are public or private. Fails
-// closed: on any error or rate-limit response, the row hides itself
-// instead of showing stale placeholder dashes.
-const githubStats = document.querySelector('.github-stats[data-github-user]');
-if (githubStats) {
-    const username = githubStats.getAttribute('data-github-user');
+// LIVE GITHUB PROFILE STATS (public repo count, followers). Pulled from
+// the public GitHub Users API - profile-level rather than tied to any
+// one repo, so it keeps working regardless of which individual repos
+// are public or private. Shown inline in the desktop nav and, since
+// there's no nav bar to embed it in there, inline in the Contact
+// panel's GitHub row on mobile - both share this one fetch. Fails
+// closed: on any error or rate-limit response, each instance hides
+// itself instead of showing stale placeholder dashes.
+const githubStatsEls = document.querySelectorAll('.github-stats[data-github-user]');
+if (githubStatsEls.length) {
+    const username = githubStatsEls[0].getAttribute('data-github-user');
     fetch(`https://api.github.com/users/${username}`, {
         headers: { 'Accept': 'application/vnd.github+json' }
     })
@@ -160,19 +169,23 @@ if (githubStats) {
             return res.json();
         })
         .then(data => {
-            const setStat = (selector, count, noun) => {
-                const el = githubStats.querySelector(selector);
-                if (!el) return;
-                const valueEl = el.querySelector('.gh-stat-value');
-                valueEl.textContent = count;
-                valueEl.classList.remove('skeleton');
-                el.querySelector('.gh-stat-label').textContent = count === 1 ? ` ${noun}` : ` ${noun}s`;
-            };
-            setStat('.gh-stat-repos', data.public_repos, 'repo');
-            setStat('.gh-stat-followers', data.followers, 'follower');
+            githubStatsEls.forEach(githubStats => {
+                const setStat = (selector, count, noun) => {
+                    const el = githubStats.querySelector(selector);
+                    if (!el) return;
+                    const valueEl = el.querySelector('.gh-stat-value');
+                    valueEl.textContent = count;
+                    valueEl.classList.remove('skeleton');
+                    el.querySelector('.gh-stat-label').textContent = count === 1 ? ` ${noun}` : ` ${noun}s`;
+                };
+                setStat('.gh-stat-repos', data.public_repos, 'repo');
+                setStat('.gh-stat-followers', data.followers, 'follower');
+            });
         })
         .catch(() => {
-            githubStats.style.display = 'none';
+            githubStatsEls.forEach(githubStats => {
+                githubStats.style.display = 'none';
+            });
         });
 }
 

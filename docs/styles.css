@@ -19,6 +19,7 @@
   --radius: 6px;
   --container-width: 1080px;
   --nav-height: 64px;
+  --tab-bar-height: calc(50px + env(safe-area-inset-bottom, 0px));
   --ease: cubic-bezier(0.16, 1, 0.3, 1);
   /* Symmetric ease-in-out, used only for the panel slide - --ease above
      is front-loaded (snappy start, long settle) which reads as quick
@@ -132,47 +133,9 @@ header {
   box-sizing: border-box;
 }
 
-.hamburger {
-  position: relative;
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 8px;
-  width: 36px;
-  height: 36px;
-  z-index: 101;
-  order: 1;
-}
-
-.hamburger .bar {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 20px;
-  height: 1.5px;
-  background: var(--color-ink);
-  transition: transform 0.25s var(--ease), opacity 0.2s ease;
-}
-
-.hamburger .bar:nth-child(1) { transform: translate(-50%, calc(-50% - 6px)); }
-.hamburger .bar:nth-child(2) { transform: translate(-50%, -50%); }
-.hamburger .bar:nth-child(3) { transform: translate(-50%, calc(-50% + 6px)); }
-
-.hamburger.is-active .bar:nth-child(1) {
-  transform: translate(-50%, -50%) rotate(45deg);
-}
-.hamburger.is-active .bar:nth-child(2) {
-  opacity: 0;
-  transform: translate(-50%, -50%) scale(0);
-}
-.hamburger.is-active .bar:nth-child(3) {
-  transform: translate(-50%, -50%) rotate(-45deg);
-}
-
 .header-title {
   text-decoration: none;
   color: inherit;
-  order: 2;
 }
 
 .header-title h1 {
@@ -193,7 +156,6 @@ header {
   text-decoration: none;
   border-radius: 50%;
   transition: color 0.2s ease;
-  order: 4;
   margin-left: auto;
   flex-shrink: 0;
 }
@@ -202,41 +164,11 @@ header {
   color: var(--color-accent);
 }
 
-/* MOBILE NAV DRAWER (becomes inline desktop nav at 900px, below) */
-.menu-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(20, 20, 26, 0.25);
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.3s ease;
-  z-index: 97;
-}
-
-.menu-backdrop.is-active {
-  opacity: 1;
-  pointer-events: auto;
-}
-
+/* Desktop-only inline nav bar - hidden by default, shown as a row in
+   the header at the 900px breakpoint below. Below that width, primary
+   navigation is the fixed bottom tab bar instead (see .tab-bar). */
 .in-menu {
-  position: fixed;
-  top: 0;
-  left: -280px;
-  bottom: 0;
-  width: 240px;
-  background: var(--color-bg);
-  border-right: 1px solid var(--color-border);
-  padding: calc(var(--nav-height) + 12px) 12px 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  transition: left 0.3s var(--ease);
-  z-index: 98;
-  order: 3;
-}
-
-.in-menu.is-active {
-  left: 0;
+  display: none;
 }
 
 .in-menu a {
@@ -274,9 +206,9 @@ header {
   opacity: 1;
 }
 
-/* Live GitHub stats, embedded as the last row of the menu itself -
-   pinned to the bottom of the drawer on mobile, trailing the links
-   inline on desktop (see the 900px breakpoint below). */
+/* Live GitHub stats - inline in the desktop nav (below), or inline in
+   the Contact panel's GitHub row on mobile (.contact-stats overrides
+   layout there; see the responsive rules further down). */
 .github-stats {
   display: flex;
   align-items: center;
@@ -284,9 +216,6 @@ header {
   font-family: var(--font-mono);
   font-size: 12px;
   color: var(--color-ink-soft);
-  margin-top: auto;
-  padding: 14px 14px 0;
-  border-top: 1px solid var(--color-border);
 }
 
 .gh-stat {
@@ -298,6 +227,55 @@ header {
 .gh-stat-value {
   color: var(--color-ink);
   font-weight: 500;
+}
+
+/* ============================================================
+   MOBILE TAB BAR: primary navigation below 900px, replacing the old
+   off-canvas drawer - every destination is a fixed, always-visible,
+   thumb-reachable tap target instead of hidden behind a menu button.
+   ============================================================ */
+.tab-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: var(--tab-bar-height);
+  z-index: 100;
+  display: flex;
+  background: var(--color-bg);
+  border-top: 1px solid var(--color-border);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  box-sizing: border-box;
+}
+
+.tab-link {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 6px 4px;
+  color: var(--color-ink-soft);
+  text-decoration: none;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  transition: color 0.2s ease;
+}
+
+.tab-link svg {
+  opacity: 0.7;
+  transition: opacity 0.2s ease;
+}
+
+.tab-link.active {
+  color: var(--color-accent);
+}
+
+.tab-link.active svg {
+  opacity: 1;
 }
 
 /* ============================================================
@@ -883,26 +861,18 @@ header {
 }
 
 /* ============================================================
-   DESKTOP NAV (≥900px): the drawer becomes an inline bar, and
-   the GitHub stats sit trailing it instead of pinned to a bottom
-   that no longer exists.
+   DESKTOP NAV (≥900px): the tab bar disappears and the inline bar
+   in the header takes over, with the GitHub stats trailing it.
    ============================================================ */
 @media screen and (min-width: 900px) {
-  .hamburger {
-    display: none;
-  }
-
-  .menu-backdrop {
+  .tab-bar {
     display: none;
   }
 
   .in-menu {
-    position: static;
+    display: flex;
     flex-direction: row;
     align-items: center;
-    width: auto;
-    border-right: none;
-    padding: 0;
     gap: 4px;
     margin-left: 40px;
   }
@@ -922,11 +892,15 @@ header {
   }
 
   .github-stats {
-    margin-top: 0;
     margin-left: 20px;
-    padding: 0 0 0 20px;
-    border-top: none;
+    padding-left: 20px;
     border-left: 1px solid var(--color-border);
+  }
+
+  /* The Contact panel's own copy of the stats is mobile-only - desktop
+     already shows them inline in the nav above. */
+  .contact-stats {
+    display: none;
   }
 }
 
@@ -938,6 +912,16 @@ header {
     grid-template-columns: 1fr;
     gap: 16px;
   }
+
+  .view {
+    bottom: var(--tab-bar-height);
+  }
+
+  .contact-stats {
+    display: flex;
+    flex-wrap: wrap;
+    margin-top: 4px;
+  }
 }
 
 @media screen and (max-width: 640px) {
@@ -946,7 +930,16 @@ header {
   }
 
   .panel {
-    padding: 14px 20px;
+    padding: 10px 20px;
+  }
+
+  .project-card {
+    padding: 12px 0;
+  }
+
+  .project-description p,
+  .tech-tags {
+    margin-bottom: 6px;
   }
 
   .hero-stats {
@@ -1020,6 +1013,44 @@ header {
 
   .github-activity {
     padding: 12px 16px;
+  }
+}
+
+/* Mobile has the tab bar eating another ~50px off the bottom of the
+   view on top of whatever the pure viewport-height rules above
+   already trim, so short *and* narrow needs a further pass. */
+@media screen and (max-width: 899px) and (max-height: 760px) {
+  .panel-header {
+    margin-bottom: 10px;
+  }
+
+  .about-grid {
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+
+  .intro-text {
+    margin-bottom: 8px;
+  }
+
+  .education-highlight {
+    padding-top: 10px;
+  }
+
+  .skill-category {
+    padding: 5px 0;
+  }
+
+  .github-activity {
+    padding: 10px 14px;
+  }
+
+  .github-activity h3 {
+    margin-bottom: 8px;
+  }
+
+  .gh-heatmap-legend {
+    margin-top: 6px;
   }
 
   .github-activity h3 {
