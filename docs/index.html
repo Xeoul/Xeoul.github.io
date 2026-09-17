@@ -13,7 +13,7 @@
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; connect-src 'self' https://api.github.com; object-src 'none'; base-uri 'self'; form-action 'none';">
     <title>Vincent Lam - Portfolio</title>
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
-    <link rel="preload" href="fonts/SpaceGrotesk-Variable.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="fonts/Inter-Variable.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="stylesheet" href="styles.css">
     <script type="application/ld+json">
     {
@@ -35,17 +35,47 @@
     </script>
 </head>
 <body>
-    <div class="scroll-progress"></div>
-
     <header>
         <button class="hamburger">
             <div class="bar"></div>
             <div class="bar"></div>
             <div class="bar"></div>
         </button>
-        <a href="index.html" class="header-title">
+        <a href="#home" class="header-title nav-link">
             <h1>Xeoul.github.io</h1>
         </a>
+        <nav class="in-menu">
+            <a href="#home" class="nav-link">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M10,20V14H14V20H19V12H22L12,3L2,12H5V20H10Z"/></svg>
+                Home
+            </a>
+            <a href="#about" class="nav-link">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12,4A4,4 0 0,1 16,8A4,4 0 0,1 12,12A4,4 0 0,1 8,8A4,4 0 0,1 12,4M12,14C16.42,14 20,15.79 20,18V20H4V18C4,15.79 7.58,14 12,14Z"/></svg>
+                About
+            </a>
+            <a href="#projects" class="nav-link">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M10,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V8C22,6.89 21.1,6 20,6H12L10,4Z"/></svg>
+                Projects
+            </a>
+            <a href="#contact" class="nav-link">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M20,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V6C22,4.89 21.1,4 20,4M20,8L12,13L4,8V6L12,11L20,6V8Z"/></svg>
+                Contact
+            </a>
+
+            <!-- Live GitHub stats, embedded directly in the nav rather than
+                 given their own card - the menu already exists, so this is
+                 one flat surface instead of two. Fails closed: hides on
+                 fetch error, see script.js. -->
+            <div class="github-stats" data-github-user="Xeoul">
+                <span class="gh-stat gh-stat-repos">
+                    <span class="gh-stat-value skeleton">00</span><span class="gh-stat-label">repos</span>
+                </span>
+                <span class="gh-stat gh-stat-followers">
+                    <span class="gh-stat-value skeleton">00</span><span class="gh-stat-label">followers</span>
+                </span>
+            </div>
+        </nav>
+
         <a href="https://github.com/Xeoul" target="_blank" rel="noopener noreferrer" class="github-icon">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.30.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
@@ -55,41 +85,21 @@
 
     <div class="menu-backdrop"></div>
 
-    <nav class="in-menu">
-        <a href="#home" class="nav-link">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M10,20V14H14V20H19V12H22L12,3L2,12H5V20H10Z"/></svg>
-            Home
-        </a>
-        <a href="#about" class="nav-link">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12,4A4,4 0 0,1 16,8A4,4 0 0,1 12,12A4,4 0 0,1 8,8A4,4 0 0,1 12,4M12,14C16.42,14 20,15.79 20,18V20H4V18C4,15.79 7.58,14 12,14Z"/></svg>
-            About
-        </a>
-        <a href="#projects" class="nav-link">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M10,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V8C22,6.89 21.1,6 20,6H12L10,4Z"/></svg>
-            Projects
-        </a>
-        <a href="#contact" class="nav-link">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M20,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V6C22,4.89 21.1,4 20,4M20,8L12,13L4,8V6L12,11L20,6V8Z"/></svg>
-            Contact
-        </a>
-    </nav>
-
-    <!-- HOME SECTION -->
-    <section id="home" class="hero-section scroll-section">
-        <div class="hero-content">
-            <div class="hero-text">
+    <main class="view">
+        <!-- HOME -->
+        <section id="home" class="panel hero-panel active">
+            <div class="hero-content">
+                <span class="eyebrow">Available for work</span>
                 <h1 class="hero-title">
-                    <span class="greeting">Hello, I'm</span>
                     <span class="name">Vincent Lam</span>
                     <span class="role">Computer Science Graduate</span>
                 </h1>
-                
+
                 <p class="hero-description">
-                    Recent Computer Science graduate from Sacramento State University with expertise in full-stack development. 
-                    I apply my technical skills to create innovative solutions and contribute to organizational success through 
-                    growth, innovation, and adaptability.
+                    Recent Computer Science graduate from Sacramento State University with expertise in full-stack
+                    development, database systems, and automation.
                 </p>
-                
+
                 <div class="hero-stats">
                     <div class="stat-item">
                         <span class="stat-number" data-count="2025">0</span>
@@ -104,336 +114,208 @@
                         <span class="stat-label">Major Projects</span>
                     </div>
                 </div>
-                
+
                 <div class="hero-actions">
-                    <a href="#projects" class="cta-primary nav-link">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M10,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V8C22,6.89 21.1,6 20,6H12L10,4Z"/>
-                        </svg>
-                        View My Work
-                    </a>
-                    <a href="#contact" class="cta-secondary nav-link">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M20,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V6C22,4.89 21.1,4 20,4M20,8L12,13L4,8V6L12,11L20,6V8Z"/>
-                        </svg>
-                        Get In Touch
-                    </a>
+                    <a href="#projects" class="cta-primary nav-link">View My Work</a>
+                    <a href="#contact" class="cta-secondary nav-link">Get In Touch</a>
                 </div>
             </div>
-            
-            <div class="hero-visual">
-                <div class="code-window">
-                    <div class="window-header">
-                        <div class="window-controls">
-                            <span class="control close"></span>
-                            <span class="control minimize"></span>
-                            <span class="control maximize"></span>
-                        </div>
-                        <span class="window-title">vincent.js</span>
-                    </div>
-                    <div class="code-content">
-                        <div class="code-line"><span class="keyword">const</span> <span class="variable">vincentLam</span> = {</div>
-                        <div class="code-line">  <span class="property">name</span>: <span class="string">'Vincent Lam'</span>,</div>
-                        <div class="code-line">  <span class="property">education</span>: <span class="string">'CS @ Sacramento State'</span>,</div>
-                        <div class="code-line">  <span class="property">skills</span>: [<span class="string">'Java'</span>, <span class="string">'Python'</span>, <span class="string">'MySQL'</span>, <span class="string">'Docker'</span>],</div>
-                        <div class="code-line">  <span class="property">tools</span>: [<span class="string">'SharePoint'</span>, <span class="string">'MS Office'</span>],</div>
-                        <div class="code-line">  <span class="property">goal</span>: <span class="string">'Foster growth & innovation'</span></div>
-                        <div class="code-line">};</div>
-                        <div class="code-line"></div>
-                        <div class="code-line"><span class="variable">vincentLam</span>.<span class="method">innovate</span>();</div>
-                    </div>
+        </section>
+
+        <!-- ABOUT -->
+        <section id="about" class="panel">
+            <div class="panel-content">
+                <div class="panel-header">
+                    <h2 class="section-title">About Me</h2>
                 </div>
-            </div>
-        </div>
-        
-        <div class="scroll-indicator">
-            <span>Scroll to explore</span>
-            <div class="scroll-arrow">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M7.41,8.58L12,13.17L16.59,8.58L18,10L12,16L6,10L7.41,8.58Z"/>
-                </svg>
-            </div>
-        </div>
-    </section>
 
-    <!-- ABOUT SECTION -->
-    <section id="about" class="scroll-section about-section">
-        <div class="section-content">
-            <div class="section-header">
-                <h2 class="section-title">About Me</h2>
-                <div class="section-subtitle">Get to know me better</div>
-            </div>
-            
-            <div class="about-grid">
-                <div class="about-text">
-                    <p class="intro-text">
-                        As a recent Computer Science Graduate of Sac State University,
-                        I want to apply my knowledge and ethics into the programming environment
-                        in order to contribute and help develop my passion and ongoing career
-                    </p>
-                    
-                    <div class="education-highlight">
-                        <h3>Education</h3>
-                        <div class="education-item">
-                            <h4>Sacramento State University</h4>
-                            <p class="degree">Bachelor of Science in Computer Science</p>
-                            <p class="graduation">Graduated Summer 2025</p>
+                <div class="about-grid">
+                    <div class="about-text">
+                        <p class="intro-text">
+                            Computer Science graduate of Sac State University, applying my skills to the
+                            programming environment to grow my career.
+                        </p>
+
+                        <div class="education-highlight">
+                            <h3>Education</h3>
+                            <div class="education-item">
+                                <h4>Sacramento State University</h4>
+                                <p class="degree">B.S. Computer Science &middot; Graduated Summer 2025</p>
+                            </div>
                         </div>
                     </div>
-                </div>
-                
-                <div class="skills-showcase">
-                    <div class="skills-grid">
-                        <div class="skill-category">
-                            <h4>Programming</h4>
-                            <div class="skill-tags">
-                                <span class="skill-tag">Java</span>
-                                <span class="skill-tag">Python</span>
-                                <span class="skill-tag">SQL</span>
-                                <span class="skill-tag">JavaScript</span>
-                            </div>
-                        </div>
-                        
-                        <div class="skill-category">
-                            <h4>Technologies</h4>
-                            <div class="skill-tags">
-                                <span class="skill-tag">Docker</span>
-                                <span class="skill-tag">MySQL</span>
-                                <span class="skill-tag">SharePoint</span>
-                                <span class="skill-tag">Microsoft Office Suite</span>
-                                <span class="skill-tag">Adobe Acrobat</span>
-                            </div>
-                        </div>
 
-                        <div class="skill-category">
-                            <h4>Systems</h4>
-                            <div class="skill-tags">
-                                <span class="skill-tag">Windows 10/11</span>
-                                <span class="skill-tag">macOS</span>
-                                <span class="skill-tag">Linux</span>
+                    <div class="skills-showcase">
+                        <div class="skills-grid">
+                            <div class="skill-category">
+                                <h4>Programming</h4>
+                                <div class="skill-tags">
+                                    <span class="skill-tag">Java</span>
+                                    <span class="skill-tag">Python</span>
+                                    <span class="skill-tag">SQL</span>
+                                    <span class="skill-tag">JavaScript</span>
+                                </div>
                             </div>
-                        </div>
 
-                        <div class="skill-category">
-                            <h4>AI &amp; Automation</h4>
-                            <div class="skill-tags">
-                                <span class="skill-tag">Ollama / Llama3</span>
-                                <span class="skill-tag">Prompt Engineering</span>
-                                <span class="skill-tag">Power Automate</span>
-                                <span class="skill-tag">Python Scripting</span>
+                            <div class="skill-category">
+                                <h4>Technologies</h4>
+                                <div class="skill-tags">
+                                    <span class="skill-tag">Docker</span>
+                                    <span class="skill-tag">MySQL</span>
+                                    <span class="skill-tag">SharePoint</span>
+                                </div>
+                            </div>
+
+                            <div class="skill-category">
+                                <h4>Systems</h4>
+                                <div class="skill-tags">
+                                    <span class="skill-tag">Windows</span>
+                                    <span class="skill-tag">macOS</span>
+                                    <span class="skill-tag">Linux</span>
+                                </div>
+                            </div>
+
+                            <div class="skill-category">
+                                <h4>AI &amp; Automation</h4>
+                                <div class="skill-tags">
+                                    <span class="skill-tag">Ollama / Llama3</span>
+                                    <span class="skill-tag">Power Automate</span>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <div class="strengths-grid">
-                <div class="strength-item">
-                    <h4>Communication</h4>
-                    <p>Strong interpersonal and communication skills, both verbally and in writing</p>
-                </div>
-                <div class="strength-item">
-                    <h4>Problem Solving</h4>
-                    <p>Excellent problem-solving skills with the ability to handle multiple tasks simultaneously</p>
-                </div>
-                <div class="strength-item">
-                    <h4>Data Analysis</h4>
-                    <p>Experience in performing analytical tasks and data analysis</p>
-                </div>
-                <div class="strength-item">
-                    <h4>Adaptability</h4>
-                    <p>Ability to remain flexible and adaptable in fast-paced environments</p>
+                <div class="github-activity">
+                    <h3>GitHub Activity</h3>
+                    <div class="gh-heatmap" data-github-user="Xeoul" role="img" aria-label="GitHub activity heatmap for the last 90 days"></div>
+                    <div class="gh-heatmap-legend">
+                        <span>Less</span>
+                        <span class="gh-heat-cell" data-level="0"></span>
+                        <span class="gh-heat-cell" data-level="1"></span>
+                        <span class="gh-heat-cell" data-level="2"></span>
+                        <span class="gh-heat-cell" data-level="3"></span>
+                        <span class="gh-heat-cell" data-level="4"></span>
+                        <span>More</span>
+                    </div>
                 </div>
             </div>
+        </section>
 
-            <div class="github-activity">
-                <h3>GitHub Activity</h3>
-                <div class="gh-heatmap" data-github-user="Xeoul" role="img" aria-label="GitHub activity heatmap for the last 90 days"></div>
-                <div class="gh-heatmap-legend">
-                    <span>Less</span>
-                    <span class="gh-heat-cell" data-level="0"></span>
-                    <span class="gh-heat-cell" data-level="1"></span>
-                    <span class="gh-heat-cell" data-level="2"></span>
-                    <span class="gh-heat-cell" data-level="3"></span>
-                    <span class="gh-heat-cell" data-level="4"></span>
-                    <span>More</span>
+        <!-- PROJECTS -->
+        <section id="projects" class="panel">
+            <div class="panel-content">
+                <div class="panel-header">
+                    <h2 class="section-title">My Projects</h2>
                 </div>
-                <p class="gh-heatmap-caption">Public activity over the last ~90 days, via the GitHub API</p>
-            </div>
-        </div>
-    </section>
 
-    <!-- PROJECTS SECTION -->
-    <section id="projects" class="scroll-section projects-section">
-        <div class="section-content">
-            <div class="section-header">
-                <h2 class="section-title">My Projects</h2>
-                <div class="section-subtitle">Showcasing my latest work</div>
-            </div>
-            
-            <div class="projects-grid">
-                <!-- Element-115 Project -->
-                <div class="project-card">
-                    <div class="project-header">
-                        <h3>Element-115</h3>
-                        <span class="project-badge">Senior Project</span>
+                <div class="projects-grid">
+                    <!-- Element-115 Project -->
+                    <div class="project-card">
+                        <div class="project-header">
+                            <h3>Element-115</h3>
+                            <span class="project-badge">Senior Project</span>
+                        </div>
+
+                        <div class="project-description">
+                            <p>Built for the Department of Consumer Affairs to manage 3.4 million licenses and forms, streamlining updates across test, development, and production.</p>
+                        </div>
+
+                        <div class="tech-stack">
+                            <div class="tech-tags">
+                                <span class="tech-tag">Database Management</span>
+                                <span class="tech-tag">Data Migration</span>
+                                <span class="tech-tag">Full-Stack</span>
+                            </div>
+                        </div>
                     </div>
 
-                    <div class="project-description">
-                        <p>Developed for the Department of Consumer Affairs to manage 3.4 million licenses and forms. A comprehensive tool designed to streamline updates across test, development, and production environments with database integration.</p>
-                    </div>
+                    <!-- Movie Recommendation Project -->
+                    <div class="project-card">
+                        <div class="project-header">
+                            <h3>Movie Recommendation Service</h3>
+                            <span class="project-badge secondary">Team Project</span>
+                        </div>
 
-                    <div class="tech-stack">
-                        <div class="tech-tags">
-                            <span class="tech-tag">Database Management</span>
-                            <span class="tech-tag">Data Migration</span>
-                            <span class="tech-tag">Production Systems</span>
-                            <span class="tech-tag">Full-Stack</span>
+                        <div class="project-description">
+                            <p>Full CRUD REST API and front-end movie recommendation app, built with a team using Scrum methodology.</p>
+                        </div>
+
+                        <div class="tech-stack">
+                            <div class="tech-tags">
+                                <span class="tech-tag">Java</span>
+                                <span class="tech-tag">Jersey</span>
+                                <span class="tech-tag">Docker</span>
+                                <span class="tech-tag">MySQL</span>
+                            </div>
+                        </div>
+
+                        <div class="project-links">
+                            <a href="#" class="project-btn" id="restricted-repo-link">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.30.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                                </svg>
+                                View Repository
+                            </a>
                         </div>
                     </div>
                 </div>
-
-                <!-- Movie Recommendation Project -->
-                <div class="project-card">
-                    <div class="project-header">
-                        <h3>Movie Recommendation Service</h3>
-                        <span class="project-badge secondary">Team Project</span>
-                    </div>
-                    
-                    <div class="project-description">
-                        <p>Collaborated in a team to build a full CRUD REST API and front-end movie recommendation app. Implemented using Java, Jersey, Docker, and MySQL with Scrum methodology for agile development.</p>
-                    </div>
-                    
-                    <div class="tech-stack">
-                        <div class="tech-tags">
-                            <span class="tech-tag">Java</span>
-                            <span class="tech-tag">Jersey</span>
-                            <span class="tech-tag">Docker</span>
-                            <span class="tech-tag">MySQL</span>
-                            <span class="tech-tag">REST API</span>
-                        </div>
-                    </div>
-                    
-                    <div class="project-links">
-                        <a href="#" class="project-btn" id="restricted-repo-link">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.30.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
-                            </svg>
-                            View Repository
-                        </a>
-                    </div>
-                </div>
             </div>
-        </div>
-    </section>
+        </section>
 
-    <!-- CONTACT SECTION -->
-    <section id="contact" class="scroll-section contact-section">
-        <div class="section-content">
-            <div class="section-header">
-                <h2 class="section-title">Get In Touch</h2>
-                <div class="section-subtitle">Let's connect and collaborate</div>
-            </div>
-            
-            <div class="contact-grid">
-                <div class="contact-info">
-                    <p class="contact-intro">
-                        I'm always interested in new opportunities and collaborations. 
-                        Feel free to reach out if you'd like to discuss projects, opportunities, or just connect!
-                    </p>
-                    
-                    <div class="availability-info">
-                        <div class="status-item">
-                            <strong>Status:</strong> Available for new opportunities
-                        </div>
-                        <div class="status-item">
-                            <strong>Preferred Contact:</strong> Email for initial contact
-                        </div>
-                        <div class="status-item">
-                            <strong>Response Time:</strong> Within 24 hours
-                        </div>
-                    </div>
+        <!-- CONTACT -->
+        <section id="contact" class="panel">
+            <div class="panel-content">
+                <div class="panel-header">
+                    <h2 class="section-title">Get In Touch</h2>
                 </div>
+
+                <p class="contact-intro">I'm always interested in new opportunities and collaborations - reach out any time.</p>
 
                 <div class="contact-methods">
-                    <div class="contact-card">
+                    <a href="mailto:v812.io@gmail.com" class="contact-card">
                         <div class="contact-icon">
-                            <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
                                 <path d="M20,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V6C22,4.89 21.1,4 20,4M20,8L12,13L4,8V6L12,11L20,6V8Z"/>
                             </svg>
                         </div>
-                        <h3>Email</h3>
-                        <p>Primary contact method</p>
-                        <a href="mailto:v812.io@gmail.com" class="contact-link">v812.io@gmail.com</a>
-                    </div>
+                        <span class="contact-label">Email</span>
+                        <span class="contact-value">v812.io@gmail.com</span>
+                    </a>
 
                     <div class="contact-card">
                         <div class="contact-icon">
-                            <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
                                 <path d="M12,2C8.13,2 5,5.13 5,9C5,14.25 12,22 12,22C12,22 19,14.25 19,9C19,5.13 15.87,2 12,2M12,11.5A2.5,2.5 0 0,1 9.5,9A2.5,2.5 0 0,1 12,6.5A2.5,2.5 0 0,1 14.5,9A2.5,2.5 0 0,1 12,11.5Z"/>
                             </svg>
                         </div>
-                        <h3>Location</h3>
-                        <p>Based in Sacramento area</p>
-                        <span class="contact-text">Sacramento, CA 95835</span>
+                        <span class="contact-label">Location</span>
+                        <span class="contact-value">Sacramento, CA</span>
                     </div>
-                    <div class="contact-card">
+
+                    <a href="https://www.linkedin.com/in/vincentlam812" class="contact-card" target="_blank" rel="noopener noreferrer">
                         <div class="contact-icon">
                             <span class="li-mark" aria-hidden="true">in</span>
                         </div>
-                        <h3>LinkedIn</h3>
-                        <p>Professional network</p>
-                        <a href="https://www.linkedin.com/in/vincentlam812" class="contact-link" target="_blank" rel="noopener noreferrer">vincentlam812</a>
-                    </div>
-                    <div class="contact-card">
+                        <span class="contact-label">LinkedIn</span>
+                        <span class="contact-value">vincentlam812</span>
+                    </a>
+
+                    <a href="https://github.com/Xeoul" target="_blank" rel="noopener noreferrer" class="contact-card">
                         <div class="contact-icon">
-                            <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
                                 <path d="M12,2A10,10 0 0,0 2,12C2,16.42 4.87,20.17 8.84,21.5C9.34,21.58 9.5,21.27 9.5,21C9.5,20.77 9.5,20.14 9.5,19.31C6.73,19.91 6.14,17.97 6.14,17.97C5.68,16.81 5.03,16.5 5.03,16.5C4.12,15.88 5.1,15.9 5.1,15.9C6.1,15.97 6.63,16.93 6.63,16.93C7.5,18.45 8.97,18 9.54,17.76C9.63,17.11 9.89,16.67 10.17,16.42C7.95,16.17 5.62,15.31 5.62,11.5C5.62,10.39 6,9.5 6.65,8.79C6.55,8.54 6.2,7.5 6.75,6.15C6.75,6.15 7.59,5.88 9.5,7.17C10.29,6.95 11.15,6.84 12,6.84C12.85,6.84 13.71,6.95 14.5,7.17C16.41,5.88 17.25,6.15 17.25,6.15C17.8,7.5 17.45,8.54 17.35,8.79C18,9.5 18.38,10.39 18.38,11.5C18.38,15.32 16.04,16.16 13.81,16.41C14.17,16.72 14.5,17.33 14.5,18.26C14.5,19.6 14.5,20.68 14.5,21C14.5,21.27 14.66,21.59 15.17,21.5C19.14,20.16 22,16.42 22,12A10,10 0 0,0 12,2Z"/>
                             </svg>
                         </div>
-                        <h3>GitHub</h3>
-                        <p>Check out my projects</p>
-                        <div class="github-stats" data-github-user="Xeoul">
-                            <span class="gh-stat gh-stat-repos">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M10,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V8C22,6.89 21.1,6 20,6H12L10,4Z"/></svg>
-                                <span class="gh-stat-value skeleton">00</span> <span class="gh-stat-label">repos</span>
-                            </span>
-                            <span class="gh-stat gh-stat-followers">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12,4A4,4 0 0,1 16,8A4,4 0 0,1 12,12A4,4 0 0,1 8,8A4,4 0 0,1 12,4M12,14C16.42,14 20,15.79 20,18V20H4V18C4,15.79 7.58,14 12,14Z"/></svg>
-                                <span class="gh-stat-value skeleton">00</span> <span class="gh-stat-label">followers</span>
-                            </span>
-                        </div>
-                        <a href="https://github.com/Xeoul" target="_blank" rel="noopener noreferrer" class="contact-link">github.com/Xeoul</a>
-                    </div>
+                        <span class="contact-label">GitHub</span>
+                        <span class="contact-value">github.com/Xeoul</span>
+                    </a>
                 </div>
-            </div>
 
-            <form class="contact-form" id="contact-form">
-                <h3>Send a Message</h3>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="cf-name">Name</label>
-                        <input type="text" id="cf-name" name="name" autocomplete="name" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="cf-email">Your Email</label>
-                        <input type="email" id="cf-email" name="email" autocomplete="email" required>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label for="cf-message">Message</label>
-                    <textarea id="cf-message" name="message" rows="5" required></textarea>
-                </div>
-                <button type="submit" class="cta-primary">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M20,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V6C22,4.89 21.1,4 20,4M20,8L12,13L4,8V6L12,11L20,6V8Z"/>
-                    </svg>
-                    Send Message
-                </button>
-                <p class="form-note">Opens your email app with this pre-filled — nothing is sent from this page or stored anywhere.</p>
-            </form>
-        </div>
-    </section>
+                <div class="panel-footer">&copy; 2025 Vincent Lam</div>
+            </div>
+        </section>
+    </main>
 
     <script src="script.js"></script>
 </body>
