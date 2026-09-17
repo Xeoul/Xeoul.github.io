@@ -10,10 +10,12 @@
   --color-ink: #14141a;
   --color-ink-soft: #6c6c72;
   --color-accent: #4f46e5;
+  --color-accent-rgb: 79, 70, 229;
   --color-accent-hover: #4338ca;
   --color-accent-tint: rgba(79, 70, 229, 0.08);
   --color-border: #e3e2dd;
   --color-border-strong: #cfcec8;
+  --color-skeleton-highlight: #e9e7e1;
   --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-mono: ui-monospace, 'SFMono-Regular', 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
   --radius: 6px;
@@ -27,6 +29,43 @@
      and decelerates evenly so the whole-screen slide feels smooth and
      continuous rather than snapping into place. */
   --ease-fluid: cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+/* DARK THEME
+   Applies automatically to a visitor whose OS is set to dark (unless
+   they've explicitly picked light here), or always once someone clicks
+   the toggle - [data-theme] is set by script.js/theme-init.js and wins
+   over the OS preference either way. Every other rule in this file
+   reads colors through the tokens above, so this is the only place
+   that needs to change. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --color-bg: #0d0d10;
+    --color-surface: #18181c;
+    --color-ink: #f4f4f2;
+    --color-ink-soft: #9b9ba2;
+    --color-accent: #818cf8;
+    --color-accent-rgb: 129, 140, 248;
+    --color-accent-hover: #a5b4fc;
+    --color-accent-tint: rgba(129, 140, 248, 0.14);
+    --color-border: #232328;
+    --color-border-strong: #5f5f64;
+    --color-skeleton-highlight: #2b2b31;
+  }
+}
+
+:root[data-theme="dark"] {
+  --color-bg: #0d0d10;
+  --color-surface: #18181c;
+  --color-ink: #f4f4f2;
+  --color-ink-soft: #9b9ba2;
+  --color-accent: #818cf8;
+  --color-accent-rgb: 129, 140, 248;
+  --color-accent-hover: #a5b4fc;
+  --color-accent-tint: rgba(129, 140, 248, 0.14);
+  --color-border: #232328;
+  --color-border-strong: #5f5f64;
+  --color-skeleton-highlight: #2b2b31;
 }
 
 /* ============================================================
@@ -68,6 +107,21 @@ body {
   -moz-osx-font-smoothing: grayscale;
   overflow: hidden;
   touch-action: pan-y;
+  transition: background-color 0.35s ease, color 0.35s ease;
+}
+
+/* Fades the theme switch across the page's big surfaces instead of
+   letting them snap instantly - most interactive elements already
+   transition color/background for their own hover states, so this
+   only needs to cover the plain surfaces that don't. */
+header,
+.tab-bar,
+.education-highlight,
+.skill-category,
+.github-activity,
+.project-card,
+.contact-card {
+  transition: background-color 0.35s ease, border-color 0.35s ease;
 }
 
 h1, h2, h3, h4 {
@@ -162,6 +216,53 @@ header {
 
 .github-icon:hover {
   color: var(--color-accent);
+}
+
+/* THEME TOGGLE
+   Shows the icon for the mode a click would switch *to* (moon while
+   light, sun while dark) - the common convention. Both icons are
+   always in the DOM; which one is visible is pure CSS driven off
+   [data-theme] or, absent an explicit override, prefers-color-scheme -
+   so the correct icon is right on first paint, no JS needed for that. */
+.theme-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: none;
+  border: none;
+  color: var(--color-ink);
+  cursor: pointer;
+  border-radius: 50%;
+  transition: color 0.2s ease;
+  flex-shrink: 0;
+}
+
+.theme-toggle:hover {
+  color: var(--color-accent);
+}
+
+.theme-toggle .icon-sun {
+  display: none;
+}
+
+:root[data-theme="dark"] .theme-toggle .icon-sun {
+  display: block;
+}
+
+:root[data-theme="dark"] .theme-toggle .icon-moon {
+  display: none;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .theme-toggle .icon-sun {
+    display: block;
+  }
+
+  :root:not([data-theme="light"]) .theme-toggle .icon-moon {
+    display: none;
+  }
 }
 
 /* Desktop-only inline nav bar - hidden by default, shown as a row in
@@ -616,9 +717,9 @@ header {
   background: var(--color-surface);
 }
 
-.gh-heat-cell[data-level="1"] { background: rgba(79, 70, 229, 0.3); }
-.gh-heat-cell[data-level="2"] { background: rgba(79, 70, 229, 0.5); }
-.gh-heat-cell[data-level="3"] { background: rgba(79, 70, 229, 0.75); }
+.gh-heat-cell[data-level="1"] { background: rgba(var(--color-accent-rgb), 0.3); }
+.gh-heat-cell[data-level="2"] { background: rgba(var(--color-accent-rgb), 0.5); }
+.gh-heat-cell[data-level="3"] { background: rgba(var(--color-accent-rgb), 0.75); }
 .gh-heat-cell[data-level="4"] { background: var(--color-accent); }
 
 .gh-heatmap-legend {
@@ -644,7 +745,7 @@ header {
 
 .skeleton {
   color: transparent !important;
-  background: linear-gradient(100deg, var(--color-surface) 30%, #e9e7e1 50%, var(--color-surface) 70%);
+  background: linear-gradient(100deg, var(--color-surface) 30%, var(--color-skeleton-highlight) 50%, var(--color-surface) 70%);
   background-size: 200% 100%;
   animation: shimmer 1.5s ease-in-out infinite;
   border-radius: 3px;

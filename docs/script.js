@@ -1,3 +1,28 @@
+// THEME TOGGLE
+// Which icon shows (sun/moon) is handled entirely by CSS off [data-theme]
+// or prefers-color-scheme - this only needs to flip the explicit override
+// and persist it. theme-init.js (loaded in <head>, before styles.css)
+// already applied any saved preference before this script even runs.
+const themeToggle = document.querySelector('.theme-toggle');
+if (themeToggle) {
+    themeToggle.addEventListener('click', () => {
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        const current = document.documentElement.getAttribute('data-theme') || (prefersDark ? 'dark' : 'light');
+        const next = current === 'dark' ? 'light' : 'dark';
+
+        document.documentElement.setAttribute('data-theme', next);
+        themeToggle.setAttribute('aria-pressed', String(next === 'dark'));
+        themeToggle.setAttribute('aria-label', next === 'dark' ? 'Switch to light theme' : 'Switch to dark theme');
+
+        try {
+            localStorage.setItem('theme', next);
+        } catch (e) {
+            // Storage can throw in private-browsing/locked-down contexts -
+            // the toggle still works for the rest of this page view.
+        }
+    });
+}
+
 // RESTRICTED REPOSITORY LINK
 const restrictedRepoLink = document.getElementById('restricted-repo-link');
 if (restrictedRepoLink) {
@@ -265,4 +290,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const initialId = window.location.hash.replace('#', '') || 'home';
     showPanel(initialId, false, false);
     animateStatCounters();
+
+    if (themeToggle) {
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        const isDark = document.documentElement.getAttribute('data-theme')
+            ? document.documentElement.getAttribute('data-theme') === 'dark'
+            : prefersDark;
+        themeToggle.setAttribute('aria-pressed', String(isDark));
+        themeToggle.setAttribute('aria-label', isDark ? 'Switch to light theme' : 'Switch to dark theme');
+    }
 });
