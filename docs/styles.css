@@ -892,6 +892,35 @@ header {
   color: var(--color-accent);
 }
 
+/* CLICK-TO-COPY (email row only, see #email-card in script.js).
+   Icon and label swap in place instead of a popup/toast - stays
+   inside the row it already occupies. */
+.icon-check {
+  display: none;
+}
+
+#email-card.copied .icon-mail {
+  display: none;
+}
+
+#email-card.copied .icon-check {
+  display: block;
+  color: var(--color-accent);
+}
+
+#email-card .copied-text {
+  display: none;
+}
+
+#email-card.copied .value-text {
+  display: none;
+}
+
+#email-card.copied .copied-text {
+  display: inline;
+  color: var(--color-accent);
+}
+
 .li-mark {
   font-family: var(--font-mono);
   font-weight: 600;

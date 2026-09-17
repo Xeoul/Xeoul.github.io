@@ -23,6 +23,29 @@ if (themeToggle) {
     });
 }
 
+// CLICK-TO-COPY EMAIL
+// Progressive enhancement over the plain mailto: link - if the Clipboard
+// API is available, copy the address instead of leaving the page for a
+// mail client and show a brief inline confirmation. Falls straight
+// through to the normal mailto: navigation on older/unsupported
+// browsers, or if the copy itself is rejected (e.g. no user-activation
+// in some embedded contexts).
+const emailCard = document.getElementById('email-card');
+if (emailCard && navigator.clipboard && navigator.clipboard.writeText) {
+    let copiedTimeout;
+    emailCard.addEventListener('click', (e) => {
+        e.preventDefault();
+        const email = emailCard.getAttribute('data-email');
+        navigator.clipboard.writeText(email).then(() => {
+            emailCard.classList.add('copied');
+            clearTimeout(copiedTimeout);
+            copiedTimeout = setTimeout(() => emailCard.classList.remove('copied'), 1800);
+        }).catch(() => {
+            window.location.href = `mailto:${email}`;
+        });
+    });
+}
+
 // RESTRICTED REPOSITORY LINK
 const restrictedRepoLink = document.getElementById('restricted-repo-link');
 if (restrictedRepoLink) {
