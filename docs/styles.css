@@ -144,6 +144,21 @@ a {
   color: var(--color-accent);
 }
 
+/* FOCUS STATES
+   :focus-visible only fires for keyboard/programmatic focus, not a
+   mouse click, so this doesn't add a ring to every tap - just gives
+   keyboard users a visible, on-brand indicator (the same indigo used
+   everywhere else) instead of each browser's own default outline
+   color, which doesn't match either theme. */
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
 .eyebrow {
   display: inline-flex;
   align-items: center;
