@@ -155,26 +155,6 @@ if (viewEl) {
     }, { passive: true });
 }
 
-// ANIMATED STAT COUNTERS (2025 / 3+ / 2, counting up from 0)
-function animateStatCounters() {
-    document.querySelectorAll('.stat-number[data-count]').forEach(el => {
-        const target = parseInt(el.getAttribute('data-count'), 10);
-        const suffix = el.getAttribute('data-suffix') || '';
-        const duration = 1000;
-        const startTime = performance.now();
-
-        function tick(now) {
-            const progress = Math.min((now - startTime) / duration, 1);
-            const eased = 1 - Math.pow(1 - progress, 3);
-            el.textContent = Math.round(target * eased) + suffix;
-            if (progress < 1) {
-                requestAnimationFrame(tick);
-            }
-        }
-        requestAnimationFrame(tick);
-    });
-}
-
 // LIVE GITHUB PROFILE STATS (public repo count, followers). Pulled from
 // the public GitHub Users API - profile-level rather than tied to any
 // one repo, so it keeps working regardless of which individual repos
@@ -289,7 +269,6 @@ if (ghHeatmap) {
 document.addEventListener('DOMContentLoaded', () => {
     const initialId = window.location.hash.replace('#', '') || 'home';
     showPanel(initialId, false, false);
-    animateStatCounters();
 
     if (themeToggle) {
         const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
