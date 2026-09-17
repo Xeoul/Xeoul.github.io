@@ -15,6 +15,12 @@
     <title>Vincent Lam - Portfolio</title>
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <link rel="preload" href="fonts/Inter-Variable.woff2" as="font" type="font/woff2" crossorigin>
+    <!-- Opens the connection to the GitHub API ahead of time, so the
+         handshake (DNS + TCP + TLS) is already done by the time
+         script.js reaches its two fetch() calls near the end of body,
+         instead of paying that round trip after the rest of the page
+         has already loaded. -->
+    <link rel="preconnect" href="https://api.github.com" crossorigin>
     <!-- Applies a saved dark-mode preference before styles.css paints, so
          there's no flash of the light theme first. -->
     <script src="theme-init.js"></script>
