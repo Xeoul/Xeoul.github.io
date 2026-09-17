@@ -9,7 +9,6 @@
   --color-surface: #f2f1ee;
   --color-ink: #14141a;
   --color-ink-soft: #6c6c72;
-  --color-ink-faint: #9c9ca1;
   --color-accent: #4f46e5;
   --color-accent-hover: #4338ca;
   --color-accent-tint: rgba(79, 70, 229, 0.08);
@@ -36,16 +35,19 @@
 
 /* ============================================================
    GLOBAL
+   The whole site is one fixed-height view - header plus a single
+   active panel filling the rest of the screen, swapped by JS
+   instead of scrolled to. `.panel` keeps its own overflow-y as a
+   safety net so nothing is ever unreachable on a very short
+   viewport, but content is sized to not need it in practice.
    ============================================================ */
 * {
   box-sizing: border-box;
 }
 
-html {
-  scroll-behavior: smooth;
-  -webkit-text-size-adjust: 100%;
-  text-size-adjust: 100%;
-  touch-action: pan-y;
+html, body {
+  height: 100%;
+  overscroll-behavior: none;
 }
 
 body {
@@ -54,10 +56,10 @@ body {
   font-family: var(--font-sans);
   background: var(--color-bg);
   color: var(--color-ink);
-  overflow-x: hidden;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  overflow: hidden;
   touch-action: pan-y;
 }
 
@@ -71,9 +73,9 @@ h1, h2, h3, h4 {
 
 p {
   font-size: 16px;
-  line-height: 1.7;
+  line-height: 1.6;
   max-width: 620px;
-  margin: 0 0 18px 0;
+  margin: 0 0 14px 0;
   color: var(--color-ink-soft);
 }
 
@@ -105,7 +107,8 @@ a {
    HEADER / NAV BAR
    Flat, hairline-bordered, opaque - no frosted glass. Nav links
    sit inline in the bar on desktop; on mobile the same <nav>
-   becomes an off-canvas drawer.
+   becomes an off-canvas drawer, with the live GitHub stats
+   embedded as its last row/item either way.
    ============================================================ */
 header {
   display: flex;
@@ -142,7 +145,7 @@ header {
   width: 20px;
   height: 1.5px;
   background: var(--color-ink);
-  transition: all 0.3s ease;
+  transition: transform 0.25s var(--ease), opacity 0.2s ease;
 }
 
 .hamburger .bar:nth-child(1) { transform: translate(-50%, calc(-50% - 6px)); }
@@ -186,6 +189,7 @@ header {
   transition: color 0.2s ease;
   order: 4;
   margin-left: auto;
+  flex-shrink: 0;
 }
 
 .github-icon:hover {
@@ -216,7 +220,7 @@ header {
   width: 240px;
   background: var(--color-bg);
   border-right: 1px solid var(--color-border);
-  padding: calc(var(--nav-height) + 12px) 12px 12px;
+  padding: calc(var(--nav-height) + 12px) 12px 16px;
   display: flex;
   flex-direction: column;
   gap: 2px;
@@ -264,84 +268,103 @@ header {
   opacity: 1;
 }
 
-/* ============================================================
-   SECTION SCAFFOLDING (shared by About/Projects/Contact)
-   ============================================================ */
-.scroll-section {
-  padding: 120px 28px;
-  position: relative;
-  opacity: 0;
-  transform: translateY(14px);
-  transition: opacity 0.6s var(--ease), transform 0.6s var(--ease);
+/* Live GitHub stats, embedded as the last row of the menu itself -
+   pinned to the bottom of the drawer on mobile, trailing the links
+   inline on desktop (see the 900px breakpoint below). */
+.github-stats {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--color-ink-soft);
+  margin-top: auto;
+  padding: 14px 14px 0;
+  border-top: 1px solid var(--color-border);
 }
 
-.scroll-section.visible {
+.gh-stat {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.gh-stat-value {
+  color: var(--color-ink);
+  font-weight: 500;
+}
+
+/* ============================================================
+   MAIN VIEW: one panel visible at a time, filling the screen
+   below the header. Switching is a plain crossfade + a few
+   pixels of vertical drift - no scroll-triggered choreography.
+   ============================================================ */
+.view {
+  position: fixed;
+  top: var(--nav-height);
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+.panel {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 28px 28px;
+  opacity: 0;
+  transform: translateY(8px);
+  pointer-events: none;
+  transition: opacity 0.35s var(--ease), transform 0.35s var(--ease);
+  overflow-y: auto;
+}
+
+.panel.active {
   opacity: 1;
   transform: translateY(0);
+  pointer-events: auto;
 }
 
-.section-content {
+/* Vertical centering via auto margins rather than the parent's
+   justify-content: center - on a scrollable flex container, centering
+   with justify-content clips the start of overflowing content above
+   an unreachable scroll position. Auto margins collapse gracefully
+   instead, so content that doesn't fit just starts at the top. */
+.panel-content {
   max-width: var(--container-width);
   width: 100%;
-  margin: 0 auto;
+  margin: auto;
 }
 
-.section-header {
-  margin-bottom: 56px;
-  opacity: 0;
-  transform: translateY(10px);
-  transition: opacity 0.6s var(--ease) 0.1s, transform 0.6s var(--ease) 0.1s;
-}
-
-.scroll-section.visible .section-header {
-  opacity: 1;
-  transform: translateY(0);
+.panel-header {
+  margin-bottom: 28px;
 }
 
 .section-title {
-  font-size: clamp(28px, 4vw, 40px);
+  font-size: clamp(24px, 3.4vw, 34px);
   font-weight: 600;
   letter-spacing: -0.02em;
-  margin: 14px 0 0 0;
   color: var(--color-ink);
 }
 
-.section-subtitle {
-  font-size: 16px;
-  color: var(--color-ink-soft);
-  margin: 8px 0 0 0;
-  font-weight: 400;
-}
-
 /* ============================================================
-   HERO
-   Left-aligned, plain background - the accent dot in the eyebrow
-   is the only colour before the first section break.
+   HOME PANEL
    ============================================================ */
-.hero-section {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  padding: calc(var(--nav-height) + 40px) 28px 60px;
-  position: relative;
-}
-
 .hero-content {
-  position: relative;
   max-width: var(--container-width);
   width: 100%;
-  margin: 0 auto;
+  margin: auto;
 }
 
 .hero-title {
-  margin: 20px 0 24px 0;
+  margin: 16px 0 18px 0;
   line-height: 1.05;
 }
 
 .hero-title .name {
   display: block;
-  font-size: clamp(42px, 7vw, 78px);
+  font-size: clamp(38px, 6.4vw, 68px);
   font-weight: 600;
   letter-spacing: -0.03em;
   color: var(--color-ink);
@@ -349,31 +372,31 @@ header {
 
 .hero-title .role {
   display: block;
-  font-size: clamp(18px, 2.4vw, 24px);
+  font-size: clamp(17px, 2.2vw, 22px);
   font-weight: 500;
   color: var(--color-ink-soft);
-  margin-top: 8px;
+  margin-top: 6px;
 }
 
 .hero-description {
-  font-size: 17px;
-  line-height: 1.7;
+  font-size: 16px;
+  line-height: 1.6;
   color: var(--color-ink-soft);
-  margin-bottom: 40px;
-  max-width: 540px;
+  margin-bottom: 28px;
+  max-width: 520px;
 }
 
 .hero-stats {
   display: flex;
   gap: 0;
-  margin-bottom: 44px;
+  margin-bottom: 32px;
   border-top: 1px solid var(--color-border);
-  max-width: 540px;
+  max-width: 480px;
 }
 
 .stat-item {
   text-align: left;
-  padding: 16px 24px 0 0;
+  padding: 14px 24px 0 0;
   border-right: 1px solid var(--color-border);
   flex: 1;
 }
@@ -386,17 +409,17 @@ header {
 .stat-number {
   display: block;
   font-family: var(--font-mono);
-  font-size: 26px;
+  font-size: 22px;
   font-weight: 500;
   letter-spacing: -0.01em;
   color: var(--color-ink);
-  margin-bottom: 4px;
+  margin-bottom: 2px;
   font-variant-numeric: tabular-nums;
 }
 
 .stat-label {
   display: block;
-  font-size: 12px;
+  font-size: 11px;
   color: var(--color-ink-soft);
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -416,7 +439,7 @@ header {
   text-decoration: none;
   font-weight: 500;
   font-size: 15px;
-  transition: all 0.2s ease;
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
 }
 
 .cta-primary {
@@ -452,104 +475,51 @@ header {
   transform: translateX(3px);
 }
 
-.scroll-indicator {
-  position: absolute;
-  bottom: 32px;
-  left: 28px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: var(--color-ink-soft);
-  font-family: var(--font-mono);
-  font-size: 12px;
-}
-
-.scroll-arrow {
-  animation: bounce 2s infinite;
-  opacity: 0.6;
-}
-
-@keyframes bounce {
-  0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
-  40% { transform: translateY(-4px); }
-  60% { transform: translateY(-2px); }
-}
-
 /* ============================================================
-   ABOUT SECTION
+   ABOUT PANEL
    ============================================================ */
 .about-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 64px;
+  gap: 48px;
   align-items: start;
-  margin-bottom: 64px;
-}
-
-.about-text {
-  opacity: 0;
-  transform: translateY(10px);
-  transition: opacity 0.6s var(--ease) 0.15s, transform 0.6s var(--ease) 0.15s;
-}
-
-.scroll-section.visible .about-text {
-  opacity: 1;
-  transform: translateY(0);
+  margin-bottom: 28px;
 }
 
 .intro-text {
-  font-size: 17px;
-  line-height: 1.7;
+  font-size: 15px;
+  line-height: 1.6;
   color: var(--color-ink-soft);
   max-width: none;
-  margin: 0 0 28px 0;
+  margin: 0 0 20px 0;
 }
 
 .education-highlight {
   border-top: 1px solid var(--color-border);
-  padding-top: 20px;
+  padding-top: 16px;
 }
 
 .education-highlight h3 {
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.06em;
   color: var(--color-ink-soft);
-  margin: 0 0 14px 0;
+  margin: 0 0 10px 0;
 }
 
 .education-item h4 {
   color: var(--color-ink);
-  font-size: 17px;
-  margin: 0 0 6px 0;
+  font-size: 15px;
+  margin: 0 0 4px 0;
 }
 
 .degree {
-  font-size: 15px;
-  color: var(--color-ink);
-  margin: 4px 0;
-  font-weight: 500;
-  max-width: none;
-}
-
-.graduation {
+  font-size: 13px;
   color: var(--color-ink-soft);
-  font-size: 14px;
-  margin: 4px 0;
+  margin: 0;
   max-width: none;
-}
-
-.skills-showcase {
-  opacity: 0;
-  transform: translateY(10px);
-  transition: opacity 0.6s var(--ease) 0.2s, transform 0.6s var(--ease) 0.2s;
-}
-
-.scroll-section.visible .skills-showcase {
-  opacity: 1;
-  transform: translateY(0);
 }
 
 .skills-grid {
@@ -559,11 +529,11 @@ header {
 }
 
 .skill-category {
-  padding: 16px 0;
+  padding: 10px 0;
   border-bottom: 1px solid var(--color-border);
   display: grid;
-  grid-template-columns: 130px 1fr;
-  gap: 16px;
+  grid-template-columns: 110px 1fr;
+  gap: 12px;
   align-items: baseline;
 }
 
@@ -574,7 +544,7 @@ header {
 .skill-category h4 {
   font-family: var(--font-mono);
   color: var(--color-ink-soft);
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -584,73 +554,34 @@ header {
 .skill-tags {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px 14px;
+  gap: 4px 12px;
 }
 
 .skill-tag {
   color: var(--color-ink);
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 400;
-  opacity: 0;
-  transform: translateY(6px);
-  transition: opacity 0.4s var(--ease), transform 0.4s var(--ease), color 0.2s ease;
-}
-
-.skill-tag::after {
-  content: none;
-}
-
-.skill-tag.revealed {
-  opacity: 1;
-  transform: translateY(0);
+  transition: color 0.2s ease;
 }
 
 .skill-tag:hover {
   color: var(--color-accent);
 }
 
-.strengths-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 1px;
-  background: var(--color-border);
-  border: 1px solid var(--color-border);
-  margin-bottom: 64px;
-}
-
-.strength-item {
-  background: var(--color-bg);
-  padding: 24px;
-}
-
-.strength-item h4 {
-  color: var(--color-ink);
-  font-size: 15px;
-  margin: 0 0 8px 0;
-}
-
-.strength-item p {
-  color: var(--color-ink-soft);
-  font-size: 14px;
-  line-height: 1.6;
-  margin: 0;
-  max-width: none;
-}
-
 /* GITHUB ACTIVITY HEATMAP */
 .github-activity {
   border: 1px solid var(--color-border);
-  padding: 28px;
+  padding: 18px 20px;
 }
 
 .github-activity h3 {
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.06em;
   color: var(--color-ink-soft);
-  margin: 0 0 20px 0;
+  margin: 0 0 14px 0;
 }
 
 .gh-heatmap {
@@ -663,8 +594,8 @@ header {
 }
 
 .gh-heat-cell {
-  width: 10px;
-  height: 10px;
+  width: 9px;
+  height: 9px;
   background: var(--color-surface);
 }
 
@@ -677,23 +608,15 @@ header {
   display: flex;
   align-items: center;
   gap: 5px;
-  margin-top: 12px;
+  margin-top: 10px;
   font-family: var(--font-mono);
   font-size: 11px;
   color: var(--color-ink-soft);
 }
 
 .gh-heatmap-legend .gh-heat-cell {
-  width: 9px;
-  height: 9px;
-}
-
-.gh-heatmap-caption {
-  margin: 10px 0 0 0;
-  font-family: var(--font-mono);
-  font-size: 11px;
-  color: var(--color-ink-soft);
-  max-width: none;
+  width: 8px;
+  height: 8px;
 }
 
 /* SHIMMER LOADING STATE */
@@ -725,14 +648,10 @@ header {
 }
 
 /* ============================================================
-   PROJECTS SECTION
+   PROJECTS PANEL
    An editorial list of rows rather than a card grid - each row
-   numbered, separated by a hairline, revealed by opacity only.
+   numbered, separated by a hairline.
    ============================================================ */
-.projects-section {
-  background: var(--color-surface);
-}
-
 .projects-grid {
   display: flex;
   flex-direction: column;
@@ -741,32 +660,20 @@ header {
 }
 
 .project-card {
-  padding: 40px 0;
+  padding: 22px 0;
   border-bottom: 1px solid var(--color-border);
   display: grid;
-  grid-template-columns: 56px 1fr;
-  gap: 24px;
-  opacity: 0;
-  transition: opacity 0.5s var(--ease);
-}
-
-.scroll-section.visible .project-card:nth-child(1) {
-  opacity: 1;
-  transition-delay: 0.1s;
-}
-
-.scroll-section.visible .project-card:nth-child(2) {
-  opacity: 1;
-  transition-delay: 0.15s;
+  grid-template-columns: 40px 1fr;
+  gap: 16px;
 }
 
 .project-card::before {
   counter-increment: project-count;
   content: '0' counter(project-count);
   font-family: var(--font-mono);
-  font-size: 13px;
+  font-size: 12px;
   color: var(--color-ink-soft);
-  padding-top: 4px;
+  padding-top: 3px;
   grid-column: 1;
   grid-row: 1;
 }
@@ -783,18 +690,18 @@ header {
   justify-content: space-between;
   align-items: flex-start;
   gap: 12px;
-  margin-bottom: 14px;
+  margin-bottom: 8px;
 }
 
 .project-header h3 {
-  font-size: 21px;
+  font-size: 18px;
   color: var(--color-ink);
 }
 
 .project-badge {
   font-family: var(--font-mono);
   color: var(--color-accent);
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -806,41 +713,27 @@ header {
   color: var(--color-ink-soft);
 }
 
-.project-description {
-  margin-bottom: 18px;
-}
-
 .project-description p {
-  font-size: 15px;
-  line-height: 1.7;
+  font-size: 14px;
+  line-height: 1.55;
   color: var(--color-ink-soft);
-  margin: 0;
-  max-width: 620px;
-}
-
-.tech-stack {
-  margin-bottom: 20px;
+  margin: 0 0 10px 0;
+  max-width: 600px;
 }
 
 .tech-tags {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px 16px;
+  gap: 4px 14px;
+  margin-bottom: 10px;
 }
 
 .tech-tag {
   font-family: var(--font-mono);
   color: var(--color-ink-soft);
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 400;
-  opacity: 0;
-  transform: translateY(6px);
-  transition: opacity 0.4s var(--ease), transform 0.4s var(--ease), color 0.2s ease;
-}
-
-.tech-tag.revealed {
-  opacity: 1;
-  transform: translateY(0);
+  transition: color 0.2s ease;
 }
 
 .tech-tag:hover {
@@ -850,20 +743,20 @@ header {
 .project-btn {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   padding: 0;
   background: none;
   color: var(--color-ink);
   text-decoration: none;
   font-weight: 500;
-  font-size: 14px;
+  font-size: 13px;
   border-bottom: 1px solid var(--color-border-strong);
   transition: color 0.2s ease, border-color 0.2s ease;
 }
 
 .project-btn svg {
-  width: 16px;
-  height: 16px;
+  width: 14px;
+  height: 14px;
 }
 
 .project-btn:hover {
@@ -872,82 +765,37 @@ header {
 }
 
 /* ============================================================
-   CONTACT SECTION
+   CONTACT PANEL
+   Each method is a single flat row (icon / label / value) - the
+   whole row is the link, so there's nothing left to click past.
    ============================================================ */
-.contact-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 64px;
-  align-items: start;
-  margin-bottom: 56px;
-}
-
-.contact-info {
-  opacity: 0;
-  transform: translateY(10px);
-  transition: opacity 0.6s var(--ease) 0.15s, transform 0.6s var(--ease) 0.15s;
-}
-
-.scroll-section.visible .contact-info {
-  opacity: 1;
-  transform: translateY(0);
-}
-
 .contact-intro {
-  font-size: 17px;
-  line-height: 1.7;
+  font-size: 15px;
+  line-height: 1.6;
   color: var(--color-ink-soft);
-  margin-bottom: 24px;
-  max-width: none;
-}
-
-.availability-info {
-  border-top: 1px solid var(--color-border);
-  padding-top: 18px;
-}
-
-.status-item {
-  margin-bottom: 10px;
-  color: var(--color-ink);
-  font-size: 14px;
-}
-
-.status-item strong {
-  font-family: var(--font-mono);
-  font-weight: 500;
-  color: var(--color-ink-soft);
-  text-transform: uppercase;
-  font-size: 11px;
-  letter-spacing: 0.04em;
-  margin-right: 6px;
-}
-
-.status-item:last-child {
-  margin-bottom: 0;
+  margin-bottom: 20px;
+  max-width: 560px;
 }
 
 .contact-methods {
   display: flex;
   flex-direction: column;
   border-top: 1px solid var(--color-border);
-  opacity: 0;
-  transform: translateY(10px);
-  transition: opacity 0.6s var(--ease) 0.2s, transform 0.6s var(--ease) 0.2s;
-}
-
-.scroll-section.visible .contact-methods {
-  opacity: 1;
-  transform: translateY(0);
 }
 
 .contact-card {
-  display: grid;
-  grid-template-columns: 32px 1fr;
-  gap: 16px;
-  padding: 20px 0;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 4px;
   border-bottom: 1px solid var(--color-border);
-  text-align: left;
-  align-items: flex-start;
+  text-decoration: none;
+  color: inherit;
+  transition: background 0.2s ease;
+}
+
+.contact-card:hover {
+  background: var(--color-surface);
 }
 
 .contact-icon {
@@ -957,13 +805,8 @@ header {
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
   transition: color 0.2s ease;
-  grid-column: 1;
-  grid-row: 1;
-}
-
-.contact-card > *:not(.contact-icon) {
-  grid-column: 2;
 }
 
 .contact-card:hover .contact-icon {
@@ -973,178 +816,37 @@ header {
 .li-mark {
   font-family: var(--font-mono);
   font-weight: 600;
-  font-size: 15px;
+  font-size: 14px;
   line-height: 1;
 }
 
-.contact-card h3 {
-  color: var(--color-ink);
-  font-size: 15px;
-  margin: 0 0 3px 0;
-}
-
-.contact-card p {
-  color: var(--color-ink-soft);
-  font-size: 13px;
-  margin: 0 0 8px 0;
-}
-
-.contact-link {
-  color: var(--color-ink);
-  text-decoration: none;
-  font-weight: 500;
-  font-size: 14px;
-  border-bottom: 1px solid var(--color-border-strong);
-  transition: color 0.2s ease, border-color 0.2s ease;
-}
-
-.contact-link:hover {
-  color: var(--color-accent);
-  border-color: var(--color-accent);
-}
-
-.contact-text {
-  color: var(--color-ink);
-  font-weight: 500;
-  font-size: 14px;
-}
-
-.github-stats {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  margin-bottom: 8px;
+.contact-label {
   font-family: var(--font-mono);
-  font-size: 12px;
-  color: var(--color-ink-soft);
-}
-
-.gh-stat {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.gh-stat svg {
-  color: var(--color-accent);
-  opacity: 0.7;
-  width: 12px;
-  height: 12px;
-}
-
-/* CONTACT FORM */
-.contact-form {
-  max-width: 640px;
-  margin: 0 auto;
-  padding: 0;
-  border-top: 1px solid var(--color-border-strong);
-  padding-top: 40px;
-}
-
-.contact-form h3 {
-  margin: 0 0 24px 0;
-  font-family: var(--font-mono);
-  font-size: 12px;
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--color-ink-soft);
-}
-
-.form-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-}
-
-.form-group {
-  margin-bottom: 22px;
-  text-align: left;
-}
-
-.form-group label {
-  display: block;
-  margin-bottom: 6px;
-  color: var(--color-ink-soft);
-  font-size: 12px;
-  font-family: var(--font-mono);
+  font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.04em;
+  color: var(--color-ink-soft);
+  width: 90px;
+  flex-shrink: 0;
 }
 
-.form-group input,
-.form-group textarea {
-  width: 100%;
-  padding: 10px 0;
-  background: none;
-  border: none;
-  border-bottom: 1px solid var(--color-border-strong);
-  border-radius: 0;
+.contact-value {
+  font-size: 14px;
+  font-weight: 500;
   color: var(--color-ink);
-  font-family: var(--font-sans);
-  font-size: 15px;
-  box-sizing: border-box;
-  transition: border-color 0.2s ease;
 }
 
-.form-group textarea {
-  resize: vertical;
-  min-height: 90px;
-}
-
-.form-group input:focus,
-.form-group textarea:focus {
-  outline: none;
-  border-color: var(--color-accent);
-}
-
-.contact-form .cta-primary {
-  border: none;
-  cursor: pointer;
-  font-family: inherit;
-}
-
-.form-note {
-  margin: 16px 0 0 0;
-  font-size: 12px;
-  color: var(--color-ink-soft);
-  text-align: left;
-  max-width: none;
-}
-
-/* ============================================================
-   FOOTER
-   ============================================================ */
-footer {
-  border-top: 1px solid var(--color-border);
-  padding: 28px;
-}
-
-.footer-content {
-  max-width: var(--container-width);
-  margin: 0 auto;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 16px;
-  flex-wrap: wrap;
+.panel-footer {
+  margin-top: 20px;
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: 11px;
   color: var(--color-ink-soft);
-}
-
-.footer-content a {
-  color: var(--color-ink-soft);
-  text-decoration: none;
-  transition: color 0.2s ease;
-}
-
-.footer-content a:hover {
-  color: var(--color-accent);
 }
 
 /* ============================================================
-   DESKTOP NAV (≥900px): the drawer becomes an inline bar
+   DESKTOP NAV (≥900px): the drawer becomes an inline bar, and
+   the GitHub stats sit trailing it instead of pinned to a bottom
+   that no longer exists.
    ============================================================ */
 @media screen and (min-width: 900px) {
   .hamburger {
@@ -1179,25 +881,23 @@ footer {
     background: var(--color-accent-tint);
     border-radius: var(--radius);
   }
+
+  .github-stats {
+    margin-top: 0;
+    margin-left: 20px;
+    padding: 0 0 0 20px;
+    border-top: none;
+    border-left: 1px solid var(--color-border);
+  }
 }
 
 /* ============================================================
    RESPONSIVE
    ============================================================ */
 @media screen and (max-width: 899px) {
-  .about-grid,
-  .contact-grid {
+  .about-grid {
     grid-template-columns: 1fr;
-    gap: 40px;
-  }
-
-  .form-row {
-    grid-template-columns: 1fr;
-  }
-
-  .skill-category {
-    grid-template-columns: 1fr;
-    gap: 6px;
+    gap: 16px;
   }
 }
 
@@ -1206,17 +906,13 @@ footer {
     padding: 0 20px;
   }
 
-  .scroll-section {
-    padding: 80px 20px;
-  }
-
-  .hero-section {
-    padding: calc(var(--nav-height) + 32px) 20px 50px;
+  .panel {
+    padding: 14px 20px;
   }
 
   .hero-stats {
     flex-wrap: wrap;
-    gap: 20px 0;
+    gap: 16px 0;
   }
 
   .stat-item {
@@ -1236,7 +932,7 @@ footer {
 
   .project-card {
     grid-template-columns: 1fr;
-    gap: 8px;
+    gap: 6px;
   }
 
   .project-card::before {
@@ -1251,16 +947,47 @@ footer {
     grid-column: 1;
   }
 
-  .contact-form {
-    padding-top: 32px;
-  }
-
   .project-header {
     flex-direction: column;
+    gap: 4px;
   }
 
-  .footer-content {
-    flex-direction: column;
-    align-items: flex-start;
+  .contact-label {
+    display: none;
+  }
+}
+
+@media screen and (max-height: 700px) {
+  .panel-header {
+    margin-bottom: 16px;
+  }
+
+  .hero-stats,
+  .hero-description {
+    margin-bottom: 18px;
+  }
+
+  .about-grid {
+    margin-bottom: 16px;
+  }
+
+  .intro-text {
+    margin-bottom: 12px;
+  }
+
+  .skill-category {
+    padding: 7px 0;
+  }
+
+  .github-activity {
+    padding: 12px 16px;
+  }
+
+  .github-activity h3 {
+    margin-bottom: 8px;
+  }
+
+  .gh-heatmap-legend {
+    margin-top: 6px;
   }
 }

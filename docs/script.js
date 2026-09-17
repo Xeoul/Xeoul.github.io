@@ -2,7 +2,6 @@
 const menu_btn = document.querySelector('.hamburger');
 const hamburg_menu = document.querySelector('.in-menu');
 const menu_backdrop = document.querySelector('.menu-backdrop');
-const menu_items = document.querySelectorAll('.in-menu a');
 
 function closeMenu() {
     menu_btn.classList.remove('is-active');
@@ -16,11 +15,6 @@ menu_btn.addEventListener('click', (e) => {
     menu_btn.classList.toggle('is-active');
     hamburg_menu.classList.toggle('is-active');
     menu_backdrop.classList.toggle('is-active');
-});
-
-// Close menu when a nav link is clicked
-menu_items.forEach(item => {
-    item.addEventListener('click', closeMenu);
 });
 
 // Close menu when clicking outside of it (including the backdrop)
@@ -39,133 +33,52 @@ if (restrictedRepoLink) {
     });
 }
 
-// SCROLL-DRIVEN SECTION REVEALS
-const observerOptions = {
-    threshold: 0.1,
-    rootMargin: '0px 0px -100px 0px'
-};
-
-const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-        if (entry.isIntersecting) {
-            entry.target.classList.add('visible');
-        }
-    });
-}, observerOptions);
-
-const scrollSections = document.querySelectorAll('.scroll-section');
-scrollSections.forEach(section => {
-    observer.observe(section);
-});
-
-// SMOOTH SCROLLING FOR NAVIGATION LINKS
+// SINGLE-VIEW PANEL SWITCHING
+// The whole site is one fixed-height screen - nav links (and the hero's
+// own CTAs) swap which <section class="panel"> is visible instead of
+// scrolling to it. The URL hash still tracks the active panel so links
+// are shareable and back/forward work.
+const panels = document.querySelectorAll('.panel');
 const navLinks = document.querySelectorAll('.nav-link');
+const validPanelIds = new Set([...panels].map(p => p.id));
+
+function showPanel(id, updateHash = true) {
+    if (!validPanelIds.has(id)) return;
+
+    panels.forEach(panel => {
+        panel.classList.toggle('active', panel.id === id);
+    });
+
+    navLinks.forEach(link => {
+        const targetId = link.getAttribute('href').replace('#', '');
+        link.classList.toggle('active', targetId === id);
+    });
+
+    if (updateHash && window.location.hash !== `#${id}`) {
+        history.pushState(null, '', `#${id}`);
+    }
+}
 
 navLinks.forEach(link => {
     link.addEventListener('click', (e) => {
         e.preventDefault();
-
-        const targetId = link.getAttribute('href');
-        const targetSection = document.querySelector(targetId);
-
-        if (targetSection) {
-            targetSection.scrollIntoView({
-                behavior: 'smooth',
-                block: 'start'
-            });
-        }
+        const targetId = link.getAttribute('href').replace('#', '');
+        showPanel(targetId);
+        closeMenu();
     });
 });
 
-// SCROLL INDICATOR PULSE ANIMATION
-const scrollIndicator = document.querySelector('.scroll-indicator');
-if (scrollIndicator) {
-    setInterval(() => {
-        const arrow = scrollIndicator.querySelector('.scroll-arrow');
-        if (arrow) {
-            arrow.style.transform = 'translateY(5px)';
-            setTimeout(() => {
-                arrow.style.transform = 'translateY(0)';
-            }, 500);
-        }
-    }, 2000);
-}
-
-// SCROLL INDICATOR VISIBILITY
-// The header itself no longer needs a scroll-driven background mutation -
-// it's a permanently frosted/blurred bar in CSS now (like Apple's own nav),
-// so there's nothing to compute here beyond the indicator.
-let ticking = false;
-function onScroll() {
-    const scrolled = window.pageYOffset;
-
-    if (scrollIndicator) {
-        if (scrolled > 100) {
-            scrollIndicator.style.opacity = '0';
-            scrollIndicator.style.transform = 'translateY(20px)';
-        } else {
-            scrollIndicator.style.opacity = '1';
-            scrollIndicator.style.transform = 'translateY(0)';
-        }
-    }
-
-    ticking = false;
-}
-
-window.addEventListener('scroll', () => {
-    if (!ticking) {
-        requestAnimationFrame(onScroll);
-        ticking = true;
-    }
-}, { passive: true });
-
-// SKILL/TECH TAG REVEAL
-// Toggles a .revealed class rather than writing inline styles - an inline
-// style beats any CSS selector regardless of specificity, so setting
-// element.style.transform here would permanently block the
-// .skill-tag:hover/.tech-tag:hover CSS rules from ever taking visual
-// effect after the tag's first reveal.
-const skillTags = document.querySelectorAll('.skill-tag, .tech-tag');
-const tagObserver = new IntersectionObserver((entries) => {
-    entries.forEach((entry, index) => {
-        if (entry.isIntersecting) {
-            setTimeout(() => {
-                entry.target.classList.add('revealed');
-            }, index * 50); // Quick stagger
-        }
-    });
-}, { threshold: 0.5 });
-
-skillTags.forEach(tag => tagObserver.observe(tag));
-
-// SCROLL-SPY NAV HIGHLIGHTING
-// Highlights whichever section is currently near the vertical center of
-// the viewport. Scoped to `.in-menu a` only - `.nav-link` is also used by
-// the hero CTA buttons, which shouldn't get the "active" treatment.
-const spySections = document.querySelectorAll('section[id]');
-const spyLinks = document.querySelectorAll('.in-menu a[href^="#"]');
-
-if (spySections.length && spyLinks.length) {
-    const spyObserver = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                const id = entry.target.getAttribute('id');
-                spyLinks.forEach(link => {
-                    link.classList.toggle('active', link.getAttribute('href') === `#${id}`);
-                });
-            }
-        });
-    }, { rootMargin: '-40% 0px -55% 0px', threshold: 0 });
-
-    spySections.forEach(section => spyObserver.observe(section));
-}
+window.addEventListener('popstate', () => {
+    const id = window.location.hash.replace('#', '') || 'home';
+    showPanel(id, false);
+});
 
 // ANIMATED STAT COUNTERS (2025 / 3+ / 2, counting up from 0)
 function animateStatCounters() {
     document.querySelectorAll('.stat-number[data-count]').forEach(el => {
         const target = parseInt(el.getAttribute('data-count'), 10);
         const suffix = el.getAttribute('data-suffix') || '';
-        const duration = 1200;
+        const duration = 1000;
         const startTime = performance.now();
 
         function tick(now) {
@@ -180,12 +93,12 @@ function animateStatCounters() {
     });
 }
 
-// LIVE GITHUB PROFILE STATS (public repo count, followers) on the GitHub
-// contact card. Pulled from the public GitHub Users API - profile-level
-// rather than tied to any one repo, so it keeps working regardless of
-// which individual repos are public or private. Fails closed: on any
-// error or rate-limit response, the row hides itself instead of showing
-// stale placeholder dashes.
+// LIVE GITHUB PROFILE STATS (public repo count, followers), embedded
+// directly in the nav menu. Pulled from the public GitHub Users API -
+// profile-level rather than tied to any one repo, so it keeps working
+// regardless of which individual repos are public or private. Fails
+// closed: on any error or rate-limit response, the row hides itself
+// instead of showing stale placeholder dashes.
 const githubStats = document.querySelector('.github-stats[data-github-user]');
 if (githubStats) {
     const username = githubStats.getAttribute('data-github-user');
@@ -203,7 +116,7 @@ if (githubStats) {
                 const valueEl = el.querySelector('.gh-stat-value');
                 valueEl.textContent = count;
                 valueEl.classList.remove('skeleton');
-                el.querySelector('.gh-stat-label').textContent = count === 1 ? noun : `${noun}s`;
+                el.querySelector('.gh-stat-label').textContent = count === 1 ? ` ${noun}` : ` ${noun}s`;
             };
             setStat('.gh-stat-repos', data.public_repos, 'repo');
             setStat('.gh-stat-followers', data.followers, 'follower');
@@ -284,37 +197,9 @@ if (ghHeatmap) {
         });
 }
 
-// CONTACT FORM: builds a mailto: link client-side and hands off to the
-// visitor's own email app. No third-party form service, no API key, and
-// nothing is transmitted from this page - matches the static-site CSP.
-const contactForm = document.getElementById('contact-form');
-if (contactForm) {
-    contactForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        const name = document.getElementById('cf-name').value.trim();
-        const email = document.getElementById('cf-email').value.trim();
-        const message = document.getElementById('cf-message').value.trim();
-        const subject = `Portfolio contact from ${name}`;
-        const body = `${message}\n\n— ${name} (${email})`;
-        window.location.href = `mailto:v812.io@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-    });
-}
-
 // INITIALIZE ON PAGE LOAD
 document.addEventListener('DOMContentLoaded', () => {
-    // Add visible class to home section immediately
-    const homeSection = document.querySelector('#home');
-    if (homeSection) {
-        setTimeout(() => {
-            homeSection.classList.add('visible');
-        }, 100);
-    }
-
+    const initialId = window.location.hash.replace('#', '') || 'home';
+    showPanel(initialId, false);
     animateStatCounters();
-
-    // Smooth scroll to top on page refresh
-    window.scrollTo({
-        top: 0,
-        behavior: 'smooth'
-    });
 });
