@@ -296,8 +296,11 @@ header {
 
 /* ============================================================
    MAIN VIEW: one panel visible at a time, filling the screen
-   below the header. Switching is a plain crossfade + a few
-   pixels of vertical drift - no scroll-triggered choreography.
+   below the header - never scrolled to, always switched. Nav
+   links carry a data-index (see script.js), and the JS compares
+   the outgoing/incoming panel's index to slide the whole screen
+   left or right - forward through Home/About/Projects/Contact
+   slides one way, back the other, like paging through a deck.
    ============================================================ */
 .view {
   position: fixed;
@@ -305,6 +308,7 @@ header {
   left: 0;
   right: 0;
   bottom: 0;
+  overflow: hidden;
 }
 
 .panel {
@@ -314,16 +318,36 @@ header {
   flex-direction: column;
   padding: 28px 28px;
   opacity: 0;
-  transform: translateY(8px);
+  transform: translateX(0);
   pointer-events: none;
-  transition: opacity 0.35s var(--ease), transform 0.35s var(--ease);
+  transition: opacity 0.45s var(--ease), transform 0.45s var(--ease);
   overflow-y: auto;
+  z-index: 1;
 }
 
 .panel.active {
   opacity: 1;
-  transform: translateY(0);
+  transform: translateX(0);
   pointer-events: auto;
+  z-index: 2;
+}
+
+.panel.enter-from-right { transform: translateX(48px); }
+.panel.enter-from-left { transform: translateX(-48px); }
+.panel.exit-to-left { opacity: 0; transform: translateX(-48px); }
+.panel.exit-to-right { opacity: 0; transform: translateX(48px); }
+
+@media (prefers-reduced-motion: reduce) {
+  .panel {
+    transition: opacity 0.2s ease;
+  }
+
+  .panel.enter-from-right,
+  .panel.enter-from-left,
+  .panel.exit-to-left,
+  .panel.exit-to-right {
+    transform: none;
+  }
 }
 
 /* Vertical centering via auto margins rather than the parent's

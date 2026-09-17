@@ -36,18 +36,43 @@ if (restrictedRepoLink) {
 // SINGLE-VIEW PANEL SWITCHING
 // The whole site is one fixed-height screen - nav links (and the hero's
 // own CTAs) swap which <section class="panel"> is visible instead of
-// scrolling to it. The URL hash still tracks the active panel so links
-// are shareable and back/forward work.
-const panels = document.querySelectorAll('.panel');
+// scrolling to it. Panels slide the whole screen left/right based on
+// their order in the nav (forward through Home/About/Projects/Contact
+// goes one way, back the other). The URL hash still tracks the active
+// panel so links are shareable and back/forward work.
+const panels = [...document.querySelectorAll('.panel')];
 const navLinks = document.querySelectorAll('.nav-link');
-const validPanelIds = new Set([...panels].map(p => p.id));
+const validPanelIds = new Set(panels.map(p => p.id));
+const TRANSITION_CLASSES = ['enter-from-right', 'enter-from-left', 'exit-to-left', 'exit-to-right'];
 
-function showPanel(id, updateHash = true) {
+function panelIndex(id) {
+    return panels.findIndex(p => p.id === id);
+}
+
+function showPanel(id, updateHash = true, animate = true) {
     if (!validPanelIds.has(id)) return;
 
-    panels.forEach(panel => {
-        panel.classList.toggle('active', panel.id === id);
-    });
+    const current = panels.find(p => p.classList.contains('active'));
+    const next = panels.find(p => p.id === id);
+    if (!next || next === current) return;
+
+    panels.forEach(p => p.classList.remove(...TRANSITION_CLASSES));
+
+    if (current) {
+        current.classList.remove('active');
+
+        if (animate) {
+            const forward = panelIndex(id) > panelIndex(current.id);
+            current.classList.add(forward ? 'exit-to-left' : 'exit-to-right');
+
+            const entryClass = forward ? 'enter-from-right' : 'enter-from-left';
+            next.classList.add(entryClass);
+            void next.offsetWidth; // force a reflow so the entry position paints before animating away from it
+            next.classList.remove(entryClass);
+        }
+    }
+
+    next.classList.add('active');
 
     navLinks.forEach(link => {
         const targetId = link.getAttribute('href').replace('#', '');
@@ -200,6 +225,6 @@ if (ghHeatmap) {
 // INITIALIZE ON PAGE LOAD
 document.addEventListener('DOMContentLoaded', () => {
     const initialId = window.location.hash.replace('#', '') || 'home';
-    showPanel(initialId, false);
+    showPanel(initialId, false, false);
     animateStatCounters();
 });
