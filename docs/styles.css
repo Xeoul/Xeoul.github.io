@@ -484,8 +484,16 @@ header {
 /* ============================================================
    HOME PANEL
    ============================================================ */
+/* Narrower than --container-width (used by every other panel) on
+   purpose: the hero's actual content - name, role, one line of
+   description, two buttons - only ever runs to about this width, and
+   centering that within a much wider box left it hugging the left
+   edge with a lopsided void on the right at desktop sizes. This
+   keeps the text itself left-aligned (unchanged) but centers the
+   block as a whole, so the leftover space is balanced on both sides
+   instead of dumped entirely on the right. */
 .hero-content {
-  max-width: var(--container-width);
+  max-width: 640px;
   width: 100%;
   margin: auto;
 }
