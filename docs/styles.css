@@ -605,8 +605,13 @@ header {
    whenever .panel.active is added - which already happens on every
    navigation via showPanel(), so this needed no JS of its own. Home
    starts pre-active in the HTML (no page-load flash while JS boots),
-   so its very first paint is instant like before; navigate away and
-   back and it replays the same as every other panel.
+   so its .reveal children also carry .init-pending, which forces the
+   hidden state back on despite .panel.active - script.js removes that
+   class shortly after the very first paint (see the IIFE near the
+   bottom of the file), letting the same entrance play on genuine page
+   load rather than skipping straight to visible. Every other panel,
+   and Home on any later visit, is driven purely by .panel.active as
+   below - .init-pending only ever exists for that first paint.
    Uses --ease (front-loaded: snappy start, long settle) rather than
    --ease-fluid's symmetric in-out - --ease-fluid is built for motion
    that goes somewhere and comes back (the panel slide), but this only
@@ -626,6 +631,11 @@ header {
   transform: translateY(0) scale(1);
 }
 
+.panel.active .reveal.init-pending {
+  opacity: 0;
+  transform: translateY(14px) scale(0.98);
+}
+
 @media (prefers-reduced-motion: reduce) {
   /* The push-slide is pure position, which is exactly the motion this
      preference asks to remove - fall back to a quick opacity-only
@@ -638,6 +648,10 @@ header {
 
   .panel.active {
     opacity: 1;
+  }
+
+  .panel.active .reveal.init-pending {
+    transform: none;
   }
 
   .panel.enter-from-right,
