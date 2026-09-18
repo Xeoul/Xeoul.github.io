@@ -117,10 +117,7 @@ body {
 header,
 .tab-bar,
 .education-highlight,
-.skill-category,
-.github-activity,
-.project-card,
-.contact-card {
+.skill-category {
   transition: background-color 0.35s ease, border-color 0.35s ease;
 }
 
@@ -160,6 +157,7 @@ a {
 }
 
 .eyebrow {
+  position: relative;
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -172,11 +170,43 @@ a {
 
 .eyebrow::before {
   content: '';
+  position: relative;
+  z-index: 1;
   display: inline-block;
   width: 7px;
   height: 7px;
   border-radius: 50%;
   background: var(--color-accent);
+}
+
+/* A soft "live" ping behind the dot, like a status indicator - reads
+   as "currently available" rather than pure decoration. Sized/placed
+   to exactly overlay ::before, which stays a normal flex item so the
+   text gap is unaffected. */
+.eyebrow::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 7px;
+  height: 7px;
+  margin-top: -3.5px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  animation: eyebrowPing 2.2s cubic-bezier(0.2, 0.6, 0.4, 1) infinite;
+  pointer-events: none;
+}
+
+@keyframes eyebrowPing {
+  0% { transform: scale(1); opacity: 0.5; }
+  100% { transform: scale(2.8); opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .eyebrow::after {
+    animation: none;
+    display: none;
+  }
 }
 
 /* ============================================================
@@ -224,22 +254,48 @@ header {
   color: var(--color-ink);
   text-decoration: none;
   border-radius: 50%;
-  transition: color 0.2s ease;
+  transition: color 0.2s ease, background-color 0.2s ease;
   margin-left: auto;
   flex-shrink: 0;
 }
 
 .github-icon:hover {
   color: var(--color-accent);
+  background: var(--color-surface);
+}
+
+.github-icon:active {
+  transform: scale(0.9);
+}
+
+.github-icon svg {
+  transition: transform 0.35s var(--ease-fluid);
+}
+
+.github-icon:hover svg {
+  transform: rotate(10deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .github-icon:active {
+    transform: none;
+  }
+
+  .github-icon:hover svg {
+    transform: none;
+  }
 }
 
 /* THEME TOGGLE
    Shows the icon for the mode a click would switch *to* (moon while
    light, sun while dark) - the common convention. Both icons are
-   always in the DOM; which one is visible is pure CSS driven off
-   [data-theme] or, absent an explicit override, prefers-color-scheme -
-   so the correct icon is right on first paint, no JS needed for that. */
+   always in the DOM, stacked via position: absolute, and crossfade
+   with a small rotate rather than swapping with display - which one
+   is visible is pure CSS driven off [data-theme] or, absent an
+   explicit override, prefers-color-scheme, so the correct icon is
+   right on first paint, no JS needed for that. */
 .theme-toggle {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -250,33 +306,72 @@ header {
   color: var(--color-ink);
   cursor: pointer;
   border-radius: 50%;
-  transition: color 0.2s ease;
+  transition: color 0.2s ease, background-color 0.2s ease;
   flex-shrink: 0;
 }
 
 .theme-toggle:hover {
   color: var(--color-accent);
+  background: var(--color-surface);
+}
+
+.theme-toggle:active {
+  transform: scale(0.9);
+}
+
+.theme-toggle svg {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transition: opacity 0.4s var(--ease-fluid), transform 0.4s var(--ease-fluid);
 }
 
 .theme-toggle .icon-sun {
-  display: none;
+  opacity: 0;
+  transform: translate(-50%, -50%) rotate(-70deg) scale(0.4);
+}
+
+.theme-toggle .icon-moon {
+  opacity: 1;
+  transform: translate(-50%, -50%) rotate(0deg) scale(1);
 }
 
 :root[data-theme="dark"] .theme-toggle .icon-sun {
-  display: block;
+  opacity: 1;
+  transform: translate(-50%, -50%) rotate(0deg) scale(1);
 }
 
 :root[data-theme="dark"] .theme-toggle .icon-moon {
-  display: none;
+  opacity: 0;
+  transform: translate(-50%, -50%) rotate(70deg) scale(0.4);
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) .theme-toggle .icon-sun {
-    display: block;
+    opacity: 1;
+    transform: translate(-50%, -50%) rotate(0deg) scale(1);
   }
 
   :root:not([data-theme="light"]) .theme-toggle .icon-moon {
-    display: none;
+    opacity: 0;
+    transform: translate(-50%, -50%) rotate(70deg) scale(0.4);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .theme-toggle svg {
+    transition: opacity 0.2s ease;
+  }
+
+  .theme-toggle .icon-sun,
+  .theme-toggle .icon-moon,
+  :root[data-theme="dark"] .theme-toggle .icon-sun,
+  :root[data-theme="dark"] .theme-toggle .icon-moon {
+    transform: translate(-50%, -50%);
+  }
+
+  .theme-toggle:active {
+    transform: none;
   }
 }
 
@@ -285,9 +380,12 @@ header {
    navigation is the fixed bottom tab bar instead (see .tab-bar). */
 .in-menu {
   display: none;
+  position: relative;
 }
 
 .in-menu a {
+  position: relative;
+  z-index: 1;
   display: flex;
   align-items: center;
   gap: 12px;
@@ -297,7 +395,7 @@ header {
   font-weight: 500;
   padding: 11px 14px;
   border-radius: var(--radius);
-  transition: background 0.2s ease, color 0.2s ease;
+  transition: color 0.2s ease;
 }
 
 .in-menu a svg {
@@ -306,7 +404,6 @@ header {
 }
 
 .in-menu a:hover {
-  background: var(--color-surface);
   color: var(--color-accent);
 }
 
@@ -320,6 +417,32 @@ header {
 
 .in-menu a.active svg {
   opacity: 1;
+}
+
+/* Sliding pill that tracks whichever link is active (or hovered) -
+   positioned/sized by script.js reading the target link's own
+   geometry, so it stays correct at any width without hardcoding
+   per-link offsets. Sits behind the link text (z-index: 0 vs. 1). */
+.nav-indicator {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  border-radius: var(--radius);
+  background: var(--color-accent-tint);
+  transition: transform 0.4s var(--ease-fluid), width 0.4s var(--ease-fluid);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.nav-indicator.no-transition {
+  transition: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nav-indicator {
+    transition: none;
+  }
 }
 
 /* Live GitHub stats - inline in the desktop nav (below), or inline in
@@ -383,7 +506,7 @@ header {
 
 .tab-link svg {
   opacity: 0.7;
-  transition: opacity 0.2s ease;
+  transition: opacity 0.2s ease, transform 0.2s var(--ease-fluid);
 }
 
 .tab-link.active {
@@ -392,6 +515,16 @@ header {
 
 .tab-link.active svg {
   opacity: 1;
+}
+
+.tab-link:active svg {
+  transform: scale(0.85);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tab-link:active svg {
+    transform: none;
+  }
 }
 
 /* ============================================================
@@ -446,6 +579,26 @@ header {
   transition: none !important;
 }
 
+/* CONTENT ENTRANCE
+   Each panel's major content blocks carry .reveal plus an --i index
+   (set inline in the markup) and fade/rise in with a short stagger
+   whenever .panel.active is added - which already happens on every
+   navigation via showPanel(), so this needed no JS of its own. Home
+   starts pre-active in the HTML (no page-load flash while JS boots),
+   so its very first paint is instant like before; navigate away and
+   back and it replays the same as every other panel. */
+.reveal {
+  opacity: 0;
+  transform: translateY(14px);
+  transition: opacity 0.5s var(--ease-fluid), transform 0.5s var(--ease-fluid);
+  transition-delay: calc(var(--i, 0) * 70ms);
+}
+
+.panel.active .reveal {
+  opacity: 1;
+  transform: translateY(0);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .panel {
     transition: opacity 0.2s ease;
@@ -456,6 +609,11 @@ header {
   .panel.exit-to-left,
   .panel.exit-to-right {
     transform: none;
+  }
+
+  .reveal {
+    transform: none;
+    transition-delay: 0s;
   }
 }
 
@@ -533,7 +691,17 @@ header {
   text-decoration: none;
   font-weight: 500;
   font-size: 15px;
-  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.15s var(--ease-fluid);
+}
+
+.cta-primary:active, .cta-secondary:active {
+  transform: scale(0.96);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cta-primary:active, .cta-secondary:active {
+    transform: none;
+  }
 }
 
 .cta-primary {
@@ -666,6 +834,16 @@ header {
 .github-activity {
   border: 1px solid var(--color-border);
   padding: 18px 20px;
+  /* Combines the reveal entrance (opacity/transform, delayed per its
+     --i stagger index) with the dark-mode fade (background/border) in
+     one declaration - two separate rules both setting the shorthand
+     `transition` property would have the later one win outright
+     instead of merging, silently dropping whichever came first, and
+     the delay has to be spelled out per-property here too or this
+     rule's implicit "no delay" would override .reveal's stagger. */
+  transition: opacity 0.5s var(--ease-fluid) calc(var(--i, 0) * 70ms),
+    transform 0.5s var(--ease-fluid) calc(var(--i, 0) * 70ms),
+    background-color 0.35s ease, border-color 0.35s ease;
 }
 
 .github-activity h3 {
@@ -697,6 +875,24 @@ header {
 .gh-heat-cell[data-level="2"] { background: rgba(var(--color-accent-rgb), 0.5); }
 .gh-heat-cell[data-level="3"] { background: rgba(var(--color-accent-rgb), 0.75); }
 .gh-heat-cell[data-level="4"] { background: var(--color-accent); }
+
+/* Real cells (replacing the skeleton once the fetch resolves) fade
+   and scale in with a small per-cell delay, set inline by script.js
+   and capped so a ~90-cell grid doesn't take forever to finish. */
+@keyframes cellIn {
+  from { opacity: 0; transform: scale(0.4); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.gh-heat-cell.cell-in {
+  animation: cellIn 0.4s var(--ease-fluid) backwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gh-heat-cell.cell-in {
+    animation: none;
+  }
+}
 
 .gh-heatmap-legend {
   display: flex;
@@ -759,6 +955,28 @@ header {
   display: grid;
   grid-template-columns: 40px 1fr;
   gap: 16px;
+  /* Same shorthand-conflict fix as .github-activity, but transform
+     stays undelayed here (unlike opacity) - the hover lift below
+     reuses transform, and a stagger delay meant for the one-time
+     entrance would otherwise make every hover after that feel
+     laggy, since a transition's delay/duration apply to *any* future
+     change of that property, not just the first. Opacity alone
+     carries the stagger; while a card is still at opacity: 0 its
+     transform position isn't visible anyway, so nothing looks off. */
+  transition: opacity 0.5s var(--ease-fluid) calc(var(--i, 0) * 70ms),
+    transform 0.35s var(--ease-fluid),
+    border-color 0.2s ease;
+}
+
+.panel.active .project-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--color-border-strong);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .panel.active .project-card:hover {
+    transform: none;
+  }
 }
 
 .project-card::before {
@@ -885,11 +1103,18 @@ header {
   border-bottom: 1px solid var(--color-border);
   text-decoration: none;
   color: inherit;
-  transition: background 0.2s ease;
+  transition: background-color 0.2s ease, border-color 0.35s ease, transform 0.25s var(--ease-fluid);
 }
 
 .contact-card:hover {
   background: var(--color-surface);
+  transform: translateX(4px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .contact-card:hover {
+    transform: none;
+  }
 }
 
 .contact-icon {
@@ -990,11 +1215,6 @@ header {
 
   .in-menu a svg {
     display: none;
-  }
-
-  .in-menu a.active {
-    background: var(--color-accent-tint);
-    border-radius: var(--radius);
   }
 
   .github-stats {
@@ -1137,14 +1357,6 @@ header {
 
   .github-activity {
     padding: 10px 14px;
-  }
-
-  .github-activity h3 {
-    margin-bottom: 8px;
-  }
-
-  .gh-heatmap-legend {
-    margin-top: 6px;
   }
 
   .github-activity h3 {
