@@ -23,12 +23,16 @@
   --nav-height: 64px;
   --tab-bar-height: calc(50px + env(safe-area-inset-bottom, 0px));
   --ease: cubic-bezier(0.16, 1, 0.3, 1);
-  /* Symmetric ease-in-out, used only for the panel slide - --ease above
-     is front-loaded (snappy start, long settle) which reads as quick
-     and a little abrupt at panel-sized distances. This curve accelerates
-     and decelerates evenly so the whole-screen slide feels smooth and
-     continuous rather than snapping into place. */
+  /* Symmetric ease-in-out - used for motion that reverses in place on
+     the same element (hover states, the nav indicator's pill). */
   --ease-fluid: cubic-bezier(0.65, 0, 0.35, 1);
+  /* A gentler ease-out than --ease, reserved for the panel push - --ease
+     is front-loaded enough (most of its travel lands in the first third
+     of the duration, then a long barely-visible settle) that at
+     full-viewport distance it reads as a snap rather than a glide. This
+     curve still favors deceleration over symmetric in-out, just spread
+     more evenly across the full duration. */
+  --ease-panel: cubic-bezier(0.33, 1, 0.68, 1);
 }
 
 /* DARK THEME
@@ -553,12 +557,16 @@ header {
    overlapping/ghosting through each other mid-transition. That overlap
    (a small +/-64px nudge cross-fading via opacity) was the "jump" -
    pure position with no opacity blend reads as a much cleaner slide.
-   Uses --ease rather than --ease-fluid for the same reason as the
+   Uses --ease-panel rather than --ease-fluid for the same reason as the
    content reveal: this only ever plays forward once per navigation (it
    doesn't reverse in place the way a hover does), so the symmetric
    in-out curve's slow start read as sluggish for a push this size.
-   Shortened the duration to match - a full-width push lands snappier
-   a little faster than the old subtle nudge needed to. */
+   --ease itself turned out too aggressive at full-viewport distance -
+   most of the travel lands almost immediately and the rest is a long,
+   barely-visible settle, reading as a snap rather than something
+   actually gliding across the screen. --ease-panel spreads the
+   deceleration more evenly, and the duration's long enough to let that
+   read as motion rather than a jump-cut. */
 .panel {
   position: absolute;
   inset: 0;
@@ -568,7 +576,7 @@ header {
   opacity: 1;
   transform: translateX(100%);
   pointer-events: none;
-  transition: transform 0.45s var(--ease);
+  transition: transform 0.6s var(--ease-panel);
   overflow-y: auto;
   z-index: 1;
 }
