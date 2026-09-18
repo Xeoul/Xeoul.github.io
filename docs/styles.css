@@ -22,20 +22,15 @@
   --container-width: 1080px;
   --nav-height: 64px;
   --tab-bar-height: calc(50px + env(safe-area-inset-bottom, 0px));
-  --ease: cubic-bezier(0.16, 1, 0.3, 1);
-  /* Symmetric ease-in-out - used for motion that reverses in place on
-     the same element (hover states, the nav indicator's pill). */
+  /* Symmetric ease-in-out - used for anything sizeable enough that an
+     ease-*out* curve's instant top-speed start (no ramp-up at all, just
+     an immediate burst then deceleration) reads as abrupt: the panel
+     push, the content reveal, and motion that reverses in place on the
+     same element (hover states, the nav indicator's pill). Tuning an
+     ease-out's deceleration tail alone never fixed that read, on
+     either the panel push or the reveal - the burst itself was the
+     problem, so both now use this instead. */
   --ease-fluid: cubic-bezier(0.65, 0, 0.35, 1);
-  /* Reserved for the panel push. Every ease-*out* curve, by definition,
-     starts at its highest velocity - there's no ramp-up at all, just an
-     immediate burst followed by deceleration. That's fine at small
-     scale, but at full-viewport distance the instant the underlying
-     property just changes state - the top speed itself right at the
-     moment of the click/swipe read as "too fast" no matter how gentle
-     the deceleration afterward was tuned to be (tried both --ease and a
-     softer version of it). What a push this size actually needs is a
-     real ease-*in* before it picks up speed, i.e. genuine in-out. */
-  --ease-panel: cubic-bezier(0.65, 0, 0.35, 1);
 }
 
 /* DARK THEME
@@ -560,11 +555,11 @@ header {
    overlapping/ghosting through each other mid-transition. That overlap
    (a small +/-64px nudge cross-fading via opacity) was the "jump" -
    pure position with no opacity blend reads as a much cleaner slide.
-   Uses --ease-panel (see :root) - a real ease-in-out - rather than one
-   of the ease-out curves used elsewhere: at full-viewport distance, an
-   ease-out's instant top-speed start read as "too fast" right at the
-   moment of the click/swipe no matter how gently it was tuned to
-   decelerate afterward. A push this size needs an actual ramp-up. */
+   Uses --ease-fluid (see :root) rather than one of the ease-out curves
+   used elsewhere: at full-viewport distance, an ease-out's instant
+   top-speed start read as "too fast" right at the moment of the
+   click/swipe no matter how gently it was tuned to decelerate
+   afterward. A push this size needs an actual ramp-up. */
 .panel {
   position: absolute;
   inset: 0;
@@ -574,7 +569,7 @@ header {
   opacity: 1;
   transform: translateX(100%);
   pointer-events: none;
-  transition: transform 0.6s var(--ease-panel);
+  transition: transform 0.6s var(--ease-fluid);
   overflow-y: auto;
   z-index: 1;
 }
@@ -612,17 +607,15 @@ header {
    load rather than skipping straight to visible. Every other panel,
    and Home on any later visit, is driven purely by .panel.active as
    below - .init-pending only ever exists for that first paint.
-   Uses --ease (front-loaded: snappy start, long settle) rather than
-   --ease-fluid's symmetric in-out - --ease-fluid is built for motion
-   that goes somewhere and comes back (the panel slide), but this only
-   ever plays forward once per navigation, so a curve that spends equal
-   effort easing into a start position that was never actually moving
-   reads as slightly mechanical. The small scale adds a touch of depth
-   to the settle without needing more distance/time to read as motion. */
+   Uses --ease-fluid (see :root) rather than a front-loaded ease-out -
+   an ease-out's instant top-speed start (no ramp-up, straight to full
+   speed then decelerating) read as too abrupt for entrances this size;
+   wanted a gradual "waking up" feel instead, which needs an actual
+   slow start. The small scale adds a touch of depth to the settle. */
 .reveal {
   opacity: 0;
   transform: translateY(14px) scale(0.98);
-  transition: opacity 0.5s var(--ease), transform 0.5s var(--ease);
+  transition: opacity 0.65s var(--ease-fluid), transform 0.65s var(--ease-fluid);
   transition-delay: calc(var(--i, 0) * 70ms);
 }
 
@@ -891,8 +884,8 @@ header {
      instead of merging, silently dropping whichever came first, and
      the delay has to be spelled out per-property here too or this
      rule's implicit "no delay" would override .reveal's stagger. */
-  transition: opacity 0.5s var(--ease) calc(var(--i, 0) * 70ms),
-    transform 0.5s var(--ease) calc(var(--i, 0) * 70ms),
+  transition: opacity 0.65s var(--ease-fluid) calc(var(--i, 0) * 70ms),
+    transform 0.65s var(--ease-fluid) calc(var(--i, 0) * 70ms),
     background-color 0.35s ease, border-color 0.35s ease;
 }
 
@@ -1013,7 +1006,7 @@ header {
      change of that property, not just the first. Opacity alone
      carries the stagger; while a card is still at opacity: 0 its
      transform position isn't visible anyway, so nothing looks off. */
-  transition: opacity 0.5s var(--ease) calc(var(--i, 0) * 70ms),
+  transition: opacity 0.65s var(--ease-fluid) calc(var(--i, 0) * 70ms),
     transform 0.35s var(--ease-fluid),
     border-color 0.2s ease;
 }
