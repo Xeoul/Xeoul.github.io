@@ -544,37 +544,45 @@ header {
   overflow: hidden;
 }
 
+/* Panels push each other off-screen edge-to-edge (like paging through a
+   deck) rather than cross-fading in place. Both the outgoing and
+   incoming panel move the same direction at the same time, same
+   duration/easing - at any instant the outgoing panel's trailing edge
+   and the incoming panel's leading edge line up exactly (100% - 100%),
+   so there's a single moving seam instead of the two panels' content
+   overlapping/ghosting through each other mid-transition. That overlap
+   (a small +/-64px nudge cross-fading via opacity) was the "jump" -
+   pure position with no opacity blend reads as a much cleaner slide. */
 .panel {
   position: absolute;
   inset: 0;
   display: flex;
   flex-direction: column;
   padding: 28px 28px;
-  opacity: 0;
-  transform: translateX(0);
+  opacity: 1;
+  transform: translateX(100%);
   pointer-events: none;
-  transition: opacity 0.7s var(--ease-fluid), transform 0.7s var(--ease-fluid);
+  transition: transform 0.6s var(--ease-fluid);
   overflow-y: auto;
   z-index: 1;
 }
 
 .panel.active {
-  opacity: 1;
   transform: translateX(0);
   pointer-events: auto;
   z-index: 2;
 }
 
-.panel.enter-from-right { transform: translateX(64px); }
-.panel.enter-from-left { transform: translateX(-64px); }
-.panel.exit-to-left { opacity: 0; transform: translateX(-64px); }
-.panel.exit-to-right { opacity: 0; transform: translateX(64px); }
+.panel.enter-from-right { transform: translateX(100%); }
+.panel.enter-from-left { transform: translateX(-100%); }
+.panel.exit-to-left { transform: translateX(-100%); }
+.panel.exit-to-right { transform: translateX(100%); }
 
 /* .panel's own transition is unconditional, so just adding an entry
-   class would itself animate from the resting translateX(0) out to the
-   +/-64px starting point instead of snapping there - leaving nothing
-   left to animate when we swap to .active moments later. This forces
-   that first move to happen instantly. */
+   class would itself animate from wherever it currently sits out to
+   the off-screen starting point instead of snapping there - leaving
+   nothing left to animate when we swap to .active moments later. This
+   forces that first move to happen instantly. */
 .panel.no-transition {
   transition: none !important;
 }
@@ -607,8 +615,17 @@ header {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  /* The push-slide is pure position, which is exactly the motion this
+     preference asks to remove - fall back to a quick opacity-only
+     crossfade with no travel at all instead. */
   .panel {
+    opacity: 0;
+    transform: none;
     transition: opacity 0.2s ease;
+  }
+
+  .panel.active {
+    opacity: 1;
   }
 
   .panel.enter-from-right,

@@ -95,7 +95,7 @@ function showPanel(id, updateHash = true, animate = true) {
                 current.classList.add(forward ? 'exit-to-left' : 'exit-to-right');
 
                 // .panel's own transition is unconditional, so just adding
-                // the entry class would itself animate out to the +/-64px
+                // the entry class would itself animate out to the +/-100%
                 // starting point instead of snapping there - 'no-transition'
                 // forces that first move to happen instantly. The entry
                 // position also needs its own painted frame before we switch
@@ -116,7 +116,18 @@ function showPanel(id, updateHash = true, animate = true) {
                     });
                 });
             } else {
+                // Instant path (e.g. loading straight into a non-Home
+                // hash, before the user has navigated at all) - both
+                // panels' transform is unconditional like above, so
+                // swap classes with transitions suppressed rather than
+                // letting the push-slide play out on page load.
+                current.classList.add('no-transition');
+                next.classList.add('no-transition');
+                void next.offsetWidth;
                 next.classList.add('active');
+                void next.offsetWidth;
+                current.classList.remove('no-transition');
+                next.classList.remove('no-transition');
             }
         } else {
             next.classList.add('active');
