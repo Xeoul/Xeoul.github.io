@@ -394,6 +394,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const initialId = window.location.hash.replace('#', '') || 'home';
     showPanel(initialId, false, false);
 
+    // Home's .reveal children start hidden via .init-pending (see
+    // styles.css) even though the panel itself is marked active in the
+    // raw HTML - this unhides them so the same entrance plays on the
+    // actual first page load instead of skipping straight to visible.
+    // The double rAF guarantees that hidden state has already painted
+    // once before removing the class, same reasoning as the panel
+    // push's off-screen snap above.
+    requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+            document.querySelectorAll('.reveal.init-pending').forEach(el => el.classList.remove('init-pending'));
+        });
+    });
+
     if (themeToggle) {
         const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
         const isDark = document.documentElement.getAttribute('data-theme')
