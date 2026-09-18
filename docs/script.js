@@ -85,31 +85,53 @@ function showPanel(id, updateHash = true, animate = true) {
             pendingFrame = null;
         }
 
-        panels.forEach(p => p.classList.remove(...TRANSITION_CLASSES));
-
         if (current) {
-            current.classList.remove('active');
-
             if (animate) {
                 const forward = panelIndex(id) > panelIndex(current.id);
-                current.classList.add(forward ? 'exit-to-left' : 'exit-to-right');
+                const exitClass = forward ? 'exit-to-left' : 'exit-to-right';
 
-                // .panel's own transition is unconditional, so just adding
-                // the entry class would itself animate out to the +/-100%
-                // starting point instead of snapping there - 'no-transition'
-                // forces that first move to happen instantly. The entry
-                // position also needs its own painted frame before we switch
-                // to the final position - one requestAnimationFrame only
-                // schedules a callback that still runs *before* that frame's
-                // paint, so swapping classes there collapses the off-screen
-                // state and the final state into a single paint. The nested
-                // rAF waits for the frame *after* the one that painted it.
+                // Only touch the two panels actually involved. A blanket
+                // cleanup across every panel would also strip the exit
+                // class off a *different* panel that's still mid-flight
+                // from an earlier, interrupted navigation (e.g. rapidly
+                // clicking Home -> About -> Projects: Home is uninvolved
+                // in the second hop) - stripping its class mid-transition
+                // snaps it straight to the default resting transform
+                // instead of letting it finish leaving the side it was
+                // already headed for. That default was invisible under
+                // the old opacity-driven design (still opacity: 0
+                // either way); with panels always opaque now it would
+                // show up as a visible jump to the wrong edge. Leaving
+                // an uninvolved panel's classes alone lets it settle
+                // wherever its own transition was already headed - a
+                // harmless, still fully off-screen rest position - and
+                // it gets cleaned up normally the next time it's reused.
+                next.classList.remove(...TRANSITION_CLASSES);
+
+                // `next` needs an off-screen starting position painted
+                // before its transition can run (see below), which takes
+                // an extra frame - `current` doesn't have that
+                // requirement, so removing its 'active'/adding its exit
+                // class here, synchronously, would start it moving a
+                // couple of frames before `next` does. That was
+                // invisible with the old, subtle nudge, but now that the
+                // push spans the full width it read as the two edges
+                // losing sync rather than moving as one seam. Deferring
+                // both panels' class changes into the same callback
+                // below starts them on the exact same frame instead.
                 const entryClass = forward ? 'enter-from-right' : 'enter-from-left';
                 next.classList.add(entryClass, 'no-transition');
                 void next.offsetWidth; // commit the off-screen starting position instantly
                 next.classList.remove('no-transition');
+                // One requestAnimationFrame only schedules a callback that
+                // still runs *before* that frame's paint, so swapping
+                // classes there would collapse the off-screen state and
+                // the final state into a single paint. The nested rAF
+                // waits for the frame *after* the one that painted it.
                 pendingFrame = requestAnimationFrame(() => {
                     pendingFrame = requestAnimationFrame(() => {
+                        current.classList.remove('active', ...TRANSITION_CLASSES);
+                        current.classList.add(exitClass);
                         next.classList.remove(entryClass);
                         next.classList.add('active');
                         pendingFrame = null;
@@ -121,15 +143,19 @@ function showPanel(id, updateHash = true, animate = true) {
                 // panels' transform is unconditional like above, so
                 // swap classes with transitions suppressed rather than
                 // letting the push-slide play out on page load.
+                current.classList.remove(...TRANSITION_CLASSES);
+                next.classList.remove(...TRANSITION_CLASSES);
                 current.classList.add('no-transition');
                 next.classList.add('no-transition');
                 void next.offsetWidth;
+                current.classList.remove('active');
                 next.classList.add('active');
                 void next.offsetWidth;
                 current.classList.remove('no-transition');
                 next.classList.remove('no-transition');
             }
         } else {
+            next.classList.remove(...TRANSITION_CLASSES);
             next.classList.add('active');
         }
     }
