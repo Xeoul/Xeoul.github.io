@@ -26,13 +26,16 @@
   /* Symmetric ease-in-out - used for motion that reverses in place on
      the same element (hover states, the nav indicator's pill). */
   --ease-fluid: cubic-bezier(0.65, 0, 0.35, 1);
-  /* A gentler ease-out than --ease, reserved for the panel push - --ease
-     is front-loaded enough (most of its travel lands in the first third
-     of the duration, then a long barely-visible settle) that at
-     full-viewport distance it reads as a snap rather than a glide. This
-     curve still favors deceleration over symmetric in-out, just spread
-     more evenly across the full duration. */
-  --ease-panel: cubic-bezier(0.33, 1, 0.68, 1);
+  /* Reserved for the panel push. Every ease-*out* curve, by definition,
+     starts at its highest velocity - there's no ramp-up at all, just an
+     immediate burst followed by deceleration. That's fine at small
+     scale, but at full-viewport distance the instant the underlying
+     property just changes state - the top speed itself right at the
+     moment of the click/swipe read as "too fast" no matter how gentle
+     the deceleration afterward was tuned to be (tried both --ease and a
+     softer version of it). What a push this size actually needs is a
+     real ease-*in* before it picks up speed, i.e. genuine in-out. */
+  --ease-panel: cubic-bezier(0.65, 0, 0.35, 1);
 }
 
 /* DARK THEME
@@ -557,16 +560,11 @@ header {
    overlapping/ghosting through each other mid-transition. That overlap
    (a small +/-64px nudge cross-fading via opacity) was the "jump" -
    pure position with no opacity blend reads as a much cleaner slide.
-   Uses --ease-panel rather than --ease-fluid for the same reason as the
-   content reveal: this only ever plays forward once per navigation (it
-   doesn't reverse in place the way a hover does), so the symmetric
-   in-out curve's slow start read as sluggish for a push this size.
-   --ease itself turned out too aggressive at full-viewport distance -
-   most of the travel lands almost immediately and the rest is a long,
-   barely-visible settle, reading as a snap rather than something
-   actually gliding across the screen. --ease-panel spreads the
-   deceleration more evenly, and the duration's long enough to let that
-   read as motion rather than a jump-cut. */
+   Uses --ease-panel (see :root) - a real ease-in-out - rather than one
+   of the ease-out curves used elsewhere: at full-viewport distance, an
+   ease-out's instant top-speed start read as "too fast" right at the
+   moment of the click/swipe no matter how gently it was tuned to
+   decelerate afterward. A push this size needs an actual ramp-up. */
 .panel {
   position: absolute;
   inset: 0;
