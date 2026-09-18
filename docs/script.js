@@ -77,59 +77,103 @@ function showPanel(id, updateHash = true, animate = true) {
 
     const current = panels.find(p => p.classList.contains('active'));
     const next = panels.find(p => p.id === id);
-    if (!next || next === current) return;
+    if (!next) return;
 
-    if (pendingFrame !== null) {
-        cancelAnimationFrame(pendingFrame);
-        pendingFrame = null;
-    }
+    if (next !== current) {
+        if (pendingFrame !== null) {
+            cancelAnimationFrame(pendingFrame);
+            pendingFrame = null;
+        }
 
-    panels.forEach(p => p.classList.remove(...TRANSITION_CLASSES));
+        panels.forEach(p => p.classList.remove(...TRANSITION_CLASSES));
 
-    if (current) {
-        current.classList.remove('active');
+        if (current) {
+            current.classList.remove('active');
 
-        if (animate) {
-            const forward = panelIndex(id) > panelIndex(current.id);
-            current.classList.add(forward ? 'exit-to-left' : 'exit-to-right');
+            if (animate) {
+                const forward = panelIndex(id) > panelIndex(current.id);
+                current.classList.add(forward ? 'exit-to-left' : 'exit-to-right');
 
-            // .panel's own transition is unconditional, so just adding
-            // the entry class would itself animate out to the +/-64px
-            // starting point instead of snapping there - 'no-transition'
-            // forces that first move to happen instantly. The entry
-            // position also needs its own painted frame before we switch
-            // to the final position - one requestAnimationFrame only
-            // schedules a callback that still runs *before* that frame's
-            // paint, so swapping classes there collapses the off-screen
-            // state and the final state into a single paint. The nested
-            // rAF waits for the frame *after* the one that painted it.
-            const entryClass = forward ? 'enter-from-right' : 'enter-from-left';
-            next.classList.add(entryClass, 'no-transition');
-            void next.offsetWidth; // commit the off-screen starting position instantly
-            next.classList.remove('no-transition');
-            pendingFrame = requestAnimationFrame(() => {
+                // .panel's own transition is unconditional, so just adding
+                // the entry class would itself animate out to the +/-64px
+                // starting point instead of snapping there - 'no-transition'
+                // forces that first move to happen instantly. The entry
+                // position also needs its own painted frame before we switch
+                // to the final position - one requestAnimationFrame only
+                // schedules a callback that still runs *before* that frame's
+                // paint, so swapping classes there collapses the off-screen
+                // state and the final state into a single paint. The nested
+                // rAF waits for the frame *after* the one that painted it.
+                const entryClass = forward ? 'enter-from-right' : 'enter-from-left';
+                next.classList.add(entryClass, 'no-transition');
+                void next.offsetWidth; // commit the off-screen starting position instantly
+                next.classList.remove('no-transition');
                 pendingFrame = requestAnimationFrame(() => {
-                    next.classList.remove(entryClass);
-                    next.classList.add('active');
-                    pendingFrame = null;
+                    pendingFrame = requestAnimationFrame(() => {
+                        next.classList.remove(entryClass);
+                        next.classList.add('active');
+                        pendingFrame = null;
+                    });
                 });
-            });
+            } else {
+                next.classList.add('active');
+            }
         } else {
             next.classList.add('active');
         }
-    } else {
-        next.classList.add('active');
     }
 
+    // Runs even when next === current (e.g. the very first showPanel()
+    // call, where Home is already marked active in the markup) so the
+    // nav links and indicator still sync to match on initial load.
     navLinks.forEach(link => {
         const targetId = link.getAttribute('href').replace('#', '');
         link.classList.toggle('active', targetId === id);
     });
+    moveNavIndicatorToActive(!animate);
 
     if (updateHash && window.location.hash !== `#${id}`) {
         history.pushState(null, '', `#${id}`);
     }
 }
+
+// SLIDING NAV INDICATOR (desktop only - .in-menu is hidden below 900px)
+// A pill that tracks the active link and glides to whichever link is
+// hovered, snapping back to the active one on mouseleave. Reads real
+// layout (offsetLeft/offsetWidth) instead of hardcoding per-link
+// positions, so it stays correct regardless of label length or font.
+const navIndicator = document.querySelector('.nav-indicator');
+const inMenu = document.querySelector('.in-menu');
+const inMenuLinks = inMenu ? [...inMenu.querySelectorAll('a')] : [];
+
+function moveNavIndicator(link, instant = false) {
+    if (!navIndicator || !link) return;
+    if (instant) navIndicator.classList.add('no-transition');
+    navIndicator.style.width = `${link.offsetWidth}px`;
+    navIndicator.style.transform = `translateX(${link.offsetLeft}px)`;
+    if (instant) {
+        void navIndicator.offsetWidth; // commit instantly before re-enabling the transition
+        navIndicator.classList.remove('no-transition');
+    }
+}
+
+function moveNavIndicatorToActive(instant = false) {
+    const active = inMenuLinks.find(link => link.classList.contains('active'));
+    if (active) moveNavIndicator(active, instant);
+}
+
+inMenuLinks.forEach(link => {
+    link.addEventListener('mouseenter', () => moveNavIndicator(link));
+});
+
+if (inMenu) {
+    inMenu.addEventListener('mouseleave', () => moveNavIndicatorToActive());
+}
+
+// The indicator's pixel position only makes sense while .in-menu is
+// actually laid out (≥900px) - recomputing on resize keeps it correct
+// across that breakpoint and any label-width reflow.
+window.addEventListener('resize', () => moveNavIndicatorToActive(true));
 
 navLinks.forEach(link => {
     link.addEventListener('click', (e) => {
@@ -186,6 +230,23 @@ if (viewEl) {
 // panel's GitHub row on mobile - both share this one fetch. Fails
 // closed: on any error or rate-limit response, each instance hides
 // itself instead of showing stale placeholder dashes.
+// Eases a stat from 0 up to its real value instead of just popping the
+// number in - skipped under reduced-motion, where it just sets the value.
+function animateCount(el, target, duration = 800) {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || !target) {
+        el.textContent = target;
+        return;
+    }
+    const start = performance.now();
+    function tick(now) {
+        const progress = Math.min((now - start) / duration, 1);
+        const eased = 1 - Math.pow(1 - progress, 3);
+        el.textContent = Math.round(target * eased);
+        if (progress < 1) requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+}
+
 const githubStatsEls = document.querySelectorAll('.github-stats[data-github-user]');
 if (githubStatsEls.length) {
     const username = githubStatsEls[0].getAttribute('data-github-user');
@@ -202,8 +263,8 @@ if (githubStatsEls.length) {
                     const el = githubStats.querySelector(selector);
                     if (!el) return;
                     const valueEl = el.querySelector('.gh-stat-value');
-                    valueEl.textContent = count;
                     valueEl.classList.remove('skeleton');
+                    animateCount(valueEl, count);
                     el.querySelector('.gh-stat-label').textContent = count === 1 ? ` ${noun}` : ` ${noun}s`;
                 };
                 setStat('.gh-stat-repos', data.public_repos, 'repo');
@@ -273,9 +334,12 @@ if (ghHeatmap) {
                 else if (count >= 1) level = 1;
 
                 const cell = document.createElement('span');
-                cell.className = 'gh-heat-cell';
+                cell.className = 'gh-heat-cell cell-in';
                 cell.setAttribute('data-level', level);
                 cell.title = `${key}: ${count} event${count === 1 ? '' : 's'}`;
+                // Capped so the tail of a ~90-cell grid doesn't drag the
+                // reveal out - past the cap cells just animate together.
+                cell.style.animationDelay = `${Math.min(i * 6, 400)}ms`;
                 fragment.appendChild(cell);
             }
 

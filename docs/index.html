@@ -15,7 +15,14 @@
     <meta name="twitter:title" content="Vincent Lam - Portfolio">
     <meta name="twitter:description" content="Computer Science graduate from Sacramento State University specializing in full-stack development, database systems, and automation.">
     <meta name="twitter:image" content="https://xeoul.github.io/og-image.png">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; connect-src 'self' https://api.github.com; object-src 'none'; base-uri 'self'; form-action 'none';">
+    <!-- style-src allows 'unsafe-inline': the animation work below sets a
+         handful of styles inline (per-panel stagger indices, and the nav
+         indicator/heatmap cells positioned by script.js reading live
+         layout). script-src stays locked to 'self' with no inline/eval
+         allowance - that's the meaningful XSS boundary; loosening
+         style-src doesn't weaken it, since CSS alone can't execute
+         script. -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self'; connect-src 'self' https://api.github.com; object-src 'none'; base-uri 'self'; form-action 'none';">
     <meta name="color-scheme" content="light dark">
     <title>Vincent Lam - Portfolio</title>
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
@@ -55,6 +62,7 @@
             <h1>Xeoul.github.io</h1>
         </a>
         <nav class="in-menu">
+            <span class="nav-indicator" aria-hidden="true"></span>
             <a href="#home" class="nav-link">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M10,20V14H14V20H19V12H22L12,3L2,12H5V20H10Z"/></svg>
                 Home
@@ -132,18 +140,18 @@
         <!-- HOME -->
         <section id="home" class="panel hero-panel active">
             <div class="hero-content">
-                <span class="eyebrow">Available for work</span>
-                <h1 class="hero-title">
+                <span class="eyebrow reveal" style="--i:0">Available for work</span>
+                <h1 class="hero-title reveal" style="--i:1">
                     <span class="name">Vincent Lam</span>
                     <span class="role">Computer Science Graduate</span>
                 </h1>
 
-                <p class="hero-description">
+                <p class="hero-description reveal" style="--i:2">
                     Recent Computer Science graduate from Sacramento State University with expertise in full-stack
                     development, database systems, and automation.
                 </p>
 
-                <div class="hero-actions">
+                <div class="hero-actions reveal" style="--i:3">
                     <a href="#projects" class="cta-primary nav-link">View My Work</a>
                     <a href="#contact" class="cta-secondary nav-link">Get In Touch</a>
                 </div>
@@ -153,11 +161,11 @@
         <!-- ABOUT -->
         <section id="about" class="panel">
             <div class="panel-content">
-                <div class="panel-header">
+                <div class="panel-header reveal" style="--i:0">
                     <h2 class="section-title">About Me</h2>
                 </div>
 
-                <div class="about-grid">
+                <div class="about-grid reveal" style="--i:1">
                     <div class="about-text">
                         <p class="intro-text">
                             Computer Science graduate of Sac State University, applying my skills to the
@@ -214,7 +222,7 @@
                     </div>
                 </div>
 
-                <div class="github-activity">
+                <div class="github-activity reveal" style="--i:2">
                     <h3>GitHub Activity</h3>
                     <div class="gh-heatmap" data-github-user="Xeoul" role="img" aria-label="GitHub activity heatmap for the last 90 days"></div>
                     <div class="gh-heatmap-legend">
@@ -233,13 +241,13 @@
         <!-- PROJECTS -->
         <section id="projects" class="panel">
             <div class="panel-content">
-                <div class="panel-header">
+                <div class="panel-header reveal" style="--i:0">
                     <h2 class="section-title">My Projects</h2>
                 </div>
 
                 <div class="projects-grid">
                     <!-- Element-115 Project -->
-                    <div class="project-card">
+                    <div class="project-card reveal" style="--i:1">
                         <div class="project-header">
                             <h3>Element-115</h3>
                             <span class="project-badge">Senior Project</span>
@@ -259,7 +267,7 @@
                     </div>
 
                     <!-- Movie Recommendation Project -->
-                    <div class="project-card">
+                    <div class="project-card reveal" style="--i:2">
                         <div class="project-header">
                             <h3>Movie Recommendation Service</h3>
                             <span class="project-badge secondary">Team Project</span>
@@ -294,13 +302,13 @@
         <!-- CONTACT -->
         <section id="contact" class="panel">
             <div class="panel-content">
-                <div class="panel-header">
+                <div class="panel-header reveal" style="--i:0">
                     <h2 class="section-title">Get In Touch</h2>
                 </div>
 
-                <p class="contact-intro">I'm always interested in new opportunities and collaborations - reach out any time.</p>
+                <p class="contact-intro reveal" style="--i:1">I'm always interested in new opportunities and collaborations - reach out any time.</p>
 
-                <div class="contact-methods">
+                <div class="contact-methods reveal" style="--i:2">
                     <a href="mailto:v812.io@gmail.com" class="contact-card" id="email-card" data-email="v812.io@gmail.com">
                         <div class="contact-icon">
                             <svg class="icon-mail" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
@@ -358,7 +366,7 @@
                     </a>
                 </div>
 
-                <div class="panel-footer">&copy; 2025 Vincent Lam</div>
+                <div class="panel-footer reveal" style="--i:3">&copy; 2025 Vincent Lam</div>
             </div>
         </section>
     </main>
