@@ -695,31 +695,42 @@ header {
    inert while you're just reading it, not a visible animation. Paused
    entirely while Home isn't the active panel, since there's no reason
    to keep compositing an animation nobody can see.
-   Desktop only: the hero text column has a fixed max-width (520px,
-   see .hero-description) with real empty space beside it on wide
-   viewports for the texture to live in - on mobile the text occupies
-   nearly the full width, so there's no room for it to read as ambient
-   rather than as clutter under the words. The mask fades dots out
-   entirely behind that text column (a fixed pixel distance, not a
-   percentage, since the column's width doesn't scale with viewport)
-   and back in past it, so they never sit behind actual glyphs. */
+   The mask shape differs by breakpoint because where the empty space
+   actually is differs: desktop lays the fixed-width text column out
+   beside a wide open area, so it fades dots out horizontally behind
+   that column (a pixel distance, not a percentage, since the column's
+   width doesn't scale with viewport); mobile stacks everything in one
+   narrower column with .hero-content vertically centered instead, so
+   the open space is above and below it - fades dots out in a
+   percentage-based vertical band there instead. Either way, dots never
+   sit behind actual glyphs. */
+.hero-panel::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image: radial-gradient(circle, var(--color-ink-soft) 1.2px, transparent 1.2px);
+  background-size: 28px 28px;
+  opacity: 0.5;
+  animation: ambientDrift 120s linear infinite;
+}
+
+.hero-panel:not(.active)::before {
+  animation-play-state: paused;
+}
+
 @media screen and (min-width: 900px) {
   .hero-panel::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    z-index: -1;
-    pointer-events: none;
-    background-image: radial-gradient(circle, var(--color-ink-soft) 1.2px, transparent 1.2px);
-    background-size: 28px 28px;
-    opacity: 0.5;
     mask-image: linear-gradient(to right, transparent 0, transparent 620px, black 900px);
     -webkit-mask-image: linear-gradient(to right, transparent 0, transparent 620px, black 900px);
-    animation: ambientDrift 120s linear infinite;
   }
+}
 
-  .hero-panel:not(.active)::before {
-    animation-play-state: paused;
+@media screen and (max-width: 899px) {
+  .hero-panel::before {
+    mask-image: linear-gradient(to bottom, black 0, black 10%, transparent 22%, transparent 78%, black 90%, black 100%);
+    -webkit-mask-image: linear-gradient(to bottom, black 0, black 10%, transparent 22%, transparent 78%, black 90%, black 100%);
   }
 }
 
