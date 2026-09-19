@@ -685,6 +685,55 @@ header {
 /* ============================================================
    HOME PANEL
    ============================================================ */
+/* Ambient dot-grid drift - a graph-paper texture, not a glow/gradient,
+   so it stays flat and reads as structure rather than decoration. Sits
+   behind .hero-content (negative z-index, inside the stacking context
+   .hero-panel already has from .panel's position+z-index) and pans
+   diagonally by whole multiples of its own tile size so the loop seams
+   invisibly. The drift is slow enough (a full cycle takes minutes)
+   that it's felt more than seen - the point is the page not feeling
+   inert while you're just reading it, not a visible animation. Paused
+   entirely while Home isn't the active panel, since there's no reason
+   to keep compositing an animation nobody can see.
+   Desktop only: the hero text column has a fixed max-width (520px,
+   see .hero-description) with real empty space beside it on wide
+   viewports for the texture to live in - on mobile the text occupies
+   nearly the full width, so there's no room for it to read as ambient
+   rather than as clutter under the words. The mask fades dots out
+   entirely behind that text column (a fixed pixel distance, not a
+   percentage, since the column's width doesn't scale with viewport)
+   and back in past it, so they never sit behind actual glyphs. */
+@media screen and (min-width: 900px) {
+  .hero-panel::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background-image: radial-gradient(circle, var(--color-ink-soft) 1.2px, transparent 1.2px);
+    background-size: 28px 28px;
+    opacity: 0.5;
+    mask-image: linear-gradient(to right, transparent 0, transparent 620px, black 900px);
+    -webkit-mask-image: linear-gradient(to right, transparent 0, transparent 620px, black 900px);
+    animation: ambientDrift 120s linear infinite;
+  }
+
+  .hero-panel:not(.active)::before {
+    animation-play-state: paused;
+  }
+}
+
+@keyframes ambientDrift {
+  from { background-position: 0 0; }
+  to { background-position: 280px 140px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-panel::before {
+    animation: none;
+  }
+}
+
 .hero-content {
   max-width: var(--container-width);
   width: 100%;
