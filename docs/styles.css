@@ -683,41 +683,59 @@ header {
 }
 
 /* ============================================================
-   HOME PANEL
-   ============================================================ */
-/* Ambient dot-grid drift - a graph-paper texture, not a glow/gradient,
-   so it stays flat and reads as structure rather than decoration. Sits
-   behind .hero-content (negative z-index, inside the stacking context
-   .hero-panel already has from .panel's position+z-index) and pans
-   diagonally by whole multiples of its own tile size so the loop seams
-   invisibly. The drift is slow enough (a full cycle takes minutes)
-   that it's felt more than seen - the point is the page not feeling
-   inert while you're just reading it, not a visible animation. Paused
-   entirely while Home isn't the active panel, since there's no reason
-   to keep compositing an animation nobody can see.
-   The mask shape differs by breakpoint because where the empty space
-   actually is differs: desktop lays the fixed-width text column out
-   beside a wide open area, so it fades dots out horizontally behind
-   that column (a pixel distance, not a percentage, since the column's
-   width doesn't scale with viewport); mobile stacks everything in one
-   narrower column with .hero-content vertically centered instead, so
-   the open space is above and below it - fades dots out in a
-   percentage-based vertical band there instead. Either way, dots never
-   sit behind actual glyphs. */
-.hero-panel::before {
+   AMBIENT PANEL TEXTURES
+   Every panel gets its own quiet, flat background texture (dots,
+   grid-lines, diagonal hatching - see each panel's own section below)
+   that drifts almost imperceptibly, felt more than consciously seen -
+   the point is the page not feeling inert while you're sitting on a
+   panel, not a visible animation. All are graph-paper-style patterns
+   built from the existing border/ink-soft color tokens, never a
+   glow/gradient, and each one pans by whole multiples of its own tile
+   size so the loop seams invisibly. This shared base (position,
+   pause-when-inactive, reduced-motion) is generic across all four;
+   each panel's own background-image/mask/keyframes live in that
+   panel's own section further down. */
+.panel::before {
   content: '';
   position: absolute;
   inset: 0;
   z-index: -1;
   pointer-events: none;
-  background-image: radial-gradient(circle, var(--color-ink-soft) 1.2px, transparent 1.2px);
-  background-size: 28px 28px;
   opacity: 0.5;
-  animation: ambientDrift 120s linear infinite;
 }
 
-.hero-panel:not(.active)::before {
+.panel:not(.active)::before {
   animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* !important because this ties in specificity with each panel's own
+     ::before rule (both are a single class + pseudo-element) - without
+     it, whichever one happens to come later in the file wins the tie,
+     which silently broke this for three of the four panels the first
+     time around. Matches the existing .no-transition precedent below
+     for forcing an override regardless of source order. */
+  .panel::before {
+    animation: none !important;
+  }
+}
+
+/* ============================================================
+   HOME PANEL
+   ============================================================ */
+/* Dots. The mask shape differs by breakpoint because where the empty
+   space actually is differs: desktop lays the fixed-width text column
+   out beside a wide open area, so it fades dots out horizontally
+   behind that column (a pixel distance, not a percentage, since the
+   column's width doesn't scale with viewport); mobile stacks
+   everything in one narrower column with .hero-content vertically
+   centered instead, so the open space is above and below it - a
+   percentage-based vertical band there instead. Either way, dots
+   never sit behind actual glyphs. */
+.hero-panel::before {
+  background-image: radial-gradient(circle, var(--color-ink-soft) 1.2px, transparent 1.2px);
+  background-size: 28px 28px;
+  animation: driftDots 120s linear infinite;
 }
 
 @media screen and (min-width: 900px) {
@@ -734,15 +752,9 @@ header {
   }
 }
 
-@keyframes ambientDrift {
+@keyframes driftDots {
   from { background-position: 0 0; }
   to { background-position: 280px 140px; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .hero-panel::before {
-    animation: none;
-  }
 }
 
 .hero-content {
@@ -843,6 +855,29 @@ header {
 /* ============================================================
    ABOUT PANEL
    ============================================================ */
+/* Faint crosshatch grid - a blueprint/structure feel, distinct from
+   Home's dots. .panel-content here fills nearly the panel's full
+   width (the two-column about-grid splits it evenly, unlike Home's
+   single narrow column) but is still vertically centered the same
+   way, so the open space is above and below it rather than beside it
+   - same vertical-mask technique as Home's mobile treatment, applied
+   at every viewport width since this panel's shape doesn't change the
+   way Home's does. */
+.about-panel::before {
+  background-image:
+    linear-gradient(to right, var(--color-border-strong) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--color-border-strong) 1px, transparent 1px);
+  background-size: 40px 40px;
+  mask-image: linear-gradient(to bottom, black 0, black 8%, transparent 20%, transparent 80%, black 92%, black 100%);
+  -webkit-mask-image: linear-gradient(to bottom, black 0, black 8%, transparent 20%, transparent 80%, black 92%, black 100%);
+  animation: driftGrid 140s linear infinite;
+}
+
+@keyframes driftGrid {
+  from { background-position: 0 0; }
+  to { background-position: 400px 200px; }
+}
+
 .about-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -1045,6 +1080,27 @@ header {
    An editorial list of rows rather than a card grid - each row
    numbered, separated by a hairline.
    ============================================================ */
+/* Diagonal hatching - a sketch/draft feel for work-in-progress, same
+   vertical-mask technique as About (this panel's content is likewise
+   full-width and vertically centered). The drift moves along the
+   hatching's own 45deg axis (15px * sqrt(2) per repeat) rather than a
+   plain horizontal/vertical step, since that's the direction the
+   pattern is actually periodic in - a plain (Npx, Npx) step would
+   leave a visible seam where the loop restarts. */
+.projects-panel::before {
+  background-image: repeating-linear-gradient(45deg,
+    var(--color-border-strong) 0, var(--color-border-strong) 1px,
+    transparent 1px, transparent 15px);
+  mask-image: linear-gradient(to bottom, black 0, black 8%, transparent 20%, transparent 80%, black 92%, black 100%);
+  -webkit-mask-image: linear-gradient(to bottom, black 0, black 8%, transparent 20%, transparent 80%, black 92%, black 100%);
+  animation: driftHatch 90s linear infinite;
+}
+
+@keyframes driftHatch {
+  from { background-position: 0 0; }
+  to { background-position: 298px 298px; }
+}
+
 .projects-grid {
   display: flex;
   flex-direction: column;
@@ -1184,6 +1240,23 @@ header {
    Each method is a single flat row (icon / label / value) - the
    whole row is the link, so there's nothing left to click past.
    ============================================================ */
+/* Sparser, larger dots than Home's - a calmer, more open feel for the
+   shortest of the four panels' content, which leaves more margin
+   above/below for the texture. Same vertical-mask technique as
+   About/Projects. */
+.contact-panel::before {
+  background-image: radial-gradient(circle, var(--color-ink-soft) 1.4px, transparent 1.4px);
+  background-size: 44px 44px;
+  mask-image: linear-gradient(to bottom, black 0, black 10%, transparent 24%, transparent 76%, black 90%, black 100%);
+  -webkit-mask-image: linear-gradient(to bottom, black 0, black 10%, transparent 24%, transparent 76%, black 90%, black 100%);
+  animation: driftSparse 130s linear infinite;
+}
+
+@keyframes driftSparse {
+  from { background-position: 0 0; }
+  to { background-position: 440px 220px; }
+}
+
 .contact-intro {
   font-size: 15px;
   line-height: 1.6;
