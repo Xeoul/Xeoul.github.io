@@ -684,25 +684,20 @@ header {
 
 /* ============================================================
    AMBIENT DRIFT
-   Layered, translucent wave ribbons that flow horizontally at
-   different speeds, rising from the bottom of each panel - the
-   actual PS3 XMB menu background, not a dot texture (a dot field
-   with a brightness sweep across it, tried first, was a different
-   effect entirely). Three SVG wave shapes per panel, generated once
-   in script.js and reused identically for all four rather than
-   duplicated in the HTML. Each is rendered at double width and
-   looped by translating exactly half that width: every wave's own
-   path is periodic (an even number of identical humps), so shifting
-   by half the rendered width lands on an identical point in the
-   pattern and the loop seams invisibly. Different period/amplitude/
-   speed per layer keeps the combined motion from reading as
-   mechanically synced. Built from the indigo accent already used
-   elsewhere, not a new color - kept faint since the layers overlap
-   and compound. Kept short enough to stay clear of each panel's
-   vertically-centered content without needing the content-safe masks
-   the dot version required (smooth filled shapes, unlike sharp dots,
-   don't read as clutter at the edges where they approach text).
-   Paused whenever a panel isn't active, disabled under reduced
+   A single soft, irregular, blurred wave ribbon drifting behind each
+   panel - the actual PS3 XMB menu background. Earlier attempts (a dot
+   field with a brightness sweep, then evenly-repeated solid wave
+   humps) both read as mechanical texture rather than this; the shape
+   itself is generated in script.js (see the comment there for the
+   loop-seam math), this file only styles it: thin translucent
+   strokes, not filled shapes, softened with blur and faded in/out
+   along their length by an SVG gradient instead of a flat color, plus
+   a handful of twinkling sparkle particles riding along the main
+   ribbon. A second, fainter, more-blurred strand higher up (still
+   within the same bottom-of-panel band already verified clear of
+   content) gives it depth without competing with the main ribbon.
+   Built from the indigo accent already used elsewhere, not a new
+   color. Paused whenever a panel isn't active, disabled under reduced
    motion. */
 .wave-field {
   position: absolute;
@@ -718,29 +713,60 @@ header {
   bottom: 0;
   width: 200%;
   height: 100%;
+  overflow: visible;
 }
 
-.wave-layer-1 {
-  fill: rgba(var(--color-accent-rgb), 0.05);
-  animation: waveScroll 42s linear infinite;
+.wave-stroke {
+  fill: none;
+  stroke-linecap: round;
 }
 
-.wave-layer-2 {
-  fill: rgba(var(--color-accent-rgb), 0.07);
-  animation: waveScroll 27s linear infinite reverse;
+.wave-layer-secondary {
+  filter: blur(3px);
+  animation: waveScroll 58s linear infinite reverse;
 }
 
-.wave-layer-3 {
-  fill: rgba(var(--color-accent-rgb), 0.09);
-  animation: waveScroll 17s linear infinite;
+.wave-layer-secondary .wave-stroke {
+  stroke-width: 1.4;
 }
 
-.panel:not(.active) .wave-layer {
+.wave-layer-primary {
+  animation: waveScroll 34s linear infinite;
+}
+
+.wave-layer-primary .strand-a {
+  stroke-width: 1;
+  opacity: 0.55;
+  filter: blur(2px);
+}
+
+.wave-layer-primary .strand-b {
+  stroke-width: 1.8;
+  opacity: 0.9;
+  filter: blur(0.8px);
+}
+
+.wave-layer-primary .strand-c {
+  stroke-width: 1;
+  opacity: 0.5;
+  filter: blur(2.4px);
+}
+
+.wave-sparkle {
+  fill: rgba(var(--color-accent-rgb), 0.8);
+  animation-name: waveSparkleTwinkle;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+}
+
+.panel:not(.active) .wave-layer,
+.panel:not(.active) .wave-sparkle {
   animation-play-state: paused;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .wave-layer {
+  .wave-layer,
+  .wave-sparkle {
     animation: none;
   }
 }
@@ -748,6 +774,11 @@ header {
 @keyframes waveScroll {
   from { transform: translateX(0); }
   to   { transform: translateX(-50%); }
+}
+
+@keyframes waveSparkleTwinkle {
+  0%, 100% { opacity: 0.1; }
+  50% { opacity: 0.75; }
 }
 
 /* ============================================================
