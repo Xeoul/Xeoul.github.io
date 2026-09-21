@@ -38,22 +38,26 @@ function buildSmoothPath(points) {
 // y-coordinate at both the motif seam (x = motifWidth) and the wrap
 // point (x = 0 / x = 2*motifWidth), which is what keeps the curve
 // smooth and seamless across the loop rather than jumping at those
-// points.
-function buildMotifPoints(amps, motifWidth, baseline, baselineOffset) {
+// points. `offsets` is a per-point y-nudge the same length as `amps`
+// (or a single number, applied to every point) - a strand-specific
+// spread envelope needs the same start/end-match-0 rule amps does, for
+// the same reason.
+function buildMotifPoints(amps, motifWidth, baseline, offsets) {
     const n = amps.length;
+    const offsetAt = typeof offsets === 'number' ? () => offsets : i => offsets[i];
     const step = motifWidth / (n - 1);
     const points = [];
     for (let rep = 0; rep < 2; rep++) {
         const startI = rep === 0 ? 0 : 1;
         for (let i = startI; i < n; i++) {
-            points.push({ x: rep * motifWidth + i * step, y: baseline + baselineOffset + amps[i] });
+            points.push({ x: rep * motifWidth + i * step, y: baseline + offsetAt(i) + amps[i] });
         }
     }
     return points;
 }
 
-function buildStrandPath(amps, motifWidth, baseline, baselineOffset) {
-    return buildSmoothPath(buildMotifPoints(amps, motifWidth, baseline, baselineOffset));
+function buildStrandPath(amps, motifWidth, baseline, offsets) {
+    return buildSmoothPath(buildMotifPoints(amps, motifWidth, baseline, offsets));
 }
 
 // Deterministic pseudo-random in [0, 1) - a fixed hash of (seed, i)
@@ -65,19 +69,29 @@ function hashRand(seed) {
 }
 
 // A real PS3 XMB background renders its sparkle layer as many small
-// additive point-sprites - closer to a dust/glitter field than a
-// handful of dots. This scatters `count` mostly-tiny particles across
-// one motif's worth of width (duplicated at +motifWidth so the field
-// loops with the same geometry as the ribbon it surrounds), with a
-// small fraction rendered larger and blurred as soft "glow motes"
-// among the fine dust rather than one uniform particle size.
+// additive point-sprites, clustered densest around the ribbon's own
+// "source" and thinning out as it trails away - closer to a comet's
+// dust tail than an evenly-spread field. This scatters `count` mostly-
+// tiny particles across one motif's worth of width (duplicated at
+// +motifWidth so the field loops with the same geometry as the ribbon
+// it surrounds), with a small fraction rendered larger and blurred as
+// soft "glow motes". Squaring the uniform x sample skews it toward 0 -
+// most particles land near the start of the motif, same place the
+// ribbon shape itself (PRIMARY_AMPS_BASE) puts its own big rise -
+// thinning out across the rest of the width instead of scattering
+// evenly, and the vertical spread widens for those near-origin
+// particles too, echoing the reference's broader bloom right at the
+// source.
 function buildDustField(motifWidth, baseline, count, seed) {
     let markup = '';
     for (let rep = 0; rep < 2; rep++) {
         for (let i = 0; i < count; i++) {
             const n = seed + i;
-            const x = rep * motifWidth + hashRand(n) * motifWidth;
-            const y = baseline - 20 + hashRand(n + 0.37) * 30;
+            const t = Math.pow(hashRand(n), 2.2);
+            const x = rep * motifWidth + t * motifWidth;
+            const center = -8 * (1 - t);
+            const halfSpread = 3 + (1 - t) * 7;
+            const y = baseline + center + (hashRand(n + 0.37) - 0.5) * 2 * halfSpread;
             const isGlow = hashRand(n + 0.71) > 0.88;
             const r = isGlow ? 1.1 + hashRand(n + 0.53) * 0.9 : 0.2 + hashRand(n + 0.19) * 0.35;
             const delay = (hashRand(n + 0.11) * 4).toFixed(2);
@@ -102,28 +116,41 @@ const MOTIF_WIDTH = 460;
 const SECONDARY_AMPS = [0, -9, 5, -7, 0];
 const SECONDARY_BASELINE = 165;
 
-// Primary ribbon: one sleek, gently-undulating curve (few points, wide
-// segments - the "smooth curve through points" builder in
-// buildSmoothPath already produces broad, soft bends on its own, so
-// this doesn't need many control points to look organic) shared by all
-// three strands, not three independently-shaped curves. An earlier
-// version gave each strand its own irregular amplitude list so they'd
-// cross and diverge - the user pointed at the actual reference image
-// and said that read as "squiggles", not the sleek, uniform look of
-// the real thing, which is a small tight bundle of fibers all
-// following essentially the same line. Each strand now just scales
-// PRIMARY_AMPS_BASE slightly and nudges it up/down a couple of units,
-// so they stay visually bundled/parallel with only a hint of organic
-// spread instead of weaving through each other.
+// Primary ribbon: one sleek curve shared by all three strands, not
+// three independently-shaped curves - an earlier version gave each
+// strand its own irregular amplitude list so they'd cross and diverge,
+// and the user pointed at the reference image and called it
+// "squiggles", not the sleek, uniform look of the real thing.
+//
+// The reference also isn't a symmetric back-and-forth wave: it's one
+// strong rise near where the strands originate, then a long, much
+// calmer trailing stretch - directional, not oscillating evenly.
+// PRIMARY_AMPS_BASE front-loads its amplitude the same way (a big
+// first swing, decreasing after) instead of repeating similar-sized
+// bends across the whole width.
+//
+// The strands themselves stay merged near that origin and fan out
+// gradually along the trailing stretch, rather than holding a constant
+// offset apart everywhere - SPREAD_ENVELOPE is a per-point lateral
+// offset (0 at both ends, for the same seam-continuity reason
+// amplitude lists need it) that each strand scales by its own
+// `spreadScale`. It has to taper back to 0 by the motif's end so nothing
+// jumps at the loop seam, so the three strands briefly re-merge right
+// before each loop - a small, mostly-unnoticed compromise the seamless
+// scroll requires, since the reference itself never actually loops.
 const PRIMARY_BASELINE = 186;
-const PRIMARY_AMPS_BASE = [0, -19, 9, -23, 11, 0];
+const PRIMARY_AMPS_BASE = [0, -18, 9, -6, 3, -5, 2, -1, 0];
+const SPREAD_ENVELOPE = [0, 0, 1, 3, 5, 7, 6, 3, 0];
 function scaleAmps(base, factor) {
     return base.map((v, i) => (i === 0 || i === base.length - 1) ? 0 : v * factor);
 }
+function strandOffsets(spreadScale) {
+    return SPREAD_ENVELOPE.map(v => v * spreadScale);
+}
 const PRIMARY_STRANDS = [
-    { amps: scaleAmps(PRIMARY_AMPS_BASE, 0.82), dy: -2, className: 'strand-a' },
-    { amps: PRIMARY_AMPS_BASE, dy: 0, className: 'strand-b' },
-    { amps: scaleAmps(PRIMARY_AMPS_BASE, 0.78), dy: 2, className: 'strand-c' },
+    { amps: scaleAmps(PRIMARY_AMPS_BASE, 0.92), spreadScale: -1, className: 'strand-a' },
+    { amps: PRIMARY_AMPS_BASE, spreadScale: 0, className: 'strand-b' },
+    { amps: scaleAmps(PRIMARY_AMPS_BASE, 0.9), spreadScale: 1, className: 'strand-c' },
 ];
 const DUST_COUNT_PER_MOTIF = 55;
 const DUST_SEED = 4.2;
@@ -146,7 +173,7 @@ function gradientStops(peakOpacity, peakColor) {
 
 const totalWidth = MOTIF_WIDTH * 2;
 const secondaryPath = buildStrandPath(SECONDARY_AMPS, MOTIF_WIDTH, SECONDARY_BASELINE, 0);
-const primaryStrandPaths = PRIMARY_STRANDS.map(strand => buildStrandPath(strand.amps, MOTIF_WIDTH, PRIMARY_BASELINE, strand.dy));
+const primaryStrandPaths = PRIMARY_STRANDS.map(strand => buildStrandPath(strand.amps, MOTIF_WIDTH, PRIMARY_BASELINE, strandOffsets(strand.spreadScale)));
 const primarySparklesMarkup = buildDustField(MOTIF_WIDTH, PRIMARY_BASELINE, DUST_COUNT_PER_MOTIF, DUST_SEED);
 // strand-b (index 1) is the bright core; its path is reused, wider and
 // heavily blurred, as a glow halo painted underneath the crisp strands -
@@ -159,7 +186,7 @@ const haloPath = primaryStrandPaths[1];
 // in Safari once more than one copy is in the document.
 function buildWaveFieldMarkup(uid) {
     const secondaryMarkup = `<svg class="wave-layer wave-layer-secondary" viewBox="0 0 ${totalWidth} ${WAVE_VIEW_HEIGHT}" preserveAspectRatio="none" aria-hidden="true">
-    <defs><linearGradient id="waveGradSecondary-${uid}" x1="0" x2="${totalWidth}" gradientUnits="userSpaceOnUse">${gradientStops(0.2, 'rgb(var(--color-accent-rgb))')}</linearGradient></defs>
+    <defs><linearGradient id="waveGradSecondary-${uid}" x1="0" x2="${totalWidth}" gradientUnits="userSpaceOnUse">${gradientStops(0.2, 'var(--wave-highlight)')}</linearGradient></defs>
     <path class="wave-stroke" d="${secondaryPath}" stroke="url(#waveGradSecondary-${uid})"/>
 </svg>`;
 
@@ -169,7 +196,7 @@ function buildWaveFieldMarkup(uid) {
     const primaryMarkup = `<svg class="wave-layer wave-layer-primary" viewBox="0 0 ${totalWidth} ${WAVE_VIEW_HEIGHT}" preserveAspectRatio="none" aria-hidden="true">
     <defs>
       <linearGradient id="waveGradPrimary-${uid}" x1="0" x2="${totalWidth}" gradientUnits="userSpaceOnUse">${gradientStops(0.85, 'var(--wave-highlight)')}</linearGradient>
-      <linearGradient id="waveGradHalo-${uid}" x1="0" x2="${totalWidth}" gradientUnits="userSpaceOnUse">${gradientStops(0.6, 'rgb(var(--color-accent-rgb))')}</linearGradient>
+      <linearGradient id="waveGradHalo-${uid}" x1="0" x2="${totalWidth}" gradientUnits="userSpaceOnUse">${gradientStops(0.6, 'var(--wave-highlight)')}</linearGradient>
     </defs>
     <path class="wave-halo" d="${haloPath}" stroke="url(#waveGradHalo-${uid})"/>
     ${primaryStrandsMarkup}
