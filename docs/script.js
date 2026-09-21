@@ -1,3 +1,56 @@
+// AMBIENT WAVE BACKGROUND
+// Builds the layered wave-ribbon SVGs behind each panel (see the
+// "AMBIENT DRIFT" rules in styles.css for the animation/masking side
+// of this) and prepends the same markup into every .panel, rather
+// than duplicating it four times in the HTML.
+//
+// Each wave is a single <path>: a flat baseline that dips into a
+// smooth up-down hump every `period` units, repeated `cycles` times,
+// then closed down to the bottom of the viewBox. Built programmatically
+// instead of hand-typed so the loop math (see below) stays obviously
+// correct as the shape parameters change, rather than trusting a long
+// hand-authored path string to still be periodic.
+function buildWavePath(cycles, period, baseline, amplitude, viewHeight) {
+    const width = cycles * period;
+    let d = `M0,${baseline}`;
+    for (let i = 0; i < cycles; i++) {
+        const x0 = i * period;
+        const xMid = x0 + period / 2;
+        const x1 = x0 + period;
+        d += ` C${x0 + period * 0.25},${baseline - amplitude} ${x0 + period * 0.25},${baseline + amplitude} ${xMid},${baseline}`;
+        d += ` C${x1 - period * 0.25},${baseline - amplitude} ${x1 - period * 0.25},${baseline + amplitude} ${x1},${baseline}`;
+    }
+    d += ` L${width},${viewHeight} L0,${viewHeight} Z`;
+    return d;
+}
+
+// Each layer's own cycle count is even, so translating the (double-
+// width) rendered element by exactly -50% lands on an identical point
+// in its own periodic path - the loop seams invisibly regardless of
+// how the three layers' periods relate to each other. Baseline/
+// amplitude keep every layer's crest within the bottom ~30% of the
+// viewBox, comfortably clear of each panel's vertically-centered
+// content without needing to mask around it.
+const WAVE_VIEW_HEIGHT = 200;
+const WAVE_LAYERS = [
+    { cycles: 6, period: 400, baseline: 170, amplitude: 26 },
+    { cycles: 8, period: 300, baseline: 180, amplitude: 17 },
+    { cycles: 10, period: 240, baseline: 189, amplitude: 10 },
+];
+
+const waveFieldMarkup = WAVE_LAYERS.map((layer, i) => {
+    const width = layer.cycles * layer.period;
+    const d = buildWavePath(layer.cycles, layer.period, layer.baseline, layer.amplitude, WAVE_VIEW_HEIGHT);
+    return `<svg class="wave-layer wave-layer-${i + 1}" viewBox="0 0 ${width} ${WAVE_VIEW_HEIGHT}" preserveAspectRatio="none" aria-hidden="true"><path d="${d}"/></svg>`;
+}).join('');
+
+document.querySelectorAll('.panel').forEach(panel => {
+    const field = document.createElement('div');
+    field.className = 'wave-field';
+    field.innerHTML = waveFieldMarkup;
+    panel.prepend(field);
+});
+
 // THEME TOGGLE
 // Which icon shows (sun/moon) is handled entirely by CSS off [data-theme]
 // or prefers-color-scheme - this only needs to flip the explicit override

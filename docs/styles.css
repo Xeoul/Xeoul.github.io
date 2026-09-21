@@ -684,107 +684,75 @@ header {
 
 /* ============================================================
    AMBIENT DRIFT
-   One consistent treatment shared by every panel: a dot field (the
-   same idea as the original Home texture) with a soft band of
-   brightness sweeping diagonally across it, like the PS3 XMB
-   background - dots "light up" as the wave passes over them rather
-   than the whole layer just panning or a color wash drifting around.
-   Two identical, perfectly-aligned dot grids stacked on the same
-   element (::before dim and always visible, ::after bright but masked
-   to a soft diagonal band) - only the mask moves, not the background
-   itself, so the bright layer's dots never drift out of register with
-   the dim layer's. The wave oscillates back and forth (alternate)
-   rather than sweeping one-way and resetting, so there's no visible
-   jump where the loop restarts. Built from the indigo accent already
-   used elsewhere, not a new color. Paused whenever a panel isn't
-   active, disabled under reduced motion.
-   Sharp dots (unlike the soft gradient wash tried first) read as
-   clutter where they land on top of glyphs, so both layers are masked
-   to each panel's own content-safe zone (--safe-mask, set per panel
-   in that panel's own section below - same geometry validated when
-   each panel had its own texture). ::after needs that safe zone
-   *and* the wave band at once, so it composites the two masks with
-   mask-composite: intersect (only visible where both are opaque) -
-   -webkit-mask-composite: source-in is the equivalent for older
-   WebKit's two-layer masking model. */
-.panel::before,
-.panel::after {
-  content: '';
+   Layered, translucent wave ribbons that flow horizontally at
+   different speeds, rising from the bottom of each panel - the
+   actual PS3 XMB menu background, not a dot texture (a dot field
+   with a brightness sweep across it, tried first, was a different
+   effect entirely). Three SVG wave shapes per panel, generated once
+   in script.js and reused identically for all four rather than
+   duplicated in the HTML. Each is rendered at double width and
+   looped by translating exactly half that width: every wave's own
+   path is periodic (an even number of identical humps), so shifting
+   by half the rendered width lands on an identical point in the
+   pattern and the loop seams invisibly. Different period/amplitude/
+   speed per layer keeps the combined motion from reading as
+   mechanically synced. Built from the indigo accent already used
+   elsewhere, not a new color - kept faint since the layers overlap
+   and compound. Kept short enough to stay clear of each panel's
+   vertically-centered content without needing the content-safe masks
+   the dot version required (smooth filled shapes, unlike sharp dots,
+   don't read as clutter at the edges where they approach text).
+   Paused whenever a panel isn't active, disabled under reduced
+   motion. */
+.wave-field {
   position: absolute;
   inset: 0;
   z-index: -1;
   pointer-events: none;
-  background-image: radial-gradient(circle, rgba(var(--color-accent-rgb), 1) 1.2px, transparent 1.2px);
-  background-size: 26px 26px;
-  --wave-mask: linear-gradient(115deg, transparent 0%, transparent 34%, black 50%, transparent 66%, transparent 100%);
+  overflow: hidden;
 }
 
-.panel::before {
-  opacity: 0.18;
-  mask-image: var(--safe-mask, none);
-  -webkit-mask-image: var(--safe-mask, none);
+.wave-layer {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 200%;
+  height: 100%;
 }
 
-.panel::after {
-  opacity: 0.85;
-  mask-image: var(--wave-mask), var(--safe-mask, linear-gradient(black, black));
-  -webkit-mask-image: var(--wave-mask), var(--safe-mask, linear-gradient(black, black));
-  -webkit-mask-composite: source-in;
-  mask-composite: intersect;
-  mask-size: 160% 160%, 100% 100%;
-  -webkit-mask-size: 160% 160%, 100% 100%;
-  mask-repeat: no-repeat, no-repeat;
-  -webkit-mask-repeat: no-repeat, no-repeat;
-  animation: waveSweep 9s ease-in-out infinite alternate;
+.wave-layer-1 {
+  fill: rgba(var(--color-accent-rgb), 0.05);
+  animation: waveScroll 42s linear infinite;
 }
 
-.panel:not(.active)::before,
-.panel:not(.active)::after {
+.wave-layer-2 {
+  fill: rgba(var(--color-accent-rgb), 0.07);
+  animation: waveScroll 27s linear infinite reverse;
+}
+
+.wave-layer-3 {
+  fill: rgba(var(--color-accent-rgb), 0.09);
+  animation: waveScroll 17s linear infinite;
+}
+
+.panel:not(.active) .wave-layer {
   animation-play-state: paused;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  /* !important because this ties in specificity with .panel::before/
-     ::after above (both a single class + pseudo-element) - without
-     it, whichever rule happens to come later in the file wins the
-     tie, which silently broke an equivalent reduced-motion override
-     for three of four panels the first time this section existed.
-     Matches the existing .no-transition precedent below for forcing
-     an override regardless of source order. */
-  .panel::before,
-  .panel::after {
-    animation: none !important;
+  .wave-layer {
+    animation: none;
   }
 }
 
-@keyframes waveSweep {
-  from { mask-position: -60% -60%, 0 0; -webkit-mask-position: -60% -60%, 0 0; }
-  to   { mask-position: 60% 60%, 0 0; -webkit-mask-position: 60% 60%, 0 0; }
+@keyframes waveScroll {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
 }
 
 /* ============================================================
    HOME PANEL
    ============================================================ */
-/* Dots need a wide open area to live in, same reasoning as the
-   original per-panel textures: desktop lays the fixed-width text
-   column out beside a wide open area, so --safe-mask fades dots out
-   horizontally behind that column (a pixel distance, not a
-   percentage, since the column's width doesn't scale with viewport);
-   mobile stacks everything in one narrower column with .hero-content
-   vertically centered instead, so the open space is above and below
-   it - a percentage-based vertical band there instead. */
-@media screen and (min-width: 900px) {
-  .hero-panel {
-    --safe-mask: linear-gradient(to right, transparent 0, transparent 620px, black 900px);
-  }
-}
-
-@media screen and (max-width: 899px) {
-  .hero-panel {
-    --safe-mask: linear-gradient(to bottom, black 0, black 10%, transparent 22%, transparent 78%, black 90%, black 100%);
-  }
-}
-
 .hero-content {
   max-width: var(--container-width);
   width: 100%;
@@ -883,16 +851,6 @@ header {
 /* ============================================================
    ABOUT PANEL
    ============================================================ */
-/* .panel-content here fills nearly the panel's full width (the
-   two-column about-grid splits it evenly, unlike Home's single narrow
-   column) but is still vertically centered the same way, so the open
-   space for dots is above and below it rather than beside it - same
-   at every viewport width since this panel's shape doesn't change the
-   way Home's does. */
-.about-panel {
-  --safe-mask: linear-gradient(to bottom, black 0, black 8%, transparent 20%, transparent 80%, black 92%, black 100%);
-}
-
 .about-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -1095,12 +1053,6 @@ header {
    An editorial list of rows rather than a card grid - each row
    numbered, separated by a hairline.
    ============================================================ */
-/* This panel's content is likewise full-width and vertically
-   centered, so the same vertical safe-zone as About. */
-.projects-panel {
-  --safe-mask: linear-gradient(to bottom, black 0, black 8%, transparent 20%, transparent 80%, black 92%, black 100%);
-}
-
 .projects-grid {
   display: flex;
   flex-direction: column;
@@ -1240,12 +1192,6 @@ header {
    Each method is a single flat row (icon / label / value) - the
    whole row is the link, so there's nothing left to click past.
    ============================================================ */
-/* Shortest of the four panels' content, so a slightly wider safe
-   margin than About/Projects still leaves it comfortably clear. */
-.contact-panel {
-  --safe-mask: linear-gradient(to bottom, black 0, black 10%, transparent 24%, transparent 76%, black 90%, black 100%);
-}
-
 .contact-intro {
   font-size: 15px;
   line-height: 1.6;
