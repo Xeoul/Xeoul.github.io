@@ -697,9 +697,10 @@ header {
    then a single flat-colored stroked curve) all read as mechanical or
    plain rather than this; the shape itself is generated in script.js
    (see the comment there for the loop-seam math and why the three
-   strands each get their own amplitude curve instead of being copies
-   of one), this file only styles it: thin translucent strokes with a
-   wide, heavily-blurred "halo" copy of the brightest strand painted
+   strands stay a tight, sleek bundle of one shared curve rather than
+   diverging into separate shapes), this file only styles it: thin
+   translucent strokes with a wide, heavily-blurred "halo" copy of the
+   brightest strand painted
    underneath it for actual light bloom, not just a thicker line. In
    dark mode the strokes and sparkles additionally blend with
    `screen`, so overlapping/crossing strands genuinely brighten each

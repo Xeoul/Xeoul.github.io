@@ -97,21 +97,33 @@ const MOTIF_WIDTH = 460;
 // competing for attention. Amplitudes stay within the same vertical
 // band the original hump-based design tested safe (roughly the bottom
 // third of the viewBox), so panel-content clearance already verified
-// for that zone still holds.
-const SECONDARY_AMPS = [0, -6, 4, -7, 5, -3, 0];
+// for that zone still holds. Few points and gentle values, matching
+// the primary ribbon's own "sleek, not busy" shape below.
+const SECONDARY_AMPS = [0, -9, 5, -7, 0];
 const SECONDARY_BASELINE = 165;
 
-// Primary ribbon: three strands, each with its OWN irregular amplitude
-// curve (not the same curve copied with a y-offset) so they genuinely
-// diverge, cross and re-converge like loosely braided filaments of
-// smoke rather than three parallel lines. Different point counts per
-// strand keep their bends from ever lining up in sync. Each list still
-// starts and ends at 0 for the same loop-seam reason as SECONDARY_AMPS.
+// Primary ribbon: one sleek, gently-undulating curve (few points, wide
+// segments - the "smooth curve through points" builder in
+// buildSmoothPath already produces broad, soft bends on its own, so
+// this doesn't need many control points to look organic) shared by all
+// three strands, not three independently-shaped curves. An earlier
+// version gave each strand its own irregular amplitude list so they'd
+// cross and diverge - the user pointed at the actual reference image
+// and said that read as "squiggles", not the sleek, uniform look of
+// the real thing, which is a small tight bundle of fibers all
+// following essentially the same line. Each strand now just scales
+// PRIMARY_AMPS_BASE slightly and nudges it up/down a couple of units,
+// so they stay visually bundled/parallel with only a hint of organic
+// spread instead of weaving through each other.
 const PRIMARY_BASELINE = 186;
+const PRIMARY_AMPS_BASE = [0, -19, 9, -23, 11, 0];
+function scaleAmps(base, factor) {
+    return base.map((v, i) => (i === 0 || i === base.length - 1) ? 0 : v * factor);
+}
 const PRIMARY_STRANDS = [
-    { amps: [0, 8, -10, 3, 14, -7, 9, -2, 0], dy: -3, className: 'strand-a' },
-    { amps: [0, -13, 6, -18, 3, 11, -8, 10, -5, 2, 0], dy: 0, className: 'strand-b' },
-    { amps: [0, 7, -11, 15, -4, -9, 8, 0], dy: 3, className: 'strand-c' },
+    { amps: scaleAmps(PRIMARY_AMPS_BASE, 0.82), dy: -2, className: 'strand-a' },
+    { amps: PRIMARY_AMPS_BASE, dy: 0, className: 'strand-b' },
+    { amps: scaleAmps(PRIMARY_AMPS_BASE, 0.78), dy: 2, className: 'strand-c' },
 ];
 const DUST_COUNT_PER_MOTIF = 55;
 const DUST_SEED = 4.2;
