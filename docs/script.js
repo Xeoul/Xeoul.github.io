@@ -4,20 +4,30 @@
 // this) and prepends the same markup into every .panel, rather than
 // duplicating it four times in the HTML.
 //
-// A first version built each wave from evenly-repeated symmetric
-// humps (the same up-down curve copy-pasted every `period` units).
-// That read as a mechanical, cartoonish "sine wave" rather than the
-// actual PS3 XMB look - a single soft, irregular, blurred ribbon.
-// This version instead threads one smooth curve through a hand-tuned,
-// non-repeating list of amplitudes (`AMPS` below), so the visible
-// shape never looks like a copy-pasted unit.
+// Earlier versions translated a single static <path> sideways
+// (`transform: translateX`) to make it drift. That's the right way to
+// get continuous horizontal motion, but on its own it's also exactly
+// what makes a shape read as "a picture sliding" instead of "water
+// moving": translating a fixed shape by any amount is a rigid-body
+// motion - every point keeps the same position *relative to every
+// other point* - so nothing about the wave's own form ever changes,
+// only where the unchanging whole sits on screen. A real wave surface
+// doesn't do that: individual crests rise, flatten and reform as time
+// passes, independent of any sideways drift. So alongside the existing
+// translateX drift (still handled entirely in styles.css), each
+// strand's <path> now also runs an SVG SMIL <animate> on its own `d`
+// attribute, morphing between several hand-varied amplitude lists
+// (PRIMARY_AMPS_KEYFRAMES / SECONDARY_AMPS_KEYFRAMES below) - the
+// shape itself breathes while it drifts, which a rigid translate can
+// never produce.
 //
-// It still has to loop seamlessly, though, so the same irregular
-// "motif" is duplicated exactly once (not many times): the amplitude
-// list is required to start and end at the same value (0), so the
-// point where motif 1 ends and motif 2 begins is just another smooth
-// point on the curve, not a visible seam. The rendered element is
-// double its container's width (`width: 200%`) and looped by
+// The horizontal loop still has to seam invisibly, so the same
+// irregular "motif" is duplicated exactly once per keyframe (not many
+// times): each keyframe's amplitude list is required to start and end
+// at the same value (0), so the point where motif 1 ends and motif 2
+// begins is just another smooth point on the curve, not a visible
+// seam, at every point in the shape's animation. The rendered element
+// is double its container's width (`width: 200%`) and looped by
 // translating exactly -50% - since that's precisely one motif-width,
 // the view after the loop is pixel-identical to the view before it.
 // Because cycles is fixed at exactly 2 (the minimum that still loops),
@@ -60,6 +70,14 @@ function buildStrandPath(amps, motifWidth, baseline, offsets) {
     return buildSmoothPath(buildMotifPoints(amps, motifWidth, baseline, offsets));
 }
 
+// One `d` string per keyframe, joined for an SMIL <animate values="...">
+// list. Every keyframe is built through the same buildStrandPath (same
+// point count/order every time), which is what lets SMIL interpolate
+// smoothly from one straight into the next instead of snapping.
+function buildKeyframeD(ampsKeyframes, motifWidth, baseline, offsets) {
+    return ampsKeyframes.map(amps => buildStrandPath(amps, motifWidth, baseline, offsets)).join(';');
+}
+
 // Deterministic pseudo-random in [0, 1) - a fixed hash of (seed, i)
 // rather than Math.random(), so the dust field is reproducible on
 // every load/render instead of reshuffling each time.
@@ -77,7 +95,7 @@ function hashRand(seed) {
 // it surrounds), with a small fraction rendered larger and blurred as
 // soft "glow motes". Squaring the uniform x sample skews it toward 0 -
 // most particles land near the start of the motif, same place the
-// ribbon shape itself (PRIMARY_AMPS_BASE) puts its own big rise -
+// ribbon shape itself (PRIMARY_AMPS_KEYFRAMES) puts its own big rise -
 // thinning out across the rest of the width instead of scattering
 // evenly, and the vertical spread widens for those near-origin
 // particles too, echoing the reference's broader bloom right at the
@@ -112,9 +130,17 @@ const MOTIF_WIDTH = 460;
 // band the original hump-based design tested safe (roughly the bottom
 // third of the viewBox), so panel-content clearance already verified
 // for that zone still holds. Few points and gentle values, matching
-// the primary ribbon's own "sleek, not busy" shape below.
-const SECONDARY_AMPS = [0, -9, 5, -7, 0];
+// the primary ribbon's own "sleek, not busy" shape below. Cycles
+// through 3 keyframes (each still 0 at both ends) so it also breathes
+// rather than just drift-translating.
+const SECONDARY_AMPS_KEYFRAMES = [
+    [0, -9, 5, -7, 0],
+    [0, -6, 8, -4, 0],
+    [0, -11, 3, -6, 0],
+    [0, -9, 5, -7, 0],
+];
 const SECONDARY_BASELINE = 165;
+const SECONDARY_DUR = 16;
 
 // Primary ribbon: one sleek curve shared by all three strands, not
 // three independently-shaped curves - an earlier version gave each
@@ -124,10 +150,13 @@ const SECONDARY_BASELINE = 165;
 //
 // The reference also isn't a symmetric back-and-forth wave: it's one
 // strong rise near where the strands originate, then a long, much
-// calmer trailing stretch - directional, not oscillating evenly.
-// PRIMARY_AMPS_BASE front-loads its amplitude the same way (a big
-// first swing, decreasing after) instead of repeating similar-sized
-// bends across the whole width.
+// calmer trailing stretch - directional, not oscillating evenly. Every
+// keyframe below front-loads its amplitude the same way (a big first
+// swing, decreasing after) instead of repeating similar-sized bends
+// across the whole width - only the exact shape of that first swing
+// and its trailing wobble varies keyframe to keyframe, which is what
+// makes it read as one form breathing rather than a different pattern
+// each time.
 //
 // The strands themselves stay merged near that origin and fan out
 // gradually along the trailing stretch, rather than holding a constant
@@ -139,18 +168,28 @@ const SECONDARY_BASELINE = 165;
 // before each loop - a small, mostly-unnoticed compromise the seamless
 // scroll requires, since the reference itself never actually loops.
 const PRIMARY_BASELINE = 186;
-const PRIMARY_AMPS_BASE = [0, -18, 9, -6, 3, -5, 2, -1, 0];
+const PRIMARY_AMPS_KEYFRAMES = [
+    [0, -18, 9, -6, 3, -5, 2, -1, 0],
+    [0, -11, 15, -9, 5, -2, 4, -3, 0],
+    [0, -20, 5, -3, 7, -8, 1, 2, 0],
+    [0, -14, 11, -10, 2, -6, 5, -2, 0],
+    [0, -18, 9, -6, 3, -5, 2, -1, 0],
+];
 const SPREAD_ENVELOPE = [0, 0, 1, 3, 5, 7, 6, 3, 0];
-function scaleAmps(base, factor) {
-    return base.map((v, i) => (i === 0 || i === base.length - 1) ? 0 : v * factor);
+function scaleAmpsKeyframes(keyframes, factor) {
+    return keyframes.map(amps => amps.map((v, i) => (i === 0 || i === amps.length - 1) ? 0 : v * factor));
 }
 function strandOffsets(spreadScale) {
     return SPREAD_ENVELOPE.map(v => v * spreadScale);
 }
+// Each strand also breathes on its own, independent cycle length (not
+// a shared/synced duration) so the three don't pulse in unison - that
+// would just look like the same "sliding picture" problem one
+// dimension up.
 const PRIMARY_STRANDS = [
-    { amps: scaleAmps(PRIMARY_AMPS_BASE, 0.92), spreadScale: -1, className: 'strand-a' },
-    { amps: PRIMARY_AMPS_BASE, spreadScale: 0, className: 'strand-b' },
-    { amps: scaleAmps(PRIMARY_AMPS_BASE, 0.9), spreadScale: 1, className: 'strand-c' },
+    { keyframes: scaleAmpsKeyframes(PRIMARY_AMPS_KEYFRAMES, 0.92), spreadScale: -1, className: 'strand-a', dur: 10 },
+    { keyframes: PRIMARY_AMPS_KEYFRAMES, spreadScale: 0, className: 'strand-b', dur: 7.5 },
+    { keyframes: scaleAmpsKeyframes(PRIMARY_AMPS_KEYFRAMES, 0.9), spreadScale: 1, className: 'strand-c', dur: 12.5 },
 ];
 const DUST_COUNT_PER_MOTIF = 55;
 const DUST_SEED = 4.2;
@@ -172,13 +211,27 @@ function gradientStops(peakOpacity, peakColor) {
 }
 
 const totalWidth = MOTIF_WIDTH * 2;
-const secondaryPath = buildStrandPath(SECONDARY_AMPS, MOTIF_WIDTH, SECONDARY_BASELINE, 0);
-const primaryStrandPaths = PRIMARY_STRANDS.map(strand => buildStrandPath(strand.amps, MOTIF_WIDTH, PRIMARY_BASELINE, strandOffsets(strand.spreadScale)));
+const secondaryD = buildKeyframeD(SECONDARY_AMPS_KEYFRAMES, MOTIF_WIDTH, SECONDARY_BASELINE, 0);
+const primaryStrandD = PRIMARY_STRANDS.map(strand => buildKeyframeD(strand.keyframes, MOTIF_WIDTH, PRIMARY_BASELINE, strandOffsets(strand.spreadScale)));
 const primarySparklesMarkup = buildDustField(MOTIF_WIDTH, PRIMARY_BASELINE, DUST_COUNT_PER_MOTIF, DUST_SEED);
-// strand-b (index 1) is the bright core; its path is reused, wider and
-// heavily blurred, as a glow halo painted underneath the crisp strands -
-// the actual light-bloom look, not just a thicker line.
-const haloPath = primaryStrandPaths[1];
+// strand-b (index 1) is the bright core; its keyframes are reused,
+// wider and heavily blurred, as a glow halo painted underneath the
+// crisp strands - the actual light-bloom look, not just a thicker
+// line - and locked to strand-b's exact motion (same `d` values, same
+// duration) so the glow always sits right on its core.
+const haloD = primaryStrandD[1];
+const haloDur = PRIMARY_STRANDS[1].dur;
+
+// The path's own `d` attribute carries the first keyframe as a static
+// fallback - if SMIL somehow isn't supported, the <animate> child is
+// just ignored and the path still renders that one shape, instead of
+// nothing at all.
+function firstKeyframe(values) {
+    return values.slice(0, values.indexOf(';'));
+}
+function animateD(values, dur) {
+    return `<animate attributeName="d" dur="${dur}s" repeatCount="indefinite" values="${values}"/>`;
+}
 
 // Gradient ids need to be unique per panel: cloning inline SVGs that
 // share an id (as innerHTML-ing the same markup string into all four
@@ -187,18 +240,18 @@ const haloPath = primaryStrandPaths[1];
 function buildWaveFieldMarkup(uid) {
     const secondaryMarkup = `<svg class="wave-layer wave-layer-secondary" viewBox="0 0 ${totalWidth} ${WAVE_VIEW_HEIGHT}" preserveAspectRatio="none" aria-hidden="true">
     <defs><linearGradient id="waveGradSecondary-${uid}" x1="0" x2="${totalWidth}" gradientUnits="userSpaceOnUse">${gradientStops(0.2, 'var(--wave-highlight)')}</linearGradient></defs>
-    <path class="wave-stroke" d="${secondaryPath}" stroke="url(#waveGradSecondary-${uid})"/>
+    <path class="wave-stroke" d="${firstKeyframe(secondaryD)}" stroke="url(#waveGradSecondary-${uid})">${animateD(secondaryD, SECONDARY_DUR)}</path>
 </svg>`;
 
     const primaryStrandsMarkup = PRIMARY_STRANDS.map((strand, i) => {
-        return `<path class="wave-stroke ${strand.className}" d="${primaryStrandPaths[i]}" stroke="url(#waveGradPrimary-${uid})"/>`;
+        return `<path class="wave-stroke ${strand.className}" d="${firstKeyframe(primaryStrandD[i])}" stroke="url(#waveGradPrimary-${uid})">${animateD(primaryStrandD[i], strand.dur)}</path>`;
     }).join('');
     const primaryMarkup = `<svg class="wave-layer wave-layer-primary" viewBox="0 0 ${totalWidth} ${WAVE_VIEW_HEIGHT}" preserveAspectRatio="none" aria-hidden="true">
     <defs>
       <linearGradient id="waveGradPrimary-${uid}" x1="0" x2="${totalWidth}" gradientUnits="userSpaceOnUse">${gradientStops(0.85, 'var(--wave-highlight)')}</linearGradient>
       <linearGradient id="waveGradHalo-${uid}" x1="0" x2="${totalWidth}" gradientUnits="userSpaceOnUse">${gradientStops(0.6, 'var(--wave-highlight)')}</linearGradient>
     </defs>
-    <path class="wave-halo" d="${haloPath}" stroke="url(#waveGradHalo-${uid})"/>
+    <path class="wave-halo" d="${firstKeyframe(haloD)}" stroke="url(#waveGradHalo-${uid})">${animateD(haloD, haloDur)}</path>
     ${primaryStrandsMarkup}
     ${primarySparklesMarkup}
 </svg>`;
@@ -211,6 +264,44 @@ document.querySelectorAll('.panel').forEach(panel => {
     field.className = 'wave-field';
     field.innerHTML = buildWaveFieldMarkup(panel.id);
     panel.prepend(field);
+});
+
+// The translateX drift is a CSS animation, so the existing
+// `.panel:not(.active) .wave-layer { animation-play-state: paused }`
+// rule in styles.css already pauses it for free. SMIL - the <animate
+// attributeName="d"> elements that make the wave's own shape breathe -
+// is a separate animation system CSS can't reach; each <svg> element
+// has its own pauseAnimations()/unpauseAnimations() (SMIL is paused
+// per document fragment, and every .wave-layer is its own root <svg>,
+// not nested inside a shared one) that has to be driven from here
+// instead, for the same reasons the CSS rule exists: an off-screen
+// panel's wave shouldn't burn compositor/battery, and reduced-motion
+// should stop it outright rather than just freezing it mid-shape.
+const reducedMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+function syncWaveMotion() {
+    const reduced = reducedMotionQuery.matches;
+    document.querySelectorAll('.wave-layer').forEach(svg => {
+        if (typeof svg.pauseAnimations !== 'function') return; // no SMIL support - nothing to sync
+        const panel = svg.closest('.panel');
+        const shouldRun = !reduced && panel && panel.classList.contains('active');
+        if (shouldRun) svg.unpauseAnimations();
+        else svg.pauseAnimations();
+    });
+}
+
+syncWaveMotion();
+if (reducedMotionQuery.addEventListener) {
+    reducedMotionQuery.addEventListener('change', syncWaveMotion);
+}
+// Not hooked into showPanel() itself (which has its own carefully-timed
+// class/transition sequencing) - a MutationObserver watching each
+// panel's `class` attribute reacts to the *result* of any panel switch
+// without needing to know how or when showPanel() applies it.
+new MutationObserver(syncWaveMotion).observe(document.querySelector('main') || document.body, {
+    attributes: true,
+    attributeFilter: ['class'],
+    subtree: true,
 });
 
 // THEME TOGGLE
