@@ -58,7 +58,10 @@ function buildStrandPath(amps, motifWidth, baseline, baselineOffset) {
 
 // A handful of small sparkle particles scattered along one motif's
 // worth of width, then duplicated at +motifWidth so they loop with
-// the same geometry as the ribbon they sit near.
+// the same geometry as the ribbon they sit near. Mixes tiny sharp
+// specks with a few larger, more-blurred "glow motes" (the `glow`
+// flag) rather than one uniform size, so it doesn't read as a
+// mechanically even dot grid.
 function buildSparkles(motifWidth, baseline, jitter) {
     const perMotif = jitter.length;
     let markup = '';
@@ -69,7 +72,8 @@ function buildSparkles(motifWidth, baseline, jitter) {
             const y = baseline + j.dy;
             const delay = (i * 0.6 + rep * 0.3).toFixed(2);
             const duration = (2.6 + j.durBias).toFixed(2);
-            markup += `<circle class="wave-sparkle" cx="${x}" cy="${y}" r="${j.r}" style="animation-delay:-${delay}s;animation-duration:${duration}s"/>`;
+            const cls = j.glow ? 'wave-sparkle wave-sparkle-glow' : 'wave-sparkle';
+            markup += `<circle class="${cls}" cx="${x}" cy="${y}" r="${j.r}" style="animation-delay:-${delay}s;animation-duration:${duration}s"/>`;
         }
     }
     return markup;
@@ -80,52 +84,62 @@ const MOTIF_WIDTH = 460;
 
 // Faint secondary strand: higher up, smaller amplitude, more blur -
 // a hint of depth behind the main ribbon rather than a second wave
-// competing for attention. Both amplitude lists stay within the same
-// vertical band the original hump-based design tested safe (roughly
-// the bottom third of the viewBox), so panel-content clearance already
-// verified for that zone still holds.
+// competing for attention. Amplitudes stay within the same vertical
+// band the original hump-based design tested safe (roughly the bottom
+// third of the viewBox), so panel-content clearance already verified
+// for that zone still holds.
 const SECONDARY_AMPS = [0, -6, 4, -7, 5, -3, 0];
 const SECONDARY_BASELINE = 165;
 
-// Primary ribbon: three strands built from the same irregular curve
-// with a small per-strand baseline offset and their own width/opacity/
-// blur, so they read as loosely bundled fibers of one flow (as in the
-// reference) rather than three independent waves.
-const PRIMARY_AMPS = [0, -16, 8, -22, 4, 14, -10, 6, 0];
-const PRIMARY_BASELINE = 178;
+// Primary ribbon: three strands, each with its OWN irregular amplitude
+// curve (not the same curve copied with a y-offset) so they genuinely
+// diverge, cross and re-converge like loosely braided filaments of
+// smoke rather than three parallel lines. Different point counts per
+// strand keep their bends from ever lining up in sync. Each list still
+// starts and ends at 0 for the same loop-seam reason as SECONDARY_AMPS.
+const PRIMARY_BASELINE = 186;
 const PRIMARY_STRANDS = [
-    { dy: -4, className: 'strand-a' },
-    { dy: 0, className: 'strand-b' },
-    { dy: 4, className: 'strand-c' },
+    { amps: [0, 8, -10, 3, 14, -7, 9, -2, 0], dy: -3, className: 'strand-a' },
+    { amps: [0, -13, 6, -18, 3, 11, -8, 10, -5, 2, 0], dy: 0, className: 'strand-b' },
+    { amps: [0, 7, -11, 15, -4, -9, 8, 0], dy: 3, className: 'strand-c' },
 ];
 const PRIMARY_SPARKLE_JITTER = [
     { dy: -10, r: 0.9, durBias: 0.4 },
     { dy: 6, r: 0.6, durBias: 1.1 },
-    { dy: -3, r: 1.1, durBias: 0 },
+    { dy: -3, r: 1.6, durBias: 0, glow: true },
     { dy: 9, r: 0.7, durBias: 0.7 },
     { dy: -14, r: 0.8, durBias: 1.4 },
     { dy: 2, r: 0.6, durBias: 0.2 },
-    { dy: -7, r: 1, durBias: 0.9 },
+    { dy: -7, r: 1.8, durBias: 0.9, glow: true },
     { dy: 11, r: 0.7, durBias: 0.5 },
+    { dy: -18, r: 0.6, durBias: 1.6 },
+    { dy: 4, r: 1.5, durBias: 0.3, glow: true },
 ];
 
 // The gradient's stops repeat every 50% of its own length - since that
 // matches the motif width exactly, both motifs get an identical
 // brightening profile and the traveling "brighter patch" loops with
-// the geometry instead of jumping at the seam.
-function gradientStops(peakOpacity) {
+// the geometry instead of jumping at the seam. The peak stop is a near-
+// white highlight rather than the flat accent color - real light
+// bunches up brighter than its own base color at a glowing core, and
+// stacking a colored-only gradient never gets there on its own.
+function gradientStops(peakOpacity, peakColor) {
     return `
     <stop offset="0%" style="stop-color: rgb(var(--color-accent-rgb)); stop-opacity: 0" />
-    <stop offset="25%" style="stop-color: rgb(var(--color-accent-rgb)); stop-opacity: ${peakOpacity}" />
+    <stop offset="25%" style="stop-color: ${peakColor}; stop-opacity: ${peakOpacity}" />
     <stop offset="50%" style="stop-color: rgb(var(--color-accent-rgb)); stop-opacity: 0" />
-    <stop offset="75%" style="stop-color: rgb(var(--color-accent-rgb)); stop-opacity: ${peakOpacity}" />
+    <stop offset="75%" style="stop-color: ${peakColor}; stop-opacity: ${peakOpacity}" />
     <stop offset="100%" style="stop-color: rgb(var(--color-accent-rgb)); stop-opacity: 0" />`;
 }
 
 const totalWidth = MOTIF_WIDTH * 2;
 const secondaryPath = buildStrandPath(SECONDARY_AMPS, MOTIF_WIDTH, SECONDARY_BASELINE, 0);
-const primaryStrandPaths = PRIMARY_STRANDS.map(strand => buildStrandPath(PRIMARY_AMPS, MOTIF_WIDTH, PRIMARY_BASELINE, strand.dy));
+const primaryStrandPaths = PRIMARY_STRANDS.map(strand => buildStrandPath(strand.amps, MOTIF_WIDTH, PRIMARY_BASELINE, strand.dy));
 const primarySparklesMarkup = buildSparkles(MOTIF_WIDTH, PRIMARY_BASELINE, PRIMARY_SPARKLE_JITTER);
+// strand-b (index 1) is the bright core; its path is reused, wider and
+// heavily blurred, as a glow halo painted underneath the crisp strands -
+// the actual light-bloom look, not just a thicker line.
+const haloPath = primaryStrandPaths[1];
 
 // Gradient ids need to be unique per panel: cloning inline SVGs that
 // share an id (as innerHTML-ing the same markup string into all four
@@ -133,7 +147,7 @@ const primarySparklesMarkup = buildSparkles(MOTIF_WIDTH, PRIMARY_BASELINE, PRIMA
 // in Safari once more than one copy is in the document.
 function buildWaveFieldMarkup(uid) {
     const secondaryMarkup = `<svg class="wave-layer wave-layer-secondary" viewBox="0 0 ${totalWidth} ${WAVE_VIEW_HEIGHT}" preserveAspectRatio="none" aria-hidden="true">
-    <defs><linearGradient id="waveGradSecondary-${uid}" x1="0" x2="${totalWidth}" gradientUnits="userSpaceOnUse">${gradientStops(0.16)}</linearGradient></defs>
+    <defs><linearGradient id="waveGradSecondary-${uid}" x1="0" x2="${totalWidth}" gradientUnits="userSpaceOnUse">${gradientStops(0.2, 'rgb(var(--color-accent-rgb))')}</linearGradient></defs>
     <path class="wave-stroke" d="${secondaryPath}" stroke="url(#waveGradSecondary-${uid})"/>
 </svg>`;
 
@@ -141,7 +155,11 @@ function buildWaveFieldMarkup(uid) {
         return `<path class="wave-stroke ${strand.className}" d="${primaryStrandPaths[i]}" stroke="url(#waveGradPrimary-${uid})"/>`;
     }).join('');
     const primaryMarkup = `<svg class="wave-layer wave-layer-primary" viewBox="0 0 ${totalWidth} ${WAVE_VIEW_HEIGHT}" preserveAspectRatio="none" aria-hidden="true">
-    <defs><linearGradient id="waveGradPrimary-${uid}" x1="0" x2="${totalWidth}" gradientUnits="userSpaceOnUse">${gradientStops(0.55)}</linearGradient></defs>
+    <defs>
+      <linearGradient id="waveGradPrimary-${uid}" x1="0" x2="${totalWidth}" gradientUnits="userSpaceOnUse">${gradientStops(0.85, 'var(--wave-highlight)')}</linearGradient>
+      <linearGradient id="waveGradHalo-${uid}" x1="0" x2="${totalWidth}" gradientUnits="userSpaceOnUse">${gradientStops(0.6, 'rgb(var(--color-accent-rgb))')}</linearGradient>
+    </defs>
+    <path class="wave-halo" d="${haloPath}" stroke="url(#waveGradHalo-${uid})"/>
     ${primaryStrandsMarkup}
     ${primarySparklesMarkup}
 </svg>`;
