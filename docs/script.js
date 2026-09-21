@@ -1,53 +1,158 @@
 // AMBIENT WAVE BACKGROUND
-// Builds the layered wave-ribbon SVGs behind each panel (see the
-// "AMBIENT DRIFT" rules in styles.css for the animation/masking side
-// of this) and prepends the same markup into every .panel, rather
-// than duplicating it four times in the HTML.
+// Builds the ambient-drift SVG behind each panel (see the "AMBIENT
+// DRIFT" rules in styles.css for the animation/blur/gradient side of
+// this) and prepends the same markup into every .panel, rather than
+// duplicating it four times in the HTML.
 //
-// Each wave is a single <path>: a flat baseline that dips into a
-// smooth up-down hump every `period` units, repeated `cycles` times,
-// then closed down to the bottom of the viewBox. Built programmatically
-// instead of hand-typed so the loop math (see below) stays obviously
-// correct as the shape parameters change, rather than trusting a long
-// hand-authored path string to still be periodic.
-function buildWavePath(cycles, period, baseline, amplitude, viewHeight) {
-    const width = cycles * period;
-    let d = `M0,${baseline}`;
-    for (let i = 0; i < cycles; i++) {
-        const x0 = i * period;
-        const xMid = x0 + period / 2;
-        const x1 = x0 + period;
-        d += ` C${x0 + period * 0.25},${baseline - amplitude} ${x0 + period * 0.25},${baseline + amplitude} ${xMid},${baseline}`;
-        d += ` C${x1 - period * 0.25},${baseline - amplitude} ${x1 - period * 0.25},${baseline + amplitude} ${x1},${baseline}`;
+// A first version built each wave from evenly-repeated symmetric
+// humps (the same up-down curve copy-pasted every `period` units).
+// That read as a mechanical, cartoonish "sine wave" rather than the
+// actual PS3 XMB look - a single soft, irregular, blurred ribbon.
+// This version instead threads one smooth curve through a hand-tuned,
+// non-repeating list of amplitudes (`AMPS` below), so the visible
+// shape never looks like a copy-pasted unit.
+//
+// It still has to loop seamlessly, though, so the same irregular
+// "motif" is duplicated exactly once (not many times): the amplitude
+// list is required to start and end at the same value (0), so the
+// point where motif 1 ends and motif 2 begins is just another smooth
+// point on the curve, not a visible seam. The rendered element is
+// double its container's width (`width: 200%`) and looped by
+// translating exactly -50% - since that's precisely one motif-width,
+// the view after the loop is pixel-identical to the view before it.
+// Because cycles is fixed at exactly 2 (the minimum that still loops),
+// only one motif is ever on screen at a time - it reads as a single
+// flowing irregular line drifting past, not a repeating pattern.
+function buildSmoothPath(points) {
+    let d = `M${points[0].x},${points[0].y}`;
+    for (let i = 1; i < points.length; i++) {
+        const p0 = points[i - 1];
+        const p1 = points[i];
+        const midX = (p0.x + p1.x) / 2;
+        d += ` C${midX},${p0.y} ${midX},${p1.y} ${p1.x},${p1.y}`;
     }
-    d += ` L${width},${viewHeight} L0,${viewHeight} Z`;
     return d;
 }
 
-// Each layer's own cycle count is even, so translating the (double-
-// width) rendered element by exactly -50% lands on an identical point
-// in its own periodic path - the loop seams invisibly regardless of
-// how the three layers' periods relate to each other. Baseline/
-// amplitude keep every layer's crest within the bottom ~30% of the
-// viewBox, comfortably clear of each panel's vertically-centered
-// content without needing to mask around it.
+// amps[0] must equal amps[amps.length - 1] - that shared value is the
+// y-coordinate at both the motif seam (x = motifWidth) and the wrap
+// point (x = 0 / x = 2*motifWidth), which is what keeps the curve
+// smooth and seamless across the loop rather than jumping at those
+// points.
+function buildMotifPoints(amps, motifWidth, baseline, baselineOffset) {
+    const n = amps.length;
+    const step = motifWidth / (n - 1);
+    const points = [];
+    for (let rep = 0; rep < 2; rep++) {
+        const startI = rep === 0 ? 0 : 1;
+        for (let i = startI; i < n; i++) {
+            points.push({ x: rep * motifWidth + i * step, y: baseline + baselineOffset + amps[i] });
+        }
+    }
+    return points;
+}
+
+function buildStrandPath(amps, motifWidth, baseline, baselineOffset) {
+    return buildSmoothPath(buildMotifPoints(amps, motifWidth, baseline, baselineOffset));
+}
+
+// A handful of small sparkle particles scattered along one motif's
+// worth of width, then duplicated at +motifWidth so they loop with
+// the same geometry as the ribbon they sit near.
+function buildSparkles(motifWidth, baseline, jitter) {
+    const perMotif = jitter.length;
+    let markup = '';
+    for (let rep = 0; rep < 2; rep++) {
+        for (let i = 0; i < perMotif; i++) {
+            const j = jitter[i];
+            const x = rep * motifWidth + (motifWidth / perMotif) * (i + 0.5);
+            const y = baseline + j.dy;
+            const delay = (i * 0.6 + rep * 0.3).toFixed(2);
+            const duration = (2.6 + j.durBias).toFixed(2);
+            markup += `<circle class="wave-sparkle" cx="${x}" cy="${y}" r="${j.r}" style="animation-delay:-${delay}s;animation-duration:${duration}s"/>`;
+        }
+    }
+    return markup;
+}
+
 const WAVE_VIEW_HEIGHT = 200;
-const WAVE_LAYERS = [
-    { cycles: 6, period: 400, baseline: 170, amplitude: 26 },
-    { cycles: 8, period: 300, baseline: 180, amplitude: 17 },
-    { cycles: 10, period: 240, baseline: 189, amplitude: 10 },
+const MOTIF_WIDTH = 460;
+
+// Faint secondary strand: higher up, smaller amplitude, more blur -
+// a hint of depth behind the main ribbon rather than a second wave
+// competing for attention. Both amplitude lists stay within the same
+// vertical band the original hump-based design tested safe (roughly
+// the bottom third of the viewBox), so panel-content clearance already
+// verified for that zone still holds.
+const SECONDARY_AMPS = [0, -6, 4, -7, 5, -3, 0];
+const SECONDARY_BASELINE = 165;
+
+// Primary ribbon: three strands built from the same irregular curve
+// with a small per-strand baseline offset and their own width/opacity/
+// blur, so they read as loosely bundled fibers of one flow (as in the
+// reference) rather than three independent waves.
+const PRIMARY_AMPS = [0, -16, 8, -22, 4, 14, -10, 6, 0];
+const PRIMARY_BASELINE = 178;
+const PRIMARY_STRANDS = [
+    { dy: -4, className: 'strand-a' },
+    { dy: 0, className: 'strand-b' },
+    { dy: 4, className: 'strand-c' },
+];
+const PRIMARY_SPARKLE_JITTER = [
+    { dy: -10, r: 0.9, durBias: 0.4 },
+    { dy: 6, r: 0.6, durBias: 1.1 },
+    { dy: -3, r: 1.1, durBias: 0 },
+    { dy: 9, r: 0.7, durBias: 0.7 },
+    { dy: -14, r: 0.8, durBias: 1.4 },
+    { dy: 2, r: 0.6, durBias: 0.2 },
+    { dy: -7, r: 1, durBias: 0.9 },
+    { dy: 11, r: 0.7, durBias: 0.5 },
 ];
 
-const waveFieldMarkup = WAVE_LAYERS.map((layer, i) => {
-    const width = layer.cycles * layer.period;
-    const d = buildWavePath(layer.cycles, layer.period, layer.baseline, layer.amplitude, WAVE_VIEW_HEIGHT);
-    return `<svg class="wave-layer wave-layer-${i + 1}" viewBox="0 0 ${width} ${WAVE_VIEW_HEIGHT}" preserveAspectRatio="none" aria-hidden="true"><path d="${d}"/></svg>`;
-}).join('');
+// The gradient's stops repeat every 50% of its own length - since that
+// matches the motif width exactly, both motifs get an identical
+// brightening profile and the traveling "brighter patch" loops with
+// the geometry instead of jumping at the seam.
+function gradientStops(peakOpacity) {
+    return `
+    <stop offset="0%" style="stop-color: rgb(var(--color-accent-rgb)); stop-opacity: 0" />
+    <stop offset="25%" style="stop-color: rgb(var(--color-accent-rgb)); stop-opacity: ${peakOpacity}" />
+    <stop offset="50%" style="stop-color: rgb(var(--color-accent-rgb)); stop-opacity: 0" />
+    <stop offset="75%" style="stop-color: rgb(var(--color-accent-rgb)); stop-opacity: ${peakOpacity}" />
+    <stop offset="100%" style="stop-color: rgb(var(--color-accent-rgb)); stop-opacity: 0" />`;
+}
+
+const totalWidth = MOTIF_WIDTH * 2;
+const secondaryPath = buildStrandPath(SECONDARY_AMPS, MOTIF_WIDTH, SECONDARY_BASELINE, 0);
+const primaryStrandPaths = PRIMARY_STRANDS.map(strand => buildStrandPath(PRIMARY_AMPS, MOTIF_WIDTH, PRIMARY_BASELINE, strand.dy));
+const primarySparklesMarkup = buildSparkles(MOTIF_WIDTH, PRIMARY_BASELINE, PRIMARY_SPARKLE_JITTER);
+
+// Gradient ids need to be unique per panel: cloning inline SVGs that
+// share an id (as innerHTML-ing the same markup string into all four
+// .panel elements would) is a known source of url(#id) paint failures
+// in Safari once more than one copy is in the document.
+function buildWaveFieldMarkup(uid) {
+    const secondaryMarkup = `<svg class="wave-layer wave-layer-secondary" viewBox="0 0 ${totalWidth} ${WAVE_VIEW_HEIGHT}" preserveAspectRatio="none" aria-hidden="true">
+    <defs><linearGradient id="waveGradSecondary-${uid}" x1="0" x2="${totalWidth}" gradientUnits="userSpaceOnUse">${gradientStops(0.16)}</linearGradient></defs>
+    <path class="wave-stroke" d="${secondaryPath}" stroke="url(#waveGradSecondary-${uid})"/>
+</svg>`;
+
+    const primaryStrandsMarkup = PRIMARY_STRANDS.map((strand, i) => {
+        return `<path class="wave-stroke ${strand.className}" d="${primaryStrandPaths[i]}" stroke="url(#waveGradPrimary-${uid})"/>`;
+    }).join('');
+    const primaryMarkup = `<svg class="wave-layer wave-layer-primary" viewBox="0 0 ${totalWidth} ${WAVE_VIEW_HEIGHT}" preserveAspectRatio="none" aria-hidden="true">
+    <defs><linearGradient id="waveGradPrimary-${uid}" x1="0" x2="${totalWidth}" gradientUnits="userSpaceOnUse">${gradientStops(0.55)}</linearGradient></defs>
+    ${primaryStrandsMarkup}
+    ${primarySparklesMarkup}
+</svg>`;
+
+    return secondaryMarkup + primaryMarkup;
+}
 
 document.querySelectorAll('.panel').forEach(panel => {
     const field = document.createElement('div');
     field.className = 'wave-field';
-    field.innerHTML = waveFieldMarkup;
+    field.innerHTML = buildWaveFieldMarkup(panel.id);
     panel.prepend(field);
 });
 
