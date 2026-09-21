@@ -56,24 +56,34 @@ function buildStrandPath(amps, motifWidth, baseline, baselineOffset) {
     return buildSmoothPath(buildMotifPoints(amps, motifWidth, baseline, baselineOffset));
 }
 
-// A handful of small sparkle particles scattered along one motif's
-// worth of width, then duplicated at +motifWidth so they loop with
-// the same geometry as the ribbon they sit near. Mixes tiny sharp
-// specks with a few larger, more-blurred "glow motes" (the `glow`
-// flag) rather than one uniform size, so it doesn't read as a
-// mechanically even dot grid.
-function buildSparkles(motifWidth, baseline, jitter) {
-    const perMotif = jitter.length;
+// Deterministic pseudo-random in [0, 1) - a fixed hash of (seed, i)
+// rather than Math.random(), so the dust field is reproducible on
+// every load/render instead of reshuffling each time.
+function hashRand(seed) {
+    const x = Math.sin(seed * 12.9898) * 43758.5453;
+    return x - Math.floor(x);
+}
+
+// A real PS3 XMB background renders its sparkle layer as many small
+// additive point-sprites - closer to a dust/glitter field than a
+// handful of dots. This scatters `count` mostly-tiny particles across
+// one motif's worth of width (duplicated at +motifWidth so the field
+// loops with the same geometry as the ribbon it surrounds), with a
+// small fraction rendered larger and blurred as soft "glow motes"
+// among the fine dust rather than one uniform particle size.
+function buildDustField(motifWidth, baseline, count, seed) {
     let markup = '';
     for (let rep = 0; rep < 2; rep++) {
-        for (let i = 0; i < perMotif; i++) {
-            const j = jitter[i];
-            const x = rep * motifWidth + (motifWidth / perMotif) * (i + 0.5);
-            const y = baseline + j.dy;
-            const delay = (i * 0.6 + rep * 0.3).toFixed(2);
-            const duration = (2.6 + j.durBias).toFixed(2);
-            const cls = j.glow ? 'wave-sparkle wave-sparkle-glow' : 'wave-sparkle';
-            markup += `<circle class="${cls}" cx="${x}" cy="${y}" r="${j.r}" style="animation-delay:-${delay}s;animation-duration:${duration}s"/>`;
+        for (let i = 0; i < count; i++) {
+            const n = seed + i;
+            const x = rep * motifWidth + hashRand(n) * motifWidth;
+            const y = baseline - 20 + hashRand(n + 0.37) * 30;
+            const isGlow = hashRand(n + 0.71) > 0.88;
+            const r = isGlow ? 1.1 + hashRand(n + 0.53) * 0.9 : 0.2 + hashRand(n + 0.19) * 0.35;
+            const delay = (hashRand(n + 0.11) * 4).toFixed(2);
+            const duration = (2.2 + hashRand(n + 0.83) * 2.4).toFixed(2);
+            const cls = isGlow ? 'wave-sparkle wave-sparkle-glow' : 'wave-sparkle';
+            markup += `<circle class="${cls}" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r.toFixed(2)}" style="animation-delay:-${delay}s;animation-duration:${duration}s"/>`;
         }
     }
     return markup;
@@ -103,18 +113,8 @@ const PRIMARY_STRANDS = [
     { amps: [0, -13, 6, -18, 3, 11, -8, 10, -5, 2, 0], dy: 0, className: 'strand-b' },
     { amps: [0, 7, -11, 15, -4, -9, 8, 0], dy: 3, className: 'strand-c' },
 ];
-const PRIMARY_SPARKLE_JITTER = [
-    { dy: -10, r: 0.9, durBias: 0.4 },
-    { dy: 6, r: 0.6, durBias: 1.1 },
-    { dy: -3, r: 1.6, durBias: 0, glow: true },
-    { dy: 9, r: 0.7, durBias: 0.7 },
-    { dy: -14, r: 0.8, durBias: 1.4 },
-    { dy: 2, r: 0.6, durBias: 0.2 },
-    { dy: -7, r: 1.8, durBias: 0.9, glow: true },
-    { dy: 11, r: 0.7, durBias: 0.5 },
-    { dy: -18, r: 0.6, durBias: 1.6 },
-    { dy: 4, r: 1.5, durBias: 0.3, glow: true },
-];
+const DUST_COUNT_PER_MOTIF = 55;
+const DUST_SEED = 4.2;
 
 // The gradient's stops repeat every 50% of its own length - since that
 // matches the motif width exactly, both motifs get an identical
@@ -135,7 +135,7 @@ function gradientStops(peakOpacity, peakColor) {
 const totalWidth = MOTIF_WIDTH * 2;
 const secondaryPath = buildStrandPath(SECONDARY_AMPS, MOTIF_WIDTH, SECONDARY_BASELINE, 0);
 const primaryStrandPaths = PRIMARY_STRANDS.map(strand => buildStrandPath(strand.amps, MOTIF_WIDTH, PRIMARY_BASELINE, strand.dy));
-const primarySparklesMarkup = buildSparkles(MOTIF_WIDTH, PRIMARY_BASELINE, PRIMARY_SPARKLE_JITTER);
+const primarySparklesMarkup = buildDustField(MOTIF_WIDTH, PRIMARY_BASELINE, DUST_COUNT_PER_MOTIF, DUST_SEED);
 // strand-b (index 1) is the bright core; its path is reused, wider and
 // heavily blurred, as a glow halo painted underneath the crisp strands -
 // the actual light-bloom look, not just a thicker line.

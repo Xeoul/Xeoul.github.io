@@ -777,15 +777,15 @@ header {
 }
 
 .wave-sparkle {
-  fill: rgba(var(--color-accent-rgb), 0.85);
+  fill: var(--wave-highlight);
   animation-name: waveSparkleTwinkle;
   animation-timing-function: ease-in-out;
   animation-iteration-count: infinite;
 }
 
 .wave-sparkle-glow {
-  fill: #fff;
   filter: blur(1.2px);
+  opacity: 0.6;
 }
 
 :root[data-theme="dark"] .wave-stroke,
