@@ -16,6 +16,11 @@
   --color-border: #e3e2dd;
   --color-border-strong: #cfcec8;
   --color-skeleton-highlight: #e9e7e1;
+  /* The ambient wave's brightest point (see AMBIENT DRIFT below): a
+     white-hot highlight only reads as glowing light against a dark
+     backdrop - against paper it just looks like a pale smudge, so
+     light mode keeps the highlight at the accent color instead. */
+  --wave-highlight: rgb(var(--color-accent-rgb));
   --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-mono: ui-monospace, 'SFMono-Regular', 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
   --radius: 6px;
@@ -53,6 +58,7 @@
     --color-border: #232328;
     --color-border-strong: #5f5f64;
     --color-skeleton-highlight: #2b2b31;
+    --wave-highlight: #ffffff;
   }
 }
 
@@ -68,6 +74,7 @@
   --color-border: #232328;
   --color-border-strong: #5f5f64;
   --color-skeleton-highlight: #2b2b31;
+  --wave-highlight: #ffffff;
 }
 
 /* ============================================================
@@ -684,21 +691,32 @@ header {
 
 /* ============================================================
    AMBIENT DRIFT
-   A single soft, irregular, blurred wave ribbon drifting behind each
+   A single soft, irregular, glowing wave ribbon drifting behind each
    panel - the actual PS3 XMB menu background. Earlier attempts (a dot
-   field with a brightness sweep, then evenly-repeated solid wave
-   humps) both read as mechanical texture rather than this; the shape
-   itself is generated in script.js (see the comment there for the
-   loop-seam math), this file only styles it: thin translucent
-   strokes, not filled shapes, softened with blur and faded in/out
-   along their length by an SVG gradient instead of a flat color, plus
-   a handful of twinkling sparkle particles riding along the main
-   ribbon. A second, fainter, more-blurred strand higher up (still
-   within the same bottom-of-panel band already verified clear of
-   content) gives it depth without competing with the main ribbon.
-   Built from the indigo accent already used elsewhere, not a new
-   color. Paused whenever a panel isn't active, disabled under reduced
-   motion. */
+   field with a brightness sweep, then evenly-repeated solid humps,
+   then a single flat-colored stroked curve) all read as mechanical or
+   plain rather than this; the shape itself is generated in script.js
+   (see the comment there for the loop-seam math and why the three
+   strands stay a tight, sleek bundle of one shared curve rather than
+   diverging into separate shapes), this file only styles it: thin
+   translucent strokes with a wide, heavily-blurred "halo" copy of the
+   brightest strand painted
+   underneath it for actual light bloom, not just a thicker line. In
+   dark mode the strokes and sparkles additionally blend with
+   `screen`, so overlapping/crossing strands genuinely brighten each
+   other toward white where they cross - the glow in the reference -
+   rather than just alpha-compositing into a duller flat color. Screen
+   blending against a light background pushes everything toward white
+   instead (it would wash the wave out to invisible), so it's dark-
+   theme only; light mode keeps normal alpha blending, which already
+   reads fine against a light backdrop. A second, fainter, more-
+   blurred strand higher up (still within the same bottom-of-panel
+   band already verified clear of content) gives it depth without
+   competing with the main ribbon. A handful of twinkling sparkle
+   particles - mixing tiny sharp specks with a few larger, softer glow
+   motes - ride along the main ribbon. Built from the indigo accent
+   already used elsewhere, not a new color. Paused whenever a panel
+   isn't active, disabled under reduced motion. */
 .wave-field {
   position: absolute;
   inset: 0;
@@ -716,7 +734,8 @@ header {
   overflow: visible;
 }
 
-.wave-stroke {
+.wave-stroke,
+.wave-halo {
   fill: none;
   stroke-linecap: round;
 }
@@ -734,29 +753,54 @@ header {
   animation: waveScroll 34s linear infinite;
 }
 
+.wave-halo {
+  stroke-width: 11;
+  opacity: 0.5;
+  filter: blur(6px);
+}
+
 .wave-layer-primary .strand-a {
+  stroke-width: 1;
+  opacity: 0.6;
+  filter: blur(1.6px);
+}
+
+.wave-layer-primary .strand-b {
+  stroke-width: 1.6;
+  opacity: 1;
+  filter: blur(0.5px);
+}
+
+.wave-layer-primary .strand-c {
   stroke-width: 1;
   opacity: 0.55;
   filter: blur(2px);
 }
 
-.wave-layer-primary .strand-b {
-  stroke-width: 1.8;
-  opacity: 0.9;
-  filter: blur(0.8px);
-}
-
-.wave-layer-primary .strand-c {
-  stroke-width: 1;
-  opacity: 0.5;
-  filter: blur(2.4px);
-}
-
 .wave-sparkle {
-  fill: rgba(var(--color-accent-rgb), 0.8);
+  fill: var(--wave-highlight);
   animation-name: waveSparkleTwinkle;
   animation-timing-function: ease-in-out;
   animation-iteration-count: infinite;
+}
+
+.wave-sparkle-glow {
+  filter: blur(1.2px);
+  opacity: 0.6;
+}
+
+:root[data-theme="dark"] .wave-stroke,
+:root[data-theme="dark"] .wave-halo,
+:root[data-theme="dark"] .wave-sparkle {
+  mix-blend-mode: screen;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .wave-stroke,
+  :root:not([data-theme="light"]) .wave-halo,
+  :root:not([data-theme="light"]) .wave-sparkle {
+    mix-blend-mode: screen;
+  }
 }
 
 .panel:not(.active) .wave-layer,
