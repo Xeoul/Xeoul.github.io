@@ -633,22 +633,19 @@ header {
    AMBIENT DRIFT
    One consistent treatment shared by every panel: a dim, static dot
    grid (::before) with a thin wave of brighter dots running through
-   it (::after) - like the PS3 XMB background. Both pseudo-elements
-   paint the exact same grid, so the bright layer's dots never drift
-   out of register with the dim layer's; the grid itself is never
-   moved or rearranged, only which of its dots get lit.
-   The lit wave is ::after clipped to a thin ribbon via clip-path.
-   The ribbon's shape is drawn by script.js (see AMBIENT WAVE there)
-   and handed over as --wave-clip: it's redrawn every frame so the
-   wave can both travel sideways and slowly morph between a few
-   shapes (long gentle swell, taller swings, thicker band), which a
-   CSS keyframe animation of a fixed path can't do without a huge
-   stylesheet. Until the script sets it - or if it never runs - the
-   fallback clips ::after away entirely rather than lighting every dot.
-   A clip-path, unlike an SVG data: URI used as a mask-image, isn't an
-   image load, so it's unaffected by this site's img-src CSP; and it
-   intersects with mask-image automatically, so the per-panel
-   --safe-mask still keeps dots out of each panel's text area.
+   it - like the PS3 XMB background. The grid itself is never moved
+   or rearranged, only which of its dots get lit.
+   The lit wave is a <canvas class="wave-canvas"> that script.js adds
+   to each panel (see AMBIENT WAVE there). It draws the same 26px
+   grid's dots, each at a brightness that falls off smoothly with its
+   distance from the wave's centre line, so dots fade in as the wave
+   reaches them and fade back out as it passes rather than switching
+   on and off at a hard edge - which is all a clip-path or mask on a
+   CSS background could do here. It's redrawn every frame so the
+   wave can travel sideways and slowly morph between a few shapes.
+   Without the script there's simply no canvas and no lit dots.
+   Both layers share the per-panel --safe-mask, which keeps dots out
+   of each panel's text area.
    --wave-y / --wave-scale tell the script where that panel's dots
    actually show: default is the bottom strip every panel's
    --safe-mask leaves open, at half size to fit in it; Home on desktop
@@ -661,25 +658,25 @@ header {
 }
 
 .panel::before,
-.panel::after {
-  content: '';
+.wave-canvas {
   position: absolute;
   inset: 0;
   z-index: -1;
   pointer-events: none;
-  background-image: radial-gradient(circle, rgba(var(--color-accent-rgb), 1) 1.2px, transparent 1.2px);
-  background-size: 26px 26px;
   mask-image: var(--safe-mask, none);
   -webkit-mask-image: var(--safe-mask, none);
 }
 
 .panel::before {
+  content: '';
+  background-image: radial-gradient(circle, rgba(var(--color-accent-rgb), 1) 1.2px, transparent 1.2px);
+  background-size: 26px 26px;
   opacity: 0.18;
 }
 
-.panel::after {
-  opacity: 0.85;
-  clip-path: var(--wave-clip, inset(100%));
+.wave-canvas {
+  width: 100%;
+  height: 100%;
 }
 
 /* ============================================================

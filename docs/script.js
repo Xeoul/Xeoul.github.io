@@ -261,11 +261,12 @@ if (viewEl) {
 
 // AMBIENT WAVE
 // Draws the thin wave of lit dots in each panel's background (see
-// AMBIENT DRIFT in styles.css): builds a ribbon-shaped path and hands
-// it to CSS as --wave-clip, which clips the bright dot layer to it.
+// AMBIENT DRIFT in styles.css) onto a canvas over the dim dot grid.
+// Every dot in the grid near the wave is drawn at a brightness that
+// falls off smoothly with its distance from the wave's centre line, so
+// dots fade in and out as the wave passes instead of snapping on/off.
 // Redrawn every frame so the wave can travel sideways while slowly
-// morphing through WAVE_SHAPES - a CSS keyframe animation of one fixed
-// path can only slide that one shape along.
+// morphing through WAVE_SHAPES.
 const WAVE_SHAPES = [
     { period: 900, amp: 60, thick: 60 },  // long, gentle swell
     { period: 600, amp: 90, thick: 60 },  // taller swings
@@ -273,8 +274,10 @@ const WAVE_SHAPES = [
 ];
 const WAVE_MORPH_SECONDS = 6; // per shape-to-shape blend
 const WAVE_SPEED = 35;        // px/s, leftward
-const WAVE_STEP = 32;         // px between sampled points
 const WAVE_FRAME_MS = 33;     // ~30fps is plenty for motion this slow
+const WAVE_GRID = 26;         // must match the dot grid's background-size
+const WAVE_DOT_RADIUS = 1.2;  // and its dot size
+const WAVE_PEAK_ALPHA = 0.85;
 const reducedMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
 
 let wavePhase = 0;
@@ -295,51 +298,73 @@ function waveShapeAt(morph) {
     };
 }
 
+function panelWaveCanvas(panel) {
+    let canvas = panel.querySelector(':scope > .wave-canvas');
+    if (!canvas) {
+        canvas = document.createElement('canvas');
+        canvas.className = 'wave-canvas';
+        canvas.setAttribute('aria-hidden', 'true');
+        panel.prepend(canvas);
+    }
+    return canvas;
+}
+
 // Each panel's size and where its dots are visible (--wave-y/--wave-scale,
 // set in styles.css alongside that panel's --safe-mask) only change on
-// resize, so they're cached rather than re-read every frame.
+// resize, so they're cached - and the canvas resized - rather than
+// re-read every frame.
 function panelWaveGeometry(panel) {
     let g = waveGeometry.get(panel);
     if (!g) {
         const style = getComputedStyle(panel);
+        const canvas = panelWaveCanvas(panel);
+        const dpr = window.devicePixelRatio || 1;
         g = {
+            ctx: canvas.getContext('2d'),
+            dpr,
             width: panel.clientWidth,
             height: panel.clientHeight,
             y: parseFloat(style.getPropertyValue('--wave-y')) || 0.9,
             scale: parseFloat(style.getPropertyValue('--wave-scale')) || 1,
         };
+        canvas.width = Math.round(g.width * dpr);
+        canvas.height = Math.round(g.height * dpr);
         waveGeometry.set(panel, g);
     }
     return g;
 }
 
-// A closed ribbon: the top edge left-to-right, then the bottom edge back.
+// Each lit dot's brightness is a gaussian of its vertical distance from
+// the wave's centre line, with the shape's thickness setting its spread.
 // Measuring the sine from 60% across rather than from x=0 keeps the
 // visible middle of the wave steady while the period morphs - otherwise
 // the right-hand side would visibly compress and stretch.
-function buildWavePath({ width, height, y, scale }, shape, phase) {
+function drawWave(panel) {
+    const { ctx, dpr, width, height, y, scale } = panelWaveGeometry(panel);
+    const shape = waveShapeAt(waveMorph);
     const mid = height * y;
     const amp = shape.amp * scale;
-    const half = (shape.thick * scale) / 2;
+    const sigma = (shape.thick * scale) * 0.4;
+    const reach = sigma * 3;
     const center = width * 0.6;
-    const top = [];
-    const bottom = [];
-    for (let x = -WAVE_STEP; x <= width + WAVE_STEP; x += WAVE_STEP) {
-        const c = mid + amp * Math.sin((2 * Math.PI * (x - center)) / shape.period + phase);
-        top.push([x, c - half]);
-        bottom.push([x, c + half]);
-    }
-    bottom.reverse();
-    const f = n => n.toFixed(1);
-    const curve = pts => pts.slice(1).map((p, i) => {
-        const mx = f((pts[i][0] + p[0]) / 2);
-        return ` C${mx},${f(pts[i][1])} ${mx},${f(p[1])} ${f(p[0])},${f(p[1])}`;
-    }).join('');
-    return `path("M${f(top[0][0])},${f(top[0][1])}${curve(top)} L${f(bottom[0][0])},${f(bottom[0][1])}${curve(bottom)} Z")`;
-}
+    const rgb = getComputedStyle(document.documentElement).getPropertyValue('--color-accent-rgb').trim();
 
-function drawWave(panel) {
-    panel.style.setProperty('--wave-clip', buildWavePath(panelWaveGeometry(panel), waveShapeAt(waveMorph), wavePhase));
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, width, height);
+    ctx.fillStyle = `rgb(${rgb})`;
+    const half = WAVE_GRID / 2;
+    for (let x = half; x < width; x += WAVE_GRID) {
+        const c = mid + amp * Math.sin((2 * Math.PI * (x - center)) / shape.period + wavePhase);
+        const firstRow = Math.max(0, Math.ceil((c - reach - half) / WAVE_GRID));
+        for (let dotY = firstRow * WAVE_GRID + half; dotY <= c + reach && dotY < height; dotY += WAVE_GRID) {
+            const d = (dotY - c) / sigma;
+            ctx.globalAlpha = WAVE_PEAK_ALPHA * Math.exp(-0.5 * d * d);
+            ctx.beginPath();
+            ctx.arc(x, dotY, WAVE_DOT_RADIUS, 0, 2 * Math.PI);
+            ctx.fill();
+        }
+    }
+    ctx.globalAlpha = 1;
 }
 
 let waveLastTime = null;
@@ -378,6 +403,11 @@ window.addEventListener('resize', () => {
     panels.forEach(drawWave);
 });
 reducedMotionQuery.addEventListener('change', syncWaveMotion);
+// The dots take the accent colour, which changes with the theme; redraw
+// straight away so still panels (and reduced motion) pick it up too.
+new MutationObserver(() => panels.forEach(drawWave))
+    .observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => panels.forEach(drawWave));
 syncWaveMotion();
 
 // LIVE GITHUB PROFILE STATS (public repo count, followers). Pulled from
