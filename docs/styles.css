@@ -631,38 +631,59 @@ header {
 
 /* ============================================================
    AMBIENT DRIFT
-   One consistent treatment shared by every panel: a dim, static,
-   uniform dot field (::before, the original Home texture) with a
-   brighter layer of dots on top (::after) that are actually arranged
-   along a sine wave and drift sideways - the dots themselves trace a
-   wave shape and travel, not just a brightness mask sweeping over an
-   otherwise-static grid (an earlier version, and the PS3-XMB-as-an-
-   SVG-ribbon rebuild that followed it and was reverted after several
-   rounds of chasing a rendering bug specific to real iOS Safari).
-   This is deliberately built from nothing but plain CSS
-   radial-gradient() background layers and a background-position
-   animation - no SVG, no filter: blur(), no mix-blend-mode - the
-   three ingredients that combined to cause that Safari bug. Plain
-   background-position animation has no equivalent failure mode: it's
-   one of the most basic, universally-supported CSS animations there
-   is.
-   ::after stacks 16 radial-gradient() dot layers, each with its own
-   fixed background-position within one 320x140 tile - together they
-   trace one full sine wavelength (y = baseline + amplitude*sin(2pi*x/
-   tileWidth), computed once and hand-placed below, not generated at
-   runtime). The tile repeats in both directions by default
-   (background-repeat isn't overridden), filling the whole safe area
-   with parallel wave rows instead of a single thin line. Animating
-   each layer's background-position by exactly one tile-width (320px)
-   loops seamlessly, since shifting a periodic pattern by its own
-   period reproduces the same picture - the same seamless-loop
-   principle used throughout this project's other drift animations,
-   here needing nothing more than background-position to pull off.
-   Both layers share the same --safe-mask content-clearance mask used
-   throughout (set per panel below), so dots stay clear of text exactly
-   as before. Built from the indigo accent already used elsewhere, not
-   a new color. Paused whenever a panel isn't active, disabled under
-   reduced motion. */
+   One consistent treatment shared by every panel: a dot field (the
+   same idea as the original Home texture) with a soft band of
+   brightness sweeping across it, like the PS3 XMB background - dots
+   "light up" as the wave passes over them rather than the whole layer
+   just panning or a color wash drifting around. Two identical,
+   perfectly-aligned dot grids stacked on the same element (::before
+   dim and always visible, ::after bright but clipped to a wavy band) -
+   only the reveal region moves, not the background itself, so the
+   bright layer's dots never drift out of register with the dim
+   layer's, and the dot grid itself is never distorted or rearranged -
+   only which already-fixed dots get revealed changes. An earlier
+   version of this same idea moved the DOTS themselves into a sine
+   arrangement instead - the user didn't want that (the grid itself
+   should stay put), just the *sweep motion* reading as a wave.
+   The reveal band's shape is wavy (a sine-curved ribbon, not a
+   straight diagonal line): clip-path: path("...") with a hand-
+   computed path (top edge and bottom edge each y = mid +
+   amplitude*sin(2pi*x/period), joined into one closed ribbon shape).
+   Two earlier attempts at this same wavy-band idea didn't work out:
+   a single inline SVG path used as a mask-image data URI is blocked
+   outright by this site's CSP (img-src 'self' has no data: exception,
+   and loosening it wasn't the ask); building it from many stacked
+   radial-gradient() "blob" layers unioned together via mask-composite
+   turned out to be genuinely unreliable in practice - an isolated
+   test confirmed multi-layer mask-composite wasn't intersecting
+   correctly with the safe-zone mask, letting dots leak through into
+   the text column. clip-path: path() sidesteps both problems: it's
+   pure inline geometry, not an image resource (no CSP interaction at
+   all), and a clip-path automatically intersects with mask-image on
+   the same element using the browser's normal, simple, well-tested
+   compositing - no custom mask-composite value needed, confirmed with
+   an isolated non-overlapping-region test before relying on it here.
+   It's also - not incidentally - built from nothing that touches
+   filter: blur() or mix-blend-mode, the ingredients that caused a
+   severe real-iOS-Safari rendering bug in an earlier, fully-reverted
+   round.
+   The path spans 7 periods (2800px) - wide enough for typical desktop
+   viewports - and animates via clip-path's own shape interpolation
+   from the base path to the exact same path with every x-coordinate
+   shifted by one period (400px); since both states have identical
+   path-command structure (the "to" state is just the "from" state's
+   coordinates shifted), the browser interpolates every point along a
+   straight line, which for a uniform shift reads as a smooth
+   sideways slide, and landing on an identical shape at the end (the
+   pattern repeats every 400px) is what makes the loop seam
+   invisibly. Sharp dots (unlike the soft gradient wash tried first)
+   read as clutter where they land on top of glyphs, so both layers
+   are masked to each panel's own content-safe zone (--safe-mask, set
+   per panel in that panel's own section below). Built from the indigo
+   accent already used elsewhere for the dots themselves - the
+   clip-path shape has no color of its own, it only ever affects which
+   pixels of the (already-colored) dot grid are visible. Paused
+   whenever a panel isn't active, disabled under reduced motion. */
 .panel::before,
 .panel::after {
   content: '';
@@ -670,40 +691,22 @@ header {
   inset: 0;
   z-index: -1;
   pointer-events: none;
+  background-image: radial-gradient(circle, rgba(var(--color-accent-rgb), 1) 1.2px, transparent 1.2px);
+  background-size: 26px 26px;
+}
+
+.panel::before {
+  opacity: 0.18;
   mask-image: var(--safe-mask, none);
   -webkit-mask-image: var(--safe-mask, none);
 }
 
-.panel::before {
-  background-image: radial-gradient(circle, rgba(var(--color-accent-rgb), 1) 1.2px, transparent 1.2px);
-  background-size: 26px 26px;
-  opacity: 0.18;
-}
-
 .panel::after {
-  background-image:
-    radial-gradient(circle, rgba(var(--color-accent-rgb), 1) 1.6px, transparent 1.6px),
-    radial-gradient(circle, rgba(var(--color-accent-rgb), 1) 1.6px, transparent 1.6px),
-    radial-gradient(circle, rgba(var(--color-accent-rgb), 1) 1.6px, transparent 1.6px),
-    radial-gradient(circle, rgba(var(--color-accent-rgb), 1) 1.6px, transparent 1.6px),
-    radial-gradient(circle, rgba(var(--color-accent-rgb), 1) 1.6px, transparent 1.6px),
-    radial-gradient(circle, rgba(var(--color-accent-rgb), 1) 1.6px, transparent 1.6px),
-    radial-gradient(circle, rgba(var(--color-accent-rgb), 1) 1.6px, transparent 1.6px),
-    radial-gradient(circle, rgba(var(--color-accent-rgb), 1) 1.6px, transparent 1.6px),
-    radial-gradient(circle, rgba(var(--color-accent-rgb), 1) 1.6px, transparent 1.6px),
-    radial-gradient(circle, rgba(var(--color-accent-rgb), 1) 1.6px, transparent 1.6px),
-    radial-gradient(circle, rgba(var(--color-accent-rgb), 1) 1.6px, transparent 1.6px),
-    radial-gradient(circle, rgba(var(--color-accent-rgb), 1) 1.6px, transparent 1.6px),
-    radial-gradient(circle, rgba(var(--color-accent-rgb), 1) 1.6px, transparent 1.6px),
-    radial-gradient(circle, rgba(var(--color-accent-rgb), 1) 1.6px, transparent 1.6px),
-    radial-gradient(circle, rgba(var(--color-accent-rgb), 1) 1.6px, transparent 1.6px),
-    radial-gradient(circle, rgba(var(--color-accent-rgb), 1) 1.6px, transparent 1.6px);
-  background-size: 320px 140px;
-  background-position:
-    0px 70px, 20px 85.3px, 40px 98.3px, 60px 107px, 80px 110px, 100px 107px, 120px 98.3px, 140px 85.3px,
-    160px 70px, 180px 54.7px, 200px 41.7px, 220px 33px, 240px 30px, 260px 33px, 280px 41.7px, 300px 54.7px;
-  opacity: 0.8;
-  animation: dotWaveDrift 14s linear infinite;
+  opacity: 0.85;
+  mask-image: var(--safe-mask, none);
+  -webkit-mask-image: var(--safe-mask, none);
+  clip-path: path("M0,270 C25,270 25,333.6 50,333.6 C75,333.6 75,360 100,360 C125,360 125,333.6 150,333.6 C175,333.6 175,270 200,270 C225,270 225,206.4 250,206.4 C275,206.4 275,180 300,180 C325,180 325,206.4 350,206.4 C375,206.4 375,270 400,270 C425,270 425,333.6 450,333.6 C475,333.6 475,360 500,360 C525,360 525,333.6 550,333.6 C575,333.6 575,270 600,270 C625,270 625,206.4 650,206.4 C675,206.4 675,180 700,180 C725,180 725,206.4 750,206.4 C775,206.4 775,270 800,270 C825,270 825,333.6 850,333.6 C875,333.6 875,360 900,360 C925,360 925,333.6 950,333.6 C975,333.6 975,270 1000,270 C1025,270 1025,206.4 1050,206.4 C1075,206.4 1075,180 1100,180 C1125,180 1125,206.4 1150,206.4 C1175,206.4 1175,270 1200,270 C1225,270 1225,333.6 1250,333.6 C1275,333.6 1275,360 1300,360 C1325,360 1325,333.6 1350,333.6 C1375,333.6 1375,270 1400,270 C1425,270 1425,206.4 1450,206.4 C1475,206.4 1475,180 1500,180 C1525,180 1525,206.4 1550,206.4 C1575,206.4 1575,270 1600,270 C1625,270 1625,333.6 1650,333.6 C1675,333.6 1675,360 1700,360 C1725,360 1725,333.6 1750,333.6 C1775,333.6 1775,270 1800,270 C1825,270 1825,206.4 1850,206.4 C1875,206.4 1875,180 1900,180 C1925,180 1925,206.4 1950,206.4 C1975,206.4 1975,270 2000,270 C2025,270 2025,333.6 2050,333.6 C2075,333.6 2075,360 2100,360 C2125,360 2125,333.6 2150,333.6 C2175,333.6 2175,270 2200,270 C2225,270 2225,206.4 2250,206.4 C2275,206.4 2275,180 2300,180 C2325,180 2325,206.4 2350,206.4 C2375,206.4 2375,270 2400,270 C2425,270 2425,333.6 2450,333.6 C2475,333.6 2475,360 2500,360 C2525,360 2525,333.6 2550,333.6 C2575,333.6 2575,270 2600,270 C2625,270 2625,206.4 2650,206.4 C2675,206.4 2675,180 2700,180 C2725,180 2725,206.4 2750,206.4 C2775,206.4 2775,270 2800,270 L2800,530 C2775,530 2775,466.4 2750,466.4 C2725,466.4 2725,440 2700,440 C2675,440 2675,466.4 2650,466.4 C2625,466.4 2625,530 2600,530 C2575,530 2575,593.6 2550,593.6 C2525,593.6 2525,620 2500,620 C2475,620 2475,593.6 2450,593.6 C2425,593.6 2425,530 2400,530 C2375,530 2375,466.4 2350,466.4 C2325,466.4 2325,440 2300,440 C2275,440 2275,466.4 2250,466.4 C2225,466.4 2225,530 2200,530 C2175,530 2175,593.6 2150,593.6 C2125,593.6 2125,620 2100,620 C2075,620 2075,593.6 2050,593.6 C2025,593.6 2025,530 2000,530 C1975,530 1975,466.4 1950,466.4 C1925,466.4 1925,440 1900,440 C1875,440 1875,466.4 1850,466.4 C1825,466.4 1825,530 1800,530 C1775,530 1775,593.6 1750,593.6 C1725,593.6 1725,620 1700,620 C1675,620 1675,593.6 1650,593.6 C1625,593.6 1625,530 1600,530 C1575,530 1575,466.4 1550,466.4 C1525,466.4 1525,440 1500,440 C1475,440 1475,466.4 1450,466.4 C1425,466.4 1425,530 1400,530 C1375,530 1375,593.6 1350,593.6 C1325,593.6 1325,620 1300,620 C1275,620 1275,593.6 1250,593.6 C1225,593.6 1225,530 1200,530 C1175,530 1175,466.4 1150,466.4 C1125,466.4 1125,440 1100,440 C1075,440 1075,466.4 1050,466.4 C1025,466.4 1025,530 1000,530 C975,530 975,593.6 950,593.6 C925,593.6 925,620 900,620 C875,620 875,593.6 850,593.6 C825,593.6 825,530 800,530 C775,530 775,466.4 750,466.4 C725,466.4 725,440 700,440 C675,440 675,466.4 650,466.4 C625,466.4 625,530 600,530 C575,530 575,593.6 550,593.6 C525,593.6 525,620 500,620 C475,620 475,593.6 450,593.6 C425,593.6 425,530 400,530 C375,530 375,466.4 350,466.4 C325,466.4 325,440 300,440 C275,440 275,466.4 250,466.4 C225,466.4 225,530 200,530 C175,530 175,593.6 150,593.6 C125,593.6 125,620 100,620 C75,620 75,593.6 50,593.6 C25,593.6 25,530 0,530 Z");
+  animation: waveSweep 14s linear infinite;
 }
 
 .panel:not(.active)::before,
@@ -725,19 +728,9 @@ header {
   }
 }
 
-/* Each pair shifts by exactly one tile-width (320px) with y
-   unchanged - since the pattern repeats every 320px, this lands back
-   on an identical picture and the loop seams invisibly. */
-@keyframes dotWaveDrift {
-  from {
-    background-position:
-      0px 70px, 20px 85.3px, 40px 98.3px, 60px 107px, 80px 110px, 100px 107px, 120px 98.3px, 140px 85.3px,
-      160px 70px, 180px 54.7px, 200px 41.7px, 220px 33px, 240px 30px, 260px 33px, 280px 41.7px, 300px 54.7px;
-  }
+@keyframes waveSweep {
   to {
-    background-position:
-      -320px 70px, -300px 85.3px, -280px 98.3px, -260px 107px, -240px 110px, -220px 107px, -200px 98.3px, -180px 85.3px,
-      -160px 70px, -140px 54.7px, -120px 41.7px, -100px 33px, -80px 30px, -60px 33px, -40px 41.7px, -20px 54.7px;
+    clip-path: path("M-400,270 C-375,270 -375,333.6 -350,333.6 C-325,333.6 -325,360 -300,360 C-275,360 -275,333.6 -250,333.6 C-225,333.6 -225,270 -200,270 C-175,270 -175,206.4 -150,206.4 C-125,206.4 -125,180 -100,180 C-75,180 -75,206.4 -50,206.4 C-25,206.4 -25,270 0,270 C25,270 25,333.6 50,333.6 C75,333.6 75,360 100,360 C125,360 125,333.6 150,333.6 C175,333.6 175,270 200,270 C225,270 225,206.4 250,206.4 C275,206.4 275,180 300,180 C325,180 325,206.4 350,206.4 C375,206.4 375,270 400,270 C425,270 425,333.6 450,333.6 C475,333.6 475,360 500,360 C525,360 525,333.6 550,333.6 C575,333.6 575,270 600,270 C625,270 625,206.4 650,206.4 C675,206.4 675,180 700,180 C725,180 725,206.4 750,206.4 C775,206.4 775,270 800,270 C825,270 825,333.6 850,333.6 C875,333.6 875,360 900,360 C925,360 925,333.6 950,333.6 C975,333.6 975,270 1000,270 C1025,270 1025,206.4 1050,206.4 C1075,206.4 1075,180 1100,180 C1125,180 1125,206.4 1150,206.4 C1175,206.4 1175,270 1200,270 C1225,270 1225,333.6 1250,333.6 C1275,333.6 1275,360 1300,360 C1325,360 1325,333.6 1350,333.6 C1375,333.6 1375,270 1400,270 C1425,270 1425,206.4 1450,206.4 C1475,206.4 1475,180 1500,180 C1525,180 1525,206.4 1550,206.4 C1575,206.4 1575,270 1600,270 C1625,270 1625,333.6 1650,333.6 C1675,333.6 1675,360 1700,360 C1725,360 1725,333.6 1750,333.6 C1775,333.6 1775,270 1800,270 C1825,270 1825,206.4 1850,206.4 C1875,206.4 1875,180 1900,180 C1925,180 1925,206.4 1950,206.4 C1975,206.4 1975,270 2000,270 C2025,270 2025,333.6 2050,333.6 C2075,333.6 2075,360 2100,360 C2125,360 2125,333.6 2150,333.6 C2175,333.6 2175,270 2200,270 C2225,270 2225,206.4 2250,206.4 C2275,206.4 2275,180 2300,180 C2325,180 2325,206.4 2350,206.4 C2375,206.4 2375,270 2400,270 L2400,530 C2375,530 2375,466.4 2350,466.4 C2325,466.4 2325,440 2300,440 C2275,440 2275,466.4 2250,466.4 C2225,466.4 2225,530 2200,530 C2175,530 2175,593.6 2150,593.6 C2125,593.6 2125,620 2100,620 C2075,620 2075,593.6 2050,593.6 C2025,593.6 2025,530 2000,530 C1975,530 1975,466.4 1950,466.4 C1925,466.4 1925,440 1900,440 C1875,440 1875,466.4 1850,466.4 C1825,466.4 1825,530 1800,530 C1775,530 1775,593.6 1750,593.6 C1725,593.6 1725,620 1700,620 C1675,620 1675,593.6 1650,593.6 C1625,593.6 1625,530 1600,530 C1575,530 1575,466.4 1550,466.4 C1525,466.4 1525,440 1500,440 C1475,440 1475,466.4 1450,466.4 C1425,466.4 1425,530 1400,530 C1375,530 1375,593.6 1350,593.6 C1325,593.6 1325,620 1300,620 C1275,620 1275,593.6 1250,593.6 C1225,593.6 1225,530 1200,530 C1175,530 1175,466.4 1150,466.4 C1125,466.4 1125,440 1100,440 C1075,440 1075,466.4 1050,466.4 C1025,466.4 1025,530 1000,530 C975,530 975,593.6 950,593.6 C925,593.6 925,620 900,620 C875,620 875,593.6 850,593.6 C825,593.6 825,530 800,530 C775,530 775,466.4 750,466.4 C725,466.4 725,440 700,440 C675,440 675,466.4 650,466.4 C625,466.4 625,530 600,530 C575,530 575,593.6 550,593.6 C525,593.6 525,620 500,620 C475,620 475,593.6 450,593.6 C425,593.6 425,530 400,530 C375,530 375,466.4 350,466.4 C325,466.4 325,440 300,440 C275,440 275,466.4 250,466.4 C225,466.4 225,530 200,530 C175,530 175,593.6 150,593.6 C125,593.6 125,620 100,620 C75,620 75,593.6 50,593.6 C25,593.6 25,530 0,530 C-25,530 -25,466.4 -50,466.4 C-75,466.4 -75,440 -100,440 C-125,440 -125,466.4 -150,466.4 C-175,466.4 -175,530 -200,530 C-225,530 -225,593.6 -250,593.6 C-275,593.6 -275,620 -300,620 C-325,620 -325,593.6 -350,593.6 C-375,593.6 -375,530 -400,530 Z");
   }
 }
 
