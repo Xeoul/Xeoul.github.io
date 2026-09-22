@@ -16,11 +16,6 @@
   --color-border: #e3e2dd;
   --color-border-strong: #cfcec8;
   --color-skeleton-highlight: #e9e7e1;
-  /* The ambient wave's brightest point (see AMBIENT DRIFT below): a
-     white-hot highlight only reads as glowing light against a dark
-     backdrop - against paper it just looks like a pale smudge, so
-     light mode keeps the highlight at the accent color instead. */
-  --wave-highlight: rgb(var(--color-accent-rgb));
   --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-mono: ui-monospace, 'SFMono-Regular', 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
   --radius: 6px;
@@ -58,7 +53,6 @@
     --color-border: #232328;
     --color-border-strong: #5f5f64;
     --color-skeleton-highlight: #2b2b31;
-    --wave-highlight: #ffffff;
   }
 }
 
@@ -74,7 +68,6 @@
   --color-border: #232328;
   --color-border-strong: #5f5f64;
   --color-skeleton-highlight: #2b2b31;
-  --wave-highlight: #ffffff;
 }
 
 /* ============================================================
@@ -691,143 +684,107 @@ header {
 
 /* ============================================================
    AMBIENT DRIFT
-   A single soft, irregular, glowing wave ribbon drifting behind each
-   panel - the actual PS3 XMB menu background. Earlier attempts (a dot
-   field with a brightness sweep, then evenly-repeated solid humps,
-   then a single flat-colored stroked curve) all read as mechanical or
-   plain rather than this; the shape itself is generated in script.js
-   (see the comment there for the loop-seam math and why the three
-   strands stay a tight, sleek bundle of one shared curve rather than
-   diverging into separate shapes), this file only styles it: thin
-   translucent strokes with a wide, heavily-blurred "halo" copy of the
-   brightest strand painted
-   underneath it for actual light bloom, not just a thicker line. In
-   dark mode the strokes and sparkles additionally blend with
-   `screen`, so overlapping/crossing strands genuinely brighten each
-   other toward white where they cross - the glow in the reference -
-   rather than just alpha-compositing into a duller flat color. Screen
-   blending against a light background pushes everything toward white
-   instead (it would wash the wave out to invisible), so it's dark-
-   theme only; light mode keeps normal alpha blending, which already
-   reads fine against a light backdrop. A second, fainter, more-
-   blurred strand higher up (still within the same bottom-of-panel
-   band already verified clear of content) gives it depth without
-   competing with the main ribbon. A handful of twinkling sparkle
-   particles - mixing tiny sharp specks with a few larger, softer glow
-   motes - ride along the main ribbon. Built from the indigo accent
-   already used elsewhere, not a new color. Paused whenever a panel
-   isn't active, disabled under reduced motion. */
-.wave-field {
+   One consistent treatment shared by every panel: a dot field (the
+   same idea as the original Home texture) with a soft band of
+   brightness sweeping diagonally across it, like the PS3 XMB
+   background - dots "light up" as the wave passes over them rather
+   than the whole layer just panning or a color wash drifting around.
+   Two identical, perfectly-aligned dot grids stacked on the same
+   element (::before dim and always visible, ::after bright but masked
+   to a soft diagonal band) - only the mask moves, not the background
+   itself, so the bright layer's dots never drift out of register with
+   the dim layer's. The wave oscillates back and forth (alternate)
+   rather than sweeping one-way and resetting, so there's no visible
+   jump where the loop restarts. Built from the indigo accent already
+   used elsewhere, not a new color. Paused whenever a panel isn't
+   active, disabled under reduced motion.
+   Sharp dots (unlike the soft gradient wash tried first) read as
+   clutter where they land on top of glyphs, so both layers are masked
+   to each panel's own content-safe zone (--safe-mask, set per panel
+   in that panel's own section below - same geometry validated when
+   each panel had its own texture). ::after needs that safe zone
+   *and* the wave band at once, so it composites the two masks with
+   mask-composite: intersect (only visible where both are opaque) -
+   -webkit-mask-composite: source-in is the equivalent for older
+   WebKit's two-layer masking model. */
+.panel::before,
+.panel::after {
+  content: '';
   position: absolute;
   inset: 0;
   z-index: -1;
   pointer-events: none;
-  overflow: hidden;
+  background-image: radial-gradient(circle, rgba(var(--color-accent-rgb), 1) 1.2px, transparent 1.2px);
+  background-size: 26px 26px;
+  --wave-mask: linear-gradient(115deg, transparent 0%, transparent 34%, black 50%, transparent 66%, transparent 100%);
 }
 
-.wave-layer {
-  position: absolute;
-  left: 0;
-  bottom: 0;
-  width: 200%;
-  height: 100%;
-  overflow: visible;
+.panel::before {
+  opacity: 0.18;
+  mask-image: var(--safe-mask, none);
+  -webkit-mask-image: var(--safe-mask, none);
 }
 
-.wave-stroke,
-.wave-halo {
-  fill: none;
-  stroke-linecap: round;
+.panel::after {
+  opacity: 0.85;
+  mask-image: var(--wave-mask), var(--safe-mask, linear-gradient(black, black));
+  -webkit-mask-image: var(--wave-mask), var(--safe-mask, linear-gradient(black, black));
+  -webkit-mask-composite: source-in;
+  mask-composite: intersect;
+  mask-size: 160% 160%, 100% 100%;
+  -webkit-mask-size: 160% 160%, 100% 100%;
+  mask-repeat: no-repeat, no-repeat;
+  -webkit-mask-repeat: no-repeat, no-repeat;
+  animation: waveSweep 9s ease-in-out infinite alternate;
 }
 
-.wave-layer-secondary {
-  filter: blur(3px);
-  animation: waveScroll 58s linear infinite reverse;
-}
-
-.wave-layer-secondary .wave-stroke {
-  stroke-width: 1.4;
-}
-
-.wave-layer-primary {
-  animation: waveScroll 34s linear infinite;
-}
-
-.wave-halo {
-  stroke-width: 11;
-  opacity: 0.5;
-  filter: blur(6px);
-}
-
-.wave-layer-primary .strand-a {
-  stroke-width: 1;
-  opacity: 0.6;
-  filter: blur(1.6px);
-}
-
-.wave-layer-primary .strand-b {
-  stroke-width: 1.6;
-  opacity: 1;
-  filter: blur(0.5px);
-}
-
-.wave-layer-primary .strand-c {
-  stroke-width: 1;
-  opacity: 0.55;
-  filter: blur(2px);
-}
-
-.wave-sparkle {
-  fill: var(--wave-highlight);
-  animation-name: waveSparkleTwinkle;
-  animation-timing-function: ease-in-out;
-  animation-iteration-count: infinite;
-}
-
-.wave-sparkle-glow {
-  filter: blur(1.2px);
-  opacity: 0.6;
-}
-
-:root[data-theme="dark"] .wave-stroke,
-:root[data-theme="dark"] .wave-halo,
-:root[data-theme="dark"] .wave-sparkle {
-  mix-blend-mode: screen;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) .wave-stroke,
-  :root:not([data-theme="light"]) .wave-halo,
-  :root:not([data-theme="light"]) .wave-sparkle {
-    mix-blend-mode: screen;
-  }
-}
-
-.panel:not(.active) .wave-layer,
-.panel:not(.active) .wave-sparkle {
+.panel:not(.active)::before,
+.panel:not(.active)::after {
   animation-play-state: paused;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .wave-layer,
-  .wave-sparkle {
-    animation: none;
+  /* !important because this ties in specificity with .panel::before/
+     ::after above (both a single class + pseudo-element) - without
+     it, whichever rule happens to come later in the file wins the
+     tie, which silently broke an equivalent reduced-motion override
+     for three of four panels the first time this section existed.
+     Matches the existing .no-transition precedent below for forcing
+     an override regardless of source order. */
+  .panel::before,
+  .panel::after {
+    animation: none !important;
   }
 }
 
-@keyframes waveScroll {
-  from { transform: translateX(0); }
-  to   { transform: translateX(-50%); }
-}
-
-@keyframes waveSparkleTwinkle {
-  0%, 100% { opacity: 0.1; }
-  50% { opacity: 0.75; }
+@keyframes waveSweep {
+  from { mask-position: -60% -60%, 0 0; -webkit-mask-position: -60% -60%, 0 0; }
+  to   { mask-position: 60% 60%, 0 0; -webkit-mask-position: 60% 60%, 0 0; }
 }
 
 /* ============================================================
    HOME PANEL
    ============================================================ */
+/* Dots need a wide open area to live in, same reasoning as the
+   original per-panel textures: desktop lays the fixed-width text
+   column out beside a wide open area, so --safe-mask fades dots out
+   horizontally behind that column (a pixel distance, not a
+   percentage, since the column's width doesn't scale with viewport);
+   mobile stacks everything in one narrower column with .hero-content
+   vertically centered instead, so the open space is above and below
+   it - a percentage-based vertical band there instead. */
+@media screen and (min-width: 900px) {
+  .hero-panel {
+    --safe-mask: linear-gradient(to right, transparent 0, transparent 620px, black 900px);
+  }
+}
+
+@media screen and (max-width: 899px) {
+  .hero-panel {
+    --safe-mask: linear-gradient(to bottom, black 0, black 10%, transparent 22%, transparent 78%, black 90%, black 100%);
+  }
+}
+
 .hero-content {
   max-width: var(--container-width);
   width: 100%;
@@ -926,6 +883,16 @@ header {
 /* ============================================================
    ABOUT PANEL
    ============================================================ */
+/* .panel-content here fills nearly the panel's full width (the
+   two-column about-grid splits it evenly, unlike Home's single narrow
+   column) but is still vertically centered the same way, so the open
+   space for dots is above and below it rather than beside it - same
+   at every viewport width since this panel's shape doesn't change the
+   way Home's does. */
+.about-panel {
+  --safe-mask: linear-gradient(to bottom, black 0, black 8%, transparent 20%, transparent 80%, black 92%, black 100%);
+}
+
 .about-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -1128,6 +1095,12 @@ header {
    An editorial list of rows rather than a card grid - each row
    numbered, separated by a hairline.
    ============================================================ */
+/* This panel's content is likewise full-width and vertically
+   centered, so the same vertical safe-zone as About. */
+.projects-panel {
+  --safe-mask: linear-gradient(to bottom, black 0, black 8%, transparent 20%, transparent 80%, black 92%, black 100%);
+}
+
 .projects-grid {
   display: flex;
   flex-direction: column;
@@ -1267,6 +1240,12 @@ header {
    Each method is a single flat row (icon / label / value) - the
    whole row is the link, so there's nothing left to click past.
    ============================================================ */
+/* Shortest of the four panels' content, so a slightly wider safe
+   margin than About/Projects still leaves it comfortably clear. */
+.contact-panel {
+  --safe-mask: linear-gradient(to bottom, black 0, black 10%, transparent 24%, transparent 76%, black 90%, black 100%);
+}
+
 .contact-intro {
   font-size: 15px;
   line-height: 1.6;
