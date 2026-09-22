@@ -158,59 +158,6 @@ a {
   outline: none;
 }
 
-.eyebrow {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-family: var(--font-mono);
-  font-size: 12px;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--color-ink-soft);
-}
-
-.eyebrow::before {
-  content: '';
-  position: relative;
-  z-index: 1;
-  display: inline-block;
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--color-accent);
-}
-
-/* A soft "live" ping behind the dot, like a status indicator - reads
-   as "currently available" rather than pure decoration. Sized/placed
-   to exactly overlay ::before, which stays a normal flex item so the
-   text gap is unaffected. */
-.eyebrow::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 50%;
-  width: 7px;
-  height: 7px;
-  margin-top: -3.5px;
-  border-radius: 50%;
-  background: var(--color-accent);
-  animation: eyebrowPing 2.2s cubic-bezier(0.2, 0.6, 0.4, 1) infinite;
-  pointer-events: none;
-}
-
-@keyframes eyebrowPing {
-  0% { transform: scale(1); opacity: 0.5; }
-  100% { transform: scale(2.8); opacity: 0; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .eyebrow::after {
-    animation: none;
-    display: none;
-  }
-}
-
 /* ============================================================
    HEADER / NAV BAR
    Flat, hairline-bordered, opaque - no frosted glass. Nav links
@@ -684,29 +631,38 @@ header {
 
 /* ============================================================
    AMBIENT DRIFT
-   One consistent treatment shared by every panel: a dot field (the
-   same idea as the original Home texture) with a soft band of
-   brightness sweeping diagonally across it, like the PS3 XMB
-   background - dots "light up" as the wave passes over them rather
-   than the whole layer just panning or a color wash drifting around.
-   Two identical, perfectly-aligned dot grids stacked on the same
-   element (::before dim and always visible, ::after bright but masked
-   to a soft diagonal band) - only the mask moves, not the background
-   itself, so the bright layer's dots never drift out of register with
-   the dim layer's. The wave oscillates back and forth (alternate)
-   rather than sweeping one-way and resetting, so there's no visible
-   jump where the loop restarts. Built from the indigo accent already
-   used elsewhere, not a new color. Paused whenever a panel isn't
-   active, disabled under reduced motion.
-   Sharp dots (unlike the soft gradient wash tried first) read as
-   clutter where they land on top of glyphs, so both layers are masked
-   to each panel's own content-safe zone (--safe-mask, set per panel
-   in that panel's own section below - same geometry validated when
-   each panel had its own texture). ::after needs that safe zone
-   *and* the wave band at once, so it composites the two masks with
-   mask-composite: intersect (only visible where both are opaque) -
-   -webkit-mask-composite: source-in is the equivalent for older
-   WebKit's two-layer masking model. */
+   One consistent treatment shared by every panel: a dim, static,
+   uniform dot field (::before, the original Home texture) with a
+   brighter layer of dots on top (::after) that are actually arranged
+   along a sine wave and drift sideways - the dots themselves trace a
+   wave shape and travel, not just a brightness mask sweeping over an
+   otherwise-static grid (an earlier version, and the PS3-XMB-as-an-
+   SVG-ribbon rebuild that followed it and was reverted after several
+   rounds of chasing a rendering bug specific to real iOS Safari).
+   This is deliberately built from nothing but plain CSS
+   radial-gradient() background layers and a background-position
+   animation - no SVG, no filter: blur(), no mix-blend-mode - the
+   three ingredients that combined to cause that Safari bug. Plain
+   background-position animation has no equivalent failure mode: it's
+   one of the most basic, universally-supported CSS animations there
+   is.
+   ::after stacks 16 radial-gradient() dot layers, each with its own
+   fixed background-position within one 320x140 tile - together they
+   trace one full sine wavelength (y = baseline + amplitude*sin(2pi*x/
+   tileWidth), computed once and hand-placed below, not generated at
+   runtime). The tile repeats in both directions by default
+   (background-repeat isn't overridden), filling the whole safe area
+   with parallel wave rows instead of a single thin line. Animating
+   each layer's background-position by exactly one tile-width (320px)
+   loops seamlessly, since shifting a periodic pattern by its own
+   period reproduces the same picture - the same seamless-loop
+   principle used throughout this project's other drift animations,
+   here needing nothing more than background-position to pull off.
+   Both layers share the same --safe-mask content-clearance mask used
+   throughout (set per panel below), so dots stay clear of text exactly
+   as before. Built from the indigo accent already used elsewhere, not
+   a new color. Paused whenever a panel isn't active, disabled under
+   reduced motion. */
 .panel::before,
 .panel::after {
   content: '';
@@ -714,28 +670,40 @@ header {
   inset: 0;
   z-index: -1;
   pointer-events: none;
-  background-image: radial-gradient(circle, rgba(var(--color-accent-rgb), 1) 1.2px, transparent 1.2px);
-  background-size: 26px 26px;
-  --wave-mask: linear-gradient(115deg, transparent 0%, transparent 34%, black 50%, transparent 66%, transparent 100%);
-}
-
-.panel::before {
-  opacity: 0.18;
   mask-image: var(--safe-mask, none);
   -webkit-mask-image: var(--safe-mask, none);
 }
 
+.panel::before {
+  background-image: radial-gradient(circle, rgba(var(--color-accent-rgb), 1) 1.2px, transparent 1.2px);
+  background-size: 26px 26px;
+  opacity: 0.18;
+}
+
 .panel::after {
-  opacity: 0.85;
-  mask-image: var(--wave-mask), var(--safe-mask, linear-gradient(black, black));
-  -webkit-mask-image: var(--wave-mask), var(--safe-mask, linear-gradient(black, black));
-  -webkit-mask-composite: source-in;
-  mask-composite: intersect;
-  mask-size: 160% 160%, 100% 100%;
-  -webkit-mask-size: 160% 160%, 100% 100%;
-  mask-repeat: no-repeat, no-repeat;
-  -webkit-mask-repeat: no-repeat, no-repeat;
-  animation: waveSweep 9s ease-in-out infinite alternate;
+  background-image:
+    radial-gradient(circle, rgba(var(--color-accent-rgb), 1) 1.6px, transparent 1.6px),
+    radial-gradient(circle, rgba(var(--color-accent-rgb), 1) 1.6px, transparent 1.6px),
+    radial-gradient(circle, rgba(var(--color-accent-rgb), 1) 1.6px, transparent 1.6px),
+    radial-gradient(circle, rgba(var(--color-accent-rgb), 1) 1.6px, transparent 1.6px),
+    radial-gradient(circle, rgba(var(--color-accent-rgb), 1) 1.6px, transparent 1.6px),
+    radial-gradient(circle, rgba(var(--color-accent-rgb), 1) 1.6px, transparent 1.6px),
+    radial-gradient(circle, rgba(var(--color-accent-rgb), 1) 1.6px, transparent 1.6px),
+    radial-gradient(circle, rgba(var(--color-accent-rgb), 1) 1.6px, transparent 1.6px),
+    radial-gradient(circle, rgba(var(--color-accent-rgb), 1) 1.6px, transparent 1.6px),
+    radial-gradient(circle, rgba(var(--color-accent-rgb), 1) 1.6px, transparent 1.6px),
+    radial-gradient(circle, rgba(var(--color-accent-rgb), 1) 1.6px, transparent 1.6px),
+    radial-gradient(circle, rgba(var(--color-accent-rgb), 1) 1.6px, transparent 1.6px),
+    radial-gradient(circle, rgba(var(--color-accent-rgb), 1) 1.6px, transparent 1.6px),
+    radial-gradient(circle, rgba(var(--color-accent-rgb), 1) 1.6px, transparent 1.6px),
+    radial-gradient(circle, rgba(var(--color-accent-rgb), 1) 1.6px, transparent 1.6px),
+    radial-gradient(circle, rgba(var(--color-accent-rgb), 1) 1.6px, transparent 1.6px);
+  background-size: 320px 140px;
+  background-position:
+    0px 70px, 20px 85.3px, 40px 98.3px, 60px 107px, 80px 110px, 100px 107px, 120px 98.3px, 140px 85.3px,
+    160px 70px, 180px 54.7px, 200px 41.7px, 220px 33px, 240px 30px, 260px 33px, 280px 41.7px, 300px 54.7px;
+  opacity: 0.8;
+  animation: dotWaveDrift 14s linear infinite;
 }
 
 .panel:not(.active)::before,
@@ -757,9 +725,20 @@ header {
   }
 }
 
-@keyframes waveSweep {
-  from { mask-position: -60% -60%, 0 0; -webkit-mask-position: -60% -60%, 0 0; }
-  to   { mask-position: 60% 60%, 0 0; -webkit-mask-position: 60% 60%, 0 0; }
+/* Each pair shifts by exactly one tile-width (320px) with y
+   unchanged - since the pattern repeats every 320px, this lands back
+   on an identical picture and the loop seams invisibly. */
+@keyframes dotWaveDrift {
+  from {
+    background-position:
+      0px 70px, 20px 85.3px, 40px 98.3px, 60px 107px, 80px 110px, 100px 107px, 120px 98.3px, 140px 85.3px,
+      160px 70px, 180px 54.7px, 200px 41.7px, 220px 33px, 240px 30px, 260px 33px, 280px 41.7px, 300px 54.7px;
+  }
+  to {
+    background-position:
+      -320px 70px, -300px 85.3px, -280px 98.3px, -260px 107px, -240px 110px, -220px 107px, -200px 98.3px, -180px 85.3px,
+      -160px 70px, -140px 54.7px, -120px 41.7px, -100px 33px, -80px 30px, -60px 33px, -40px 41.7px, -20px 54.7px;
+  }
 }
 
 /* ============================================================
