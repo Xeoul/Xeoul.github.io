@@ -259,6 +259,127 @@ if (viewEl) {
     }, { passive: true });
 }
 
+// AMBIENT WAVE
+// Draws the thin wave of lit dots in each panel's background (see
+// AMBIENT DRIFT in styles.css): builds a ribbon-shaped path and hands
+// it to CSS as --wave-clip, which clips the bright dot layer to it.
+// Redrawn every frame so the wave can travel sideways while slowly
+// morphing through WAVE_SHAPES - a CSS keyframe animation of one fixed
+// path can only slide that one shape along.
+const WAVE_SHAPES = [
+    { period: 900, amp: 60, thick: 60 },  // long, gentle swell
+    { period: 600, amp: 90, thick: 60 },  // taller swings
+    { period: 600, amp: 60, thick: 110 }, // thicker band
+];
+const WAVE_MORPH_SECONDS = 6; // per shape-to-shape blend
+const WAVE_SPEED = 35;        // px/s, leftward
+const WAVE_STEP = 32;         // px between sampled points
+const WAVE_FRAME_MS = 33;     // ~30fps is plenty for motion this slow
+const reducedMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+let wavePhase = 0;
+let waveMorph = 0;
+let waveRaf = null;
+const waveGeometry = new Map();
+
+function waveShapeAt(morph) {
+    const i = Math.floor(morph);
+    const a = WAVE_SHAPES[i % WAVE_SHAPES.length];
+    const b = WAVE_SHAPES[(i + 1) % WAVE_SHAPES.length];
+    const f = morph - i;
+    const t = f * f * (3 - 2 * f);
+    return {
+        period: a.period + (b.period - a.period) * t,
+        amp: a.amp + (b.amp - a.amp) * t,
+        thick: a.thick + (b.thick - a.thick) * t,
+    };
+}
+
+// Each panel's size and where its dots are visible (--wave-y/--wave-scale,
+// set in styles.css alongside that panel's --safe-mask) only change on
+// resize, so they're cached rather than re-read every frame.
+function panelWaveGeometry(panel) {
+    let g = waveGeometry.get(panel);
+    if (!g) {
+        const style = getComputedStyle(panel);
+        g = {
+            width: panel.clientWidth,
+            height: panel.clientHeight,
+            y: parseFloat(style.getPropertyValue('--wave-y')) || 0.9,
+            scale: parseFloat(style.getPropertyValue('--wave-scale')) || 1,
+        };
+        waveGeometry.set(panel, g);
+    }
+    return g;
+}
+
+// A closed ribbon: the top edge left-to-right, then the bottom edge back.
+// Measuring the sine from 60% across rather than from x=0 keeps the
+// visible middle of the wave steady while the period morphs - otherwise
+// the right-hand side would visibly compress and stretch.
+function buildWavePath({ width, height, y, scale }, shape, phase) {
+    const mid = height * y;
+    const amp = shape.amp * scale;
+    const half = (shape.thick * scale) / 2;
+    const center = width * 0.6;
+    const top = [];
+    const bottom = [];
+    for (let x = -WAVE_STEP; x <= width + WAVE_STEP; x += WAVE_STEP) {
+        const c = mid + amp * Math.sin((2 * Math.PI * (x - center)) / shape.period + phase);
+        top.push([x, c - half]);
+        bottom.push([x, c + half]);
+    }
+    bottom.reverse();
+    const f = n => n.toFixed(1);
+    const curve = pts => pts.slice(1).map((p, i) => {
+        const mx = f((pts[i][0] + p[0]) / 2);
+        return ` C${mx},${f(pts[i][1])} ${mx},${f(p[1])} ${f(p[0])},${f(p[1])}`;
+    }).join('');
+    return `path("M${f(top[0][0])},${f(top[0][1])}${curve(top)} L${f(bottom[0][0])},${f(bottom[0][1])}${curve(bottom)} Z")`;
+}
+
+function drawWave(panel) {
+    panel.style.setProperty('--wave-clip', buildWavePath(panelWaveGeometry(panel), waveShapeAt(waveMorph), wavePhase));
+}
+
+let waveLastTime = null;
+let waveLastDraw = -Infinity;
+
+// Only the active panel is redrawn - an off-screen one keeps its last
+// frame, which is all that shows of it during a slide transition.
+function waveFrame(now) {
+    if (waveLastTime !== null) {
+        const dt = Math.min((now - waveLastTime) / 1000, 0.1);
+        wavePhase = (wavePhase + (2 * Math.PI * WAVE_SPEED * dt) / waveShapeAt(waveMorph).period) % (2 * Math.PI);
+        waveMorph = (waveMorph + dt / WAVE_MORPH_SECONDS) % WAVE_SHAPES.length;
+    }
+    waveLastTime = now;
+    if (now - waveLastDraw >= WAVE_FRAME_MS) {
+        const active = panels.find(p => p.classList.contains('active'));
+        if (active) drawWave(active);
+        waveLastDraw = now;
+    }
+    waveRaf = requestAnimationFrame(waveFrame);
+}
+
+function syncWaveMotion() {
+    panels.forEach(drawWave);
+    if (reducedMotionQuery.matches) {
+        cancelAnimationFrame(waveRaf);
+        waveRaf = null;
+    } else if (waveRaf === null) {
+        waveLastTime = null;
+        waveRaf = requestAnimationFrame(waveFrame);
+    }
+}
+
+window.addEventListener('resize', () => {
+    waveGeometry.clear();
+    panels.forEach(drawWave);
+});
+reducedMotionQuery.addEventListener('change', syncWaveMotion);
+syncWaveMotion();
+
 // LIVE GITHUB PROFILE STATS (public repo count, followers). Pulled from
 // the public GitHub Users API - profile-level rather than tied to any
 // one repo, so it keeps working regardless of which individual repos
