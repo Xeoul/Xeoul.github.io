@@ -653,11 +653,13 @@ header {
    rather than a keyframe animation so it starts, stops and respects
    reduced-motion exactly when the wave's own rAF loop does.
    --wave-y / --wave-scale tell the script where that panel's dots
-   actually show: default is the bottom strip every panel's
-   --safe-mask leaves open, at half size to fit in it; Home on desktop
-   overrides both (see HOME PANEL) because its dots fill the full
-   height beside the text instead. They live here beside --safe-mask
-   rather than in the script so the two stay in sync.
+   actually show: the bottom strip every panel's --safe-mask leaves
+   open, at half size to fit in it - the same for every panel,
+   including Home on desktop (see HOME PANEL), so the wave stays the
+   same size and position across a panel transition instead of
+   jumping between a prominent version on one panel and a faint one
+   on the next. They live here beside --safe-mask rather than in the
+   script so the two stay in sync.
    On mobile the text spans the full width, leaving only thin strips
    of dots above and below it, so there --wave-y-top makes the wave
    slowly glide between the top strip and the bottom one (--wave-y)
@@ -730,8 +732,16 @@ header {
        keep that same gap rather than letting dots fade in behind
        the text's tail end. */
     --safe-mask: linear-gradient(to right, transparent 0, transparent 660px, black 940px);
-    --wave-y: 0.55;
-    --wave-scale: 1;
+    /* --wave-y/--wave-scale used to be overridden here (0.55/1, a
+       tall wave filling the whole open half beside the text) since
+       this panel's open area is wide rather than a thin strip. But
+       every other panel draws its wave at the shared default below
+       (a thin band near the bottom, half size), so sliding between
+       Home and any of them jumped between a large, prominent wave
+       and a thin, faint one - jarring rather than a continuous
+       motion. Leaving these at the shared default instead keeps the
+       wave the same size and vertical position on every panel, so
+       it reads as one wave carrying across the transition. */
   }
 
   /* .hero-content's own margin: auto above centers it, which on a
