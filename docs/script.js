@@ -268,9 +268,9 @@ if (viewEl) {
 // Redrawn every frame so the wave can travel sideways while slowly
 // morphing through WAVE_SHAPES.
 const WAVE_SHAPES = [
-    { period: 900, amp: 60, thick: 60 },  // long, gentle swell
-    { period: 600, amp: 90, thick: 60 },  // taller swings
-    { period: 600, amp: 60, thick: 110 }, // thicker band
+    { period: 1300, amp: 45, thick: 60 }, // long, gentle swell
+    { period: 950, amp: 65, thick: 60 },  // taller swings
+    { period: 900, amp: 45, thick: 90 },  // thicker band
 ];
 const WAVE_MORPH_SECONDS = 6; // per shape-to-shape blend
 const WAVE_DRIFT_SECONDS = 30; // top-to-bottom-and-back, where --wave-y-top is set
