@@ -665,12 +665,14 @@ header {
    visible but faint: the canvas's mask adds a low uniform layer on
    top of --safe-mask, so the wave dims behind the text instead of
    vanishing and reappearing, and the dim grid stays hidden there as
-   before. About/Projects/Contact are laid out the same way on desktop
-   (full-width text, open strips above and below), so they get the
-   same glide there too - only Home doesn't, since its open area is
-   the wide space beside the text rather than strips above and below
-   it, so its wave already has room to sit in the middle of that
-   without crossing the text at all (see HOME PANEL). */
+   before. About/Projects/Contact match Home's desktop position/scale
+   too (0.55/1, a wave sitting in the middle rather than confined to
+   the bottom strip), using that same dim-through-text mask layer so
+   it stays visible - if dimly - crossing behind their full-width text
+   instead of vanishing the way the bare --safe-mask alone would hide
+   it. Home doesn't need the dim layer since its open area is beside
+   the text rather than behind it, so its wave never crosses text at
+   all (see HOME PANEL). */
 .panel {
   --wave-y: 0.91;
   --wave-scale: 0.5;
@@ -710,21 +712,28 @@ header {
   }
 }
 
-/* Same glide, applied to the three panels that share the mobile
-   layout's shape (full-width text, open strips above and below) on
-   desktop too - Home excluded, see HOME PANEL. */
+/* Match Home's desktop wave position/scale on the other three panels
+   too, with the dim-through-text mask layer (see above) so a wave
+   sitting in the middle stays visible behind their full-width text
+   instead of disappearing into --safe-mask's hidden zone there. */
 @media screen and (min-width: 900px) {
   .about-panel,
   .projects-panel,
   .contact-panel {
-    --wave-y-top: 0.09;
+    --wave-y: 0.55;
+    --wave-scale: 1;
   }
 
   .about-panel .wave-canvas,
   .projects-panel .wave-canvas,
   .contact-panel .wave-canvas {
-    mask-image: var(--safe-mask), linear-gradient(rgba(0, 0, 0, 0.25), rgba(0, 0, 0, 0.25));
-    -webkit-mask-image: var(--safe-mask), linear-gradient(rgba(0, 0, 0, 0.25), rgba(0, 0, 0, 0.25));
+    /* Higher than the 0.25 mobile glide uses - there the wave only
+       spends a moment crossing the text on its way past. Here it
+       sits still in the middle the whole time, so the same faint
+       level read as barely-there instead of matching Home's fuller
+       brightness. */
+    mask-image: var(--safe-mask), linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6));
+    -webkit-mask-image: var(--safe-mask), linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6));
   }
 }
 
