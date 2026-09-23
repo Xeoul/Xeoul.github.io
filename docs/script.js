@@ -266,12 +266,7 @@ if (viewEl) {
 // falls off smoothly with its distance from the wave's centre line, so
 // dots fade in and out as the wave passes instead of snapping on/off.
 // Redrawn every frame so the wave can travel sideways while slowly
-// morphing through WAVE_SHAPES.
-const WAVE_SHAPES = [
-    { period: 1300, amp: 45, thick: 60 }, // long, gentle swell
-    { period: 950, amp: 65, thick: 60 },  // taller swings
-    { period: 900, amp: 45, thick: 90 },  // thicker band
-];
+// morphing between shapes.
 // A single sine reads as a perfect, mechanical sin/cos curve. Summing
 // in two smaller harmonics - each at its own frequency and drifting
 // at its own rate relative to the fundamental - makes neighbouring
@@ -297,23 +292,41 @@ const WAVE_PEAK_ALPHA = 0.85;
 const GRID_DRIFT_RATIO = 0.1;
 const reducedMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
 
+// Shapes used to cycle through a fixed list of three, which - combined
+// with the harmonics' own fixed phase rates above - eventually lines
+// back up into an exact repeat: on a long enough visit the wave (and
+// the panels that had been sitting off-screen advancing unseen, see
+// waveFrame) would visibly snap back to an earlier moment, like a
+// video looping. Picking a fresh random target every WAVE_MORPH_SECONDS
+// instead - blended in with the same smoothstep curve a fixed list
+// would have used - keeps the period/height/thickness (and with them
+// whether the wave leans taller or flatter) continuously drifting
+// instead of ever settling into a cycle, while staying just as smooth:
+// each new target starts from exactly where the last blend ended, so
+// there's no jump at the switch.
+function randomWaveShape() {
+    return {
+        period: 900 + Math.random() * 400,
+        amp: 40 + Math.random() * 25,
+        thick: 55 + Math.random() * 40,
+    };
+}
+
 let wavePhase = 0;
-let waveMorph = 0;
+let waveShapeFrom = randomWaveShape();
+let waveShapeTo = randomWaveShape();
+let waveMorphT = 0;
 let waveDrift = 0;
 let gridShift = 0;
 let waveRaf = null;
 const waveGeometry = new Map();
 
-function waveShapeAt(morph) {
-    const i = Math.floor(morph);
-    const a = WAVE_SHAPES[i % WAVE_SHAPES.length];
-    const b = WAVE_SHAPES[(i + 1) % WAVE_SHAPES.length];
-    const f = morph - i;
-    const t = f * f * (3 - 2 * f);
+function currentWaveShape() {
+    const t = waveMorphT * waveMorphT * (3 - 2 * waveMorphT);
     return {
-        period: a.period + (b.period - a.period) * t,
-        amp: a.amp + (b.amp - a.amp) * t,
-        thick: a.thick + (b.thick - a.thick) * t,
+        period: waveShapeFrom.period + (waveShapeTo.period - waveShapeFrom.period) * t,
+        amp: waveShapeFrom.amp + (waveShapeTo.amp - waveShapeFrom.amp) * t,
+        thick: waveShapeFrom.thick + (waveShapeTo.thick - waveShapeFrom.thick) * t,
     };
 }
 
@@ -365,7 +378,7 @@ function panelWaveGeometry(panel) {
 // at --wave-y, so a still frame (reduced motion) sits there.
 function drawWave(panel) {
     const { ctx, dpr, width, height, y, yTop, scale } = panelWaveGeometry(panel);
-    const shape = waveShapeAt(waveMorph);
+    const shape = currentWaveShape();
     const centreY = Number.isNaN(yTop) ? y : y + (yTop - y) * (1 - Math.cos(2 * Math.PI * waveDrift)) / 2;
     const mid = height * centreY;
     const amp = shape.amp * scale;
@@ -405,21 +418,30 @@ function drawWave(panel) {
 let waveLastTime = null;
 let waveLastDraw = -Infinity;
 
-// Only the active panel is redrawn - an off-screen one keeps its last
-// frame, which is all that shows of it during a slide transition.
+// Every panel is redrawn each tick, not just the active one. Panels
+// off-screen are cheap to draw and staying still doesn't save the
+// cost of a canvas clear+redraw, but skipping them let wavePhase (a
+// single shared clock, not per-panel) keep advancing in the
+// background while a panel was hidden - so switching back to it after
+// a while would suddenly show wherever the wave now was, a visible
+// jump instead of the smooth motion the rest of the time promises.
 function waveFrame(now) {
     if (waveLastTime !== null) {
         const dt = Math.min((now - waveLastTime) / 1000, 0.1);
-        wavePhase = (wavePhase + (2 * Math.PI * WAVE_SPEED * dt) / waveShapeAt(waveMorph).period) % (2 * Math.PI);
-        waveMorph = (waveMorph + dt / WAVE_MORPH_SECONDS) % WAVE_SHAPES.length;
+        wavePhase = (wavePhase + (2 * Math.PI * WAVE_SPEED * dt) / currentWaveShape().period) % (2 * Math.PI);
+        waveMorphT += dt / WAVE_MORPH_SECONDS;
+        if (waveMorphT >= 1) {
+            waveMorphT = 0;
+            waveShapeFrom = waveShapeTo;
+            waveShapeTo = randomWaveShape();
+        }
         waveDrift = (waveDrift + dt / WAVE_DRIFT_SECONDS) % 1;
         gridShift = (gridShift - WAVE_SPEED * GRID_DRIFT_RATIO * dt) % WAVE_GRID;
         document.documentElement.style.setProperty('--grid-shift', `${gridShift}px`);
     }
     waveLastTime = now;
     if (now - waveLastDraw >= WAVE_FRAME_MS) {
-        const active = panels.find(p => p.classList.contains('active'));
-        if (active) drawWave(active);
+        panels.forEach(drawWave);
         waveLastDraw = now;
     }
     waveRaf = requestAnimationFrame(waveFrame);
