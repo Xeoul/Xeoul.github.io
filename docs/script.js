@@ -279,9 +279,10 @@ const WAVE_FRAME_MS = 33;     // ~30fps is plenty for motion this slow
 const WAVE_GRID = 26;         // must match the dot grid's background-size
 const WAVE_DOT_RADIUS = 1.2;  // and its dot size
 const WAVE_PEAK_ALPHA = 0.85;
-// The dim dot grid drifts at this slice of the wave's own speed (see
-// --grid-shift below), so it reads as the same current the wave rides
-// on rather than a separate animation that merely happens to agree.
+// The dim dot grid drifts vertically at this slice of the wave's own
+// speed (see --grid-shift below), so it reads as the same current the
+// wave rides on rather than a separate animation that merely happens
+// to agree, even though the wave itself travels sideways.
 const GRID_DRIFT_RATIO = 0.1;
 const reducedMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
 
