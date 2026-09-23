@@ -735,11 +735,11 @@ header {
      in the middle of the screen. Pin it near the panel's left edge
      instead (only the vertical auto margins keep centering it
      top-to-bottom) so the text column stays close to where
-     --safe-mask expects it, regardless of viewport width. A small
-     fixed margin - rather than flush against the panel's own 28px
-     padding - keeps it from reading as jammed against the edge. */
+     --safe-mask expects it, regardless of viewport width. A fixed
+     margin - rather than flush against the panel's own 28px padding -
+     keeps it from reading as jammed against the edge. */
   .hero-content {
-    margin-left: 32px;
+    margin-left: 72px;
     margin-right: auto;
   }
 }
