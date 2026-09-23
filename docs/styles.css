@@ -158,59 +158,6 @@ a {
   outline: none;
 }
 
-.eyebrow {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-family: var(--font-mono);
-  font-size: 12px;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--color-ink-soft);
-}
-
-.eyebrow::before {
-  content: '';
-  position: relative;
-  z-index: 1;
-  display: inline-block;
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--color-accent);
-}
-
-/* A soft "live" ping behind the dot, like a status indicator - reads
-   as "currently available" rather than pure decoration. Sized/placed
-   to exactly overlay ::before, which stays a normal flex item so the
-   text gap is unaffected. */
-.eyebrow::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 50%;
-  width: 7px;
-  height: 7px;
-  margin-top: -3.5px;
-  border-radius: 50%;
-  background: var(--color-accent);
-  animation: eyebrowPing 2.2s cubic-bezier(0.2, 0.6, 0.4, 1) infinite;
-  pointer-events: none;
-}
-
-@keyframes eyebrowPing {
-  0% { transform: scale(1); opacity: 0.5; }
-  100% { transform: scale(2.8); opacity: 0; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .eyebrow::after {
-    animation: none;
-    display: none;
-  }
-}
-
 /* ============================================================
    HEADER / NAV BAR
    Flat, hairline-bordered, opaque - no frosted glass. Nav links
@@ -684,82 +631,52 @@ header {
 
 /* ============================================================
    AMBIENT DRIFT
-   One consistent treatment shared by every panel: a dot field (the
-   same idea as the original Home texture) with a soft band of
-   brightness sweeping diagonally across it, like the PS3 XMB
-   background - dots "light up" as the wave passes over them rather
-   than the whole layer just panning or a color wash drifting around.
-   Two identical, perfectly-aligned dot grids stacked on the same
-   element (::before dim and always visible, ::after bright but masked
-   to a soft diagonal band) - only the mask moves, not the background
-   itself, so the bright layer's dots never drift out of register with
-   the dim layer's. The wave oscillates back and forth (alternate)
-   rather than sweeping one-way and resetting, so there's no visible
-   jump where the loop restarts. Built from the indigo accent already
-   used elsewhere, not a new color. Paused whenever a panel isn't
-   active, disabled under reduced motion.
-   Sharp dots (unlike the soft gradient wash tried first) read as
-   clutter where they land on top of glyphs, so both layers are masked
-   to each panel's own content-safe zone (--safe-mask, set per panel
-   in that panel's own section below - same geometry validated when
-   each panel had its own texture). ::after needs that safe zone
-   *and* the wave band at once, so it composites the two masks with
-   mask-composite: intersect (only visible where both are opaque) -
-   -webkit-mask-composite: source-in is the equivalent for older
-   WebKit's two-layer masking model. */
+   One consistent treatment shared by every panel: a dim, static dot
+   grid (::before) with a thin wave of brighter dots running through
+   it - like the PS3 XMB background. The grid itself is never moved
+   or rearranged, only which of its dots get lit.
+   The lit wave is a <canvas class="wave-canvas"> that script.js adds
+   to each panel (see AMBIENT WAVE there). It draws the same 26px
+   grid's dots, each at a brightness that falls off smoothly with its
+   distance from the wave's centre line, so dots fade in as the wave
+   reaches them and fade back out as it passes rather than switching
+   on and off at a hard edge - which is all a clip-path or mask on a
+   CSS background could do here. It's redrawn every frame so the
+   wave can travel sideways and slowly morph between a few shapes.
+   Without the script there's simply no canvas and no lit dots.
+   Both layers share the per-panel --safe-mask, which keeps dots out
+   of each panel's text area.
+   --wave-y / --wave-scale tell the script where that panel's dots
+   actually show: default is the bottom strip every panel's
+   --safe-mask leaves open, at half size to fit in it; Home on desktop
+   overrides both (see HOME PANEL) because its dots fill the full
+   height beside the text instead. They live here beside --safe-mask
+   rather than in the script so the two stay in sync. */
+.panel {
+  --wave-y: 0.91;
+  --wave-scale: 0.5;
+}
+
 .panel::before,
-.panel::after {
-  content: '';
+.wave-canvas {
   position: absolute;
   inset: 0;
   z-index: -1;
   pointer-events: none;
-  background-image: radial-gradient(circle, rgba(var(--color-accent-rgb), 1) 1.2px, transparent 1.2px);
-  background-size: 26px 26px;
-  --wave-mask: linear-gradient(115deg, transparent 0%, transparent 34%, black 50%, transparent 66%, transparent 100%);
-}
-
-.panel::before {
-  opacity: 0.18;
   mask-image: var(--safe-mask, none);
   -webkit-mask-image: var(--safe-mask, none);
 }
 
-.panel::after {
-  opacity: 0.85;
-  mask-image: var(--wave-mask), var(--safe-mask, linear-gradient(black, black));
-  -webkit-mask-image: var(--wave-mask), var(--safe-mask, linear-gradient(black, black));
-  -webkit-mask-composite: source-in;
-  mask-composite: intersect;
-  mask-size: 160% 160%, 100% 100%;
-  -webkit-mask-size: 160% 160%, 100% 100%;
-  mask-repeat: no-repeat, no-repeat;
-  -webkit-mask-repeat: no-repeat, no-repeat;
-  animation: waveSweep 9s ease-in-out infinite alternate;
+.panel::before {
+  content: '';
+  background-image: radial-gradient(circle, rgba(var(--color-accent-rgb), 1) 1.2px, transparent 1.2px);
+  background-size: 26px 26px;
+  opacity: 0.18;
 }
 
-.panel:not(.active)::before,
-.panel:not(.active)::after {
-  animation-play-state: paused;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  /* !important because this ties in specificity with .panel::before/
-     ::after above (both a single class + pseudo-element) - without
-     it, whichever rule happens to come later in the file wins the
-     tie, which silently broke an equivalent reduced-motion override
-     for three of four panels the first time this section existed.
-     Matches the existing .no-transition precedent below for forcing
-     an override regardless of source order. */
-  .panel::before,
-  .panel::after {
-    animation: none !important;
-  }
-}
-
-@keyframes waveSweep {
-  from { mask-position: -60% -60%, 0 0; -webkit-mask-position: -60% -60%, 0 0; }
-  to   { mask-position: 60% 60%, 0 0; -webkit-mask-position: 60% 60%, 0 0; }
+.wave-canvas {
+  width: 100%;
+  height: 100%;
 }
 
 /* ============================================================
@@ -776,6 +693,8 @@ header {
 @media screen and (min-width: 900px) {
   .hero-panel {
     --safe-mask: linear-gradient(to right, transparent 0, transparent 620px, black 900px);
+    --wave-y: 0.55;
+    --wave-scale: 1;
   }
 }
 

@@ -259,6 +259,157 @@ if (viewEl) {
     }, { passive: true });
 }
 
+// AMBIENT WAVE
+// Draws the thin wave of lit dots in each panel's background (see
+// AMBIENT DRIFT in styles.css) onto a canvas over the dim dot grid.
+// Every dot in the grid near the wave is drawn at a brightness that
+// falls off smoothly with its distance from the wave's centre line, so
+// dots fade in and out as the wave passes instead of snapping on/off.
+// Redrawn every frame so the wave can travel sideways while slowly
+// morphing through WAVE_SHAPES.
+const WAVE_SHAPES = [
+    { period: 900, amp: 60, thick: 60 },  // long, gentle swell
+    { period: 600, amp: 90, thick: 60 },  // taller swings
+    { period: 600, amp: 60, thick: 110 }, // thicker band
+];
+const WAVE_MORPH_SECONDS = 6; // per shape-to-shape blend
+const WAVE_SPEED = 35;        // px/s, leftward
+const WAVE_FRAME_MS = 33;     // ~30fps is plenty for motion this slow
+const WAVE_GRID = 26;         // must match the dot grid's background-size
+const WAVE_DOT_RADIUS = 1.2;  // and its dot size
+const WAVE_PEAK_ALPHA = 0.85;
+const reducedMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+let wavePhase = 0;
+let waveMorph = 0;
+let waveRaf = null;
+const waveGeometry = new Map();
+
+function waveShapeAt(morph) {
+    const i = Math.floor(morph);
+    const a = WAVE_SHAPES[i % WAVE_SHAPES.length];
+    const b = WAVE_SHAPES[(i + 1) % WAVE_SHAPES.length];
+    const f = morph - i;
+    const t = f * f * (3 - 2 * f);
+    return {
+        period: a.period + (b.period - a.period) * t,
+        amp: a.amp + (b.amp - a.amp) * t,
+        thick: a.thick + (b.thick - a.thick) * t,
+    };
+}
+
+function panelWaveCanvas(panel) {
+    let canvas = panel.querySelector(':scope > .wave-canvas');
+    if (!canvas) {
+        canvas = document.createElement('canvas');
+        canvas.className = 'wave-canvas';
+        canvas.setAttribute('aria-hidden', 'true');
+        panel.prepend(canvas);
+    }
+    return canvas;
+}
+
+// Each panel's size and where its dots are visible (--wave-y/--wave-scale,
+// set in styles.css alongside that panel's --safe-mask) only change on
+// resize, so they're cached - and the canvas resized - rather than
+// re-read every frame.
+function panelWaveGeometry(panel) {
+    let g = waveGeometry.get(panel);
+    if (!g) {
+        const style = getComputedStyle(panel);
+        const canvas = panelWaveCanvas(panel);
+        const dpr = window.devicePixelRatio || 1;
+        g = {
+            ctx: canvas.getContext('2d'),
+            dpr,
+            width: panel.clientWidth,
+            height: panel.clientHeight,
+            y: parseFloat(style.getPropertyValue('--wave-y')) || 0.9,
+            scale: parseFloat(style.getPropertyValue('--wave-scale')) || 1,
+        };
+        canvas.width = Math.round(g.width * dpr);
+        canvas.height = Math.round(g.height * dpr);
+        waveGeometry.set(panel, g);
+    }
+    return g;
+}
+
+// Each lit dot's brightness is a gaussian of its vertical distance from
+// the wave's centre line, with the shape's thickness setting its spread.
+// Measuring the sine from 60% across rather than from x=0 keeps the
+// visible middle of the wave steady while the period morphs - otherwise
+// the right-hand side would visibly compress and stretch.
+function drawWave(panel) {
+    const { ctx, dpr, width, height, y, scale } = panelWaveGeometry(panel);
+    const shape = waveShapeAt(waveMorph);
+    const mid = height * y;
+    const amp = shape.amp * scale;
+    const sigma = (shape.thick * scale) * 0.4;
+    const reach = sigma * 3;
+    const center = width * 0.6;
+    const rgb = getComputedStyle(document.documentElement).getPropertyValue('--color-accent-rgb').trim();
+
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, width, height);
+    ctx.fillStyle = `rgb(${rgb})`;
+    const half = WAVE_GRID / 2;
+    for (let x = half; x < width; x += WAVE_GRID) {
+        const c = mid + amp * Math.sin((2 * Math.PI * (x - center)) / shape.period + wavePhase);
+        const firstRow = Math.max(0, Math.ceil((c - reach - half) / WAVE_GRID));
+        for (let dotY = firstRow * WAVE_GRID + half; dotY <= c + reach && dotY < height; dotY += WAVE_GRID) {
+            const d = (dotY - c) / sigma;
+            ctx.globalAlpha = WAVE_PEAK_ALPHA * Math.exp(-0.5 * d * d);
+            ctx.beginPath();
+            ctx.arc(x, dotY, WAVE_DOT_RADIUS, 0, 2 * Math.PI);
+            ctx.fill();
+        }
+    }
+    ctx.globalAlpha = 1;
+}
+
+let waveLastTime = null;
+let waveLastDraw = -Infinity;
+
+// Only the active panel is redrawn - an off-screen one keeps its last
+// frame, which is all that shows of it during a slide transition.
+function waveFrame(now) {
+    if (waveLastTime !== null) {
+        const dt = Math.min((now - waveLastTime) / 1000, 0.1);
+        wavePhase = (wavePhase + (2 * Math.PI * WAVE_SPEED * dt) / waveShapeAt(waveMorph).period) % (2 * Math.PI);
+        waveMorph = (waveMorph + dt / WAVE_MORPH_SECONDS) % WAVE_SHAPES.length;
+    }
+    waveLastTime = now;
+    if (now - waveLastDraw >= WAVE_FRAME_MS) {
+        const active = panels.find(p => p.classList.contains('active'));
+        if (active) drawWave(active);
+        waveLastDraw = now;
+    }
+    waveRaf = requestAnimationFrame(waveFrame);
+}
+
+function syncWaveMotion() {
+    panels.forEach(drawWave);
+    if (reducedMotionQuery.matches) {
+        cancelAnimationFrame(waveRaf);
+        waveRaf = null;
+    } else if (waveRaf === null) {
+        waveLastTime = null;
+        waveRaf = requestAnimationFrame(waveFrame);
+    }
+}
+
+window.addEventListener('resize', () => {
+    waveGeometry.clear();
+    panels.forEach(drawWave);
+});
+reducedMotionQuery.addEventListener('change', syncWaveMotion);
+// The dots take the accent colour, which changes with the theme; redraw
+// straight away so still panels (and reduced motion) pick it up too.
+new MutationObserver(() => panels.forEach(drawWave))
+    .observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => panels.forEach(drawWave));
+syncWaveMotion();
+
 // LIVE GITHUB PROFILE STATS (public repo count, followers). Pulled from
 // the public GitHub Users API - profile-level rather than tied to any
 // one repo, so it keeps working regardless of which individual repos
