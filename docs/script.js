@@ -350,6 +350,7 @@ function panelWaveGeometry(panel) {
             y: parseFloat(style.getPropertyValue('--wave-y')) || 0.9,
             yTop: parseFloat(style.getPropertyValue('--wave-y-top')),
             scale: parseFloat(style.getPropertyValue('--wave-scale')) || 1,
+            glow: parseFloat(style.getPropertyValue('--wave-glow')) || 0,
         };
         canvas.width = Math.round(g.width * dpr);
         canvas.height = Math.round(g.height * dpr);
@@ -367,8 +368,16 @@ function panelWaveGeometry(panel) {
 // glides between that and --wave-y on a cosine, so it eases in and out
 // at each end and lingers where the dots are fully visible; it starts
 // at --wave-y, so a still frame (reduced motion) sits there.
+// Where the panel sets --wave-glow (an opacity), a soft accent haze is
+// drawn under the dots along the same centre line, so it rises, falls
+// and travels with the wave instead of sitting still behind it. It's
+// painted as narrow vertical strips, each a gradient peaking at that
+// column's centre line; at GLOW_STEP px wide, neighbouring strips differ
+// too little to show a seam.
+const GLOW_STEP = 8;
+
 function drawWave(panel) {
-    const { ctx, dpr, width, height, y, yTop, scale } = panelWaveGeometry(panel);
+    const { ctx, dpr, width, height, y, yTop, scale, glow } = panelWaveGeometry(panel);
     const shape = currentWaveShape();
     const centreY = Number.isNaN(yTop) ? y : y + (yTop - y) * (1 - Math.cos(2 * Math.PI * waveDrift)) / 2;
     const mid = height * centreY;
@@ -387,13 +396,33 @@ function drawWave(panel) {
     // row offset each frame or they drift out of register with it,
     // producing a moiré between the two layers instead of one grid.
     const rowPhase = ((half + gridShift) % WAVE_GRID + WAVE_GRID) % WAVE_GRID;
-    for (let x = half; x < width; x += WAVE_GRID) {
+    const centreAt = (x) => {
         const theta = (2 * Math.PI * (x - center)) / shape.period;
         let wobble = 0;
         for (const h of WAVE_HARMONICS) {
             wobble += h.weight * Math.sin(theta * h.freq + wavePhase * h.phaseRate + h.offset);
         }
-        const c = mid + amp * wobble;
+        return mid + amp * wobble;
+    };
+
+    if (glow > 0) {
+        const radius = reach * 2.5 + 40;
+        for (let x = 0; x < width; x += GLOW_STEP) {
+            const c = centreAt(x + GLOW_STEP / 2);
+            const grad = ctx.createLinearGradient(0, c - radius, 0, c + radius);
+            grad.addColorStop(0, `rgba(${rgb}, 0)`);
+            grad.addColorStop(0.25, `rgba(${rgb}, ${glow * 0.35})`);
+            grad.addColorStop(0.5, `rgba(${rgb}, ${glow})`);
+            grad.addColorStop(0.75, `rgba(${rgb}, ${glow * 0.35})`);
+            grad.addColorStop(1, `rgba(${rgb}, 0)`);
+            ctx.fillStyle = grad;
+            ctx.fillRect(x, c - radius, GLOW_STEP, radius * 2);
+        }
+        ctx.fillStyle = `rgb(${rgb})`;
+    }
+
+    for (let x = half; x < width; x += WAVE_GRID) {
+        const c = centreAt(x);
         const firstRow = Math.max(0, Math.ceil((c - reach - rowPhase) / WAVE_GRID));
         for (let dotY = firstRow * WAVE_GRID + rowPhase; dotY <= c + reach && dotY < height; dotY += WAVE_GRID) {
             const d = (dotY - c) / sigma;
