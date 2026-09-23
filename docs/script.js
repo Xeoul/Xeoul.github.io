@@ -273,6 +273,7 @@ const WAVE_SHAPES = [
     { period: 600, amp: 60, thick: 110 }, // thicker band
 ];
 const WAVE_MORPH_SECONDS = 6; // per shape-to-shape blend
+const WAVE_DRIFT_SECONDS = 30; // top-to-bottom-and-back, where --wave-y-top is set
 const WAVE_SPEED = 35;        // px/s, leftward
 const WAVE_FRAME_MS = 33;     // ~30fps is plenty for motion this slow
 const WAVE_GRID = 26;         // must match the dot grid's background-size
@@ -282,6 +283,7 @@ const reducedMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
 
 let wavePhase = 0;
 let waveMorph = 0;
+let waveDrift = 0;
 let waveRaf = null;
 const waveGeometry = new Map();
 
@@ -325,6 +327,7 @@ function panelWaveGeometry(panel) {
             width: panel.clientWidth,
             height: panel.clientHeight,
             y: parseFloat(style.getPropertyValue('--wave-y')) || 0.9,
+            yTop: parseFloat(style.getPropertyValue('--wave-y-top')),
             scale: parseFloat(style.getPropertyValue('--wave-scale')) || 1,
         };
         canvas.width = Math.round(g.width * dpr);
@@ -339,10 +342,15 @@ function panelWaveGeometry(panel) {
 // Measuring the sine from 60% across rather than from x=0 keeps the
 // visible middle of the wave steady while the period morphs - otherwise
 // the right-hand side would visibly compress and stretch.
+// Where the panel sets --wave-y-top (mobile), the centre line also
+// glides between that and --wave-y on a cosine, so it eases in and out
+// at each end and lingers where the dots are fully visible; it starts
+// at --wave-y, so a still frame (reduced motion) sits there.
 function drawWave(panel) {
-    const { ctx, dpr, width, height, y, scale } = panelWaveGeometry(panel);
+    const { ctx, dpr, width, height, y, yTop, scale } = panelWaveGeometry(panel);
     const shape = waveShapeAt(waveMorph);
-    const mid = height * y;
+    const centreY = Number.isNaN(yTop) ? y : y + (yTop - y) * (1 - Math.cos(2 * Math.PI * waveDrift)) / 2;
+    const mid = height * centreY;
     const amp = shape.amp * scale;
     const sigma = (shape.thick * scale) * 0.4;
     const reach = sigma * 3;
@@ -377,6 +385,7 @@ function waveFrame(now) {
         const dt = Math.min((now - waveLastTime) / 1000, 0.1);
         wavePhase = (wavePhase + (2 * Math.PI * WAVE_SPEED * dt) / waveShapeAt(waveMorph).period) % (2 * Math.PI);
         waveMorph = (waveMorph + dt / WAVE_MORPH_SECONDS) % WAVE_SHAPES.length;
+        waveDrift = (waveDrift + dt / WAVE_DRIFT_SECONDS) % 1;
     }
     waveLastTime = now;
     if (now - waveLastDraw >= WAVE_FRAME_MS) {
