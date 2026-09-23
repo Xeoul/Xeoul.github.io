@@ -754,16 +754,11 @@ header {
   margin: auto;
 }
 
-/* A faint accent glow behind where the wave runs - kept low so it
-   reads as a tint on the page rather than a visible shape. The dot
-   layers sit above it since .panel's own stacking context paints its
-   background first. Positioned per layout below. */
+/* A faint accent haze under the wave, drawn on the wave canvas by
+   script.js (see drawWave) so it follows the wave's curve and drift
+   rather than sitting still. The value is its peak opacity. */
 .hero-panel {
-  --glow-a: 55% 45% at 72% 55%;
-  --glow-b: 35% 30% at 88% 32%;
-  background:
-    radial-gradient(ellipse var(--glow-a), rgba(var(--color-accent-rgb), 0.07), transparent 70%),
-    radial-gradient(ellipse var(--glow-b), rgba(167, 139, 250, 0.06), transparent 70%);
+  --wave-glow: 0.09;
 }
 
 @media screen and (min-width: 900px) {
@@ -824,15 +819,6 @@ header {
 
   .hero-panel .hero-actions {
     display: none;
-  }
-
-  /* Mobile's dots sit in wide strips above and below the centered
-     text, so the glow becomes two flat horizontal bands over those
-     strips - sized as a share of a tall, narrow panel, the desktop
-     proportions would stretch into tall vertical ovals. */
-  .hero-panel {
-    --glow-a: 90% 14% at 50% 85%;
-    --glow-b: 90% 12% at 50% 15%;
   }
 }
 
