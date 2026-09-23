@@ -658,13 +658,19 @@ header {
    overrides both (see HOME PANEL) because its dots fill the full
    height beside the text instead. They live here beside --safe-mask
    rather than in the script so the two stay in sync.
-   On mobile the text spans the full width, leaving only thin strips
-   of dots above and below it, so there --wave-y-top makes the wave
-   slowly glide between the top strip and the bottom one (--wave-y)
-   and back. While it crosses the text its dots stay visible but
-   faint: the canvas's mask adds a low uniform layer on top of
-   --safe-mask, so the wave dims behind the text instead of vanishing
-   and reappearing, and the dim grid stays hidden there as before. */
+   On mobile every panel's text spans the full width, leaving only
+   thin strips of dots above and below it, so there --wave-y-top makes
+   the wave slowly glide between the top strip and the bottom one
+   (--wave-y) and back. While it crosses the text its dots stay
+   visible but faint: the canvas's mask adds a low uniform layer on
+   top of --safe-mask, so the wave dims behind the text instead of
+   vanishing and reappearing, and the dim grid stays hidden there as
+   before. About/Projects/Contact are laid out the same way on desktop
+   (full-width text, open strips above and below), so they get the
+   same glide there too - only Home doesn't, since its open area is
+   the wide space beside the text rather than strips above and below
+   it, so its wave already has room to sit in the middle of that
+   without crossing the text at all (see HOME PANEL). */
 .panel {
   --wave-y: 0.91;
   --wave-scale: 0.5;
@@ -699,6 +705,24 @@ header {
   }
 
   .wave-canvas {
+    mask-image: var(--safe-mask), linear-gradient(rgba(0, 0, 0, 0.25), rgba(0, 0, 0, 0.25));
+    -webkit-mask-image: var(--safe-mask), linear-gradient(rgba(0, 0, 0, 0.25), rgba(0, 0, 0, 0.25));
+  }
+}
+
+/* Same glide, applied to the three panels that share the mobile
+   layout's shape (full-width text, open strips above and below) on
+   desktop too - Home excluded, see HOME PANEL. */
+@media screen and (min-width: 900px) {
+  .about-panel,
+  .projects-panel,
+  .contact-panel {
+    --wave-y-top: 0.09;
+  }
+
+  .about-panel .wave-canvas,
+  .projects-panel .wave-canvas,
+  .contact-panel .wave-canvas {
     mask-image: var(--safe-mask), linear-gradient(rgba(0, 0, 0, 0.25), rgba(0, 0, 0, 0.25));
     -webkit-mask-image: var(--safe-mask), linear-gradient(rgba(0, 0, 0, 0.25), rgba(0, 0, 0, 0.25));
   }
