@@ -367,10 +367,15 @@ function drawWave(panel) {
     ctx.clearRect(0, 0, width, height);
     ctx.fillStyle = `rgb(${rgb})`;
     const half = WAVE_GRID / 2;
+    // The dim CSS grid's rows are shifted by --grid-shift (see AMBIENT
+    // DRIFT in styles.css), so the lit dots drawn here need the same
+    // row offset each frame or they drift out of register with it,
+    // producing a moiré between the two layers instead of one grid.
+    const rowPhase = ((half + gridShift) % WAVE_GRID + WAVE_GRID) % WAVE_GRID;
     for (let x = half; x < width; x += WAVE_GRID) {
         const c = mid + amp * Math.sin((2 * Math.PI * (x - center)) / shape.period + wavePhase);
-        const firstRow = Math.max(0, Math.ceil((c - reach - half) / WAVE_GRID));
-        for (let dotY = firstRow * WAVE_GRID + half; dotY <= c + reach && dotY < height; dotY += WAVE_GRID) {
+        const firstRow = Math.max(0, Math.ceil((c - reach - rowPhase) / WAVE_GRID));
+        for (let dotY = firstRow * WAVE_GRID + rowPhase; dotY <= c + reach && dotY < height; dotY += WAVE_GRID) {
             const d = (dotY - c) / sigma;
             ctx.globalAlpha = WAVE_PEAK_ALPHA * Math.exp(-0.5 * d * d);
             ctx.beginPath();
