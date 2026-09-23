@@ -732,12 +732,14 @@ header {
      wide viewport pushes the text column well past the 900px
      --safe-mask above assumes it stops at - dots would start behind
      the text instead of beside it, and the block reads as stranded
-     in the middle of the screen. Pin it to the panel's left edge
+     in the middle of the screen. Pin it near the panel's left edge
      instead (only the vertical auto margins keep centering it
-     top-to-bottom) so the text column stays exactly where
-     --safe-mask expects it, regardless of viewport width. */
+     top-to-bottom) so the text column stays close to where
+     --safe-mask expects it, regardless of viewport width. A small
+     fixed margin - rather than flush against the panel's own 28px
+     padding - keeps it from reading as jammed against the edge. */
   .hero-content {
-    margin-left: 0;
+    margin-left: 32px;
     margin-right: auto;
   }
 }

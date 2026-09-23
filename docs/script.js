@@ -272,6 +272,17 @@ const WAVE_SHAPES = [
     { period: 950, amp: 65, thick: 60 },  // taller swings
     { period: 900, amp: 45, thick: 90 },  // thicker band
 ];
+// A single sine reads as a perfect, mechanical sin/cos curve. Summing
+// in two smaller harmonics - each at its own frequency and drifting
+// at its own rate relative to the fundamental - makes neighbouring
+// crests rise and fall by different amounts instead of repeating
+// identically, closer to how a real wave looks. Weights sum to 1 so
+// the combined wobble still stays within a shape's own amp/thick.
+const WAVE_HARMONICS = [
+    { weight: 0.62, freq: 1,   phaseRate: 1,   offset: 0 },
+    { weight: 0.25, freq: 1.9, phaseRate: 1.4, offset: 1.7 },
+    { weight: 0.13, freq: 3.1, phaseRate: 0.6, offset: 4.1 },
+];
 const WAVE_MORPH_SECONDS = 6; // per shape-to-shape blend
 const WAVE_DRIFT_SECONDS = 30; // top-to-bottom-and-back, where --wave-y-top is set
 const WAVE_SPEED = 35;        // px/s, leftward
@@ -373,7 +384,12 @@ function drawWave(panel) {
     // producing a moiré between the two layers instead of one grid.
     const rowPhase = ((half + gridShift) % WAVE_GRID + WAVE_GRID) % WAVE_GRID;
     for (let x = half; x < width; x += WAVE_GRID) {
-        const c = mid + amp * Math.sin((2 * Math.PI * (x - center)) / shape.period + wavePhase);
+        const theta = (2 * Math.PI * (x - center)) / shape.period;
+        let wobble = 0;
+        for (const h of WAVE_HARMONICS) {
+            wobble += h.weight * Math.sin(theta * h.freq + wavePhase * h.phaseRate + h.offset);
+        }
+        const c = mid + amp * wobble;
         const firstRow = Math.max(0, Math.ceil((c - reach - rowPhase) / WAVE_GRID));
         for (let dotY = firstRow * WAVE_GRID + rowPhase; dotY <= c + reach && dotY < height; dotY += WAVE_GRID) {
             const d = (dotY - c) / sigma;
