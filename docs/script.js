@@ -46,15 +46,6 @@ if (emailCard && navigator.clipboard && navigator.clipboard.writeText) {
     });
 }
 
-// RESTRICTED REPOSITORY LINK
-const restrictedRepoLink = document.getElementById('restricted-repo-link');
-if (restrictedRepoLink) {
-    restrictedRepoLink.addEventListener('click', (e) => {
-        e.preventDefault();
-        alert('Repository access may be restricted');
-    });
-}
-
 // SINGLE-VIEW PANEL SWITCHING
 // The whole site is one fixed-height screen - nav links (and the hero's
 // own CTAs) swap which <section class="panel"> is visible instead of
