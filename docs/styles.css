@@ -715,11 +715,30 @@ header {
    mobile stacks everything in one narrower column with .hero-content
    vertically centered instead, so the open space is above and below
    it - a percentage-based vertical band there instead. */
+.hero-content {
+  max-width: var(--container-width);
+  width: 100%;
+  margin: auto;
+}
+
 @media screen and (min-width: 900px) {
   .hero-panel {
     --safe-mask: linear-gradient(to right, transparent 0, transparent 620px, black 900px);
     --wave-y: 0.55;
     --wave-scale: 1;
+  }
+
+  /* .hero-content's own margin: auto above centers it, which on a
+     wide viewport pushes the text column well past the 900px
+     --safe-mask above assumes it stops at - dots would start behind
+     the text instead of beside it, and the block reads as stranded
+     in the middle of the screen. Pin it to the panel's left edge
+     instead (only the vertical auto margins keep centering it
+     top-to-bottom) so the text column stays exactly where
+     --safe-mask expects it, regardless of viewport width. */
+  .hero-content {
+    margin-left: 0;
+    margin-right: auto;
   }
 }
 
@@ -727,12 +746,6 @@ header {
   .hero-panel {
     --safe-mask: linear-gradient(to bottom, black 0, black 10%, transparent 22%, transparent 78%, black 90%, black 100%);
   }
-}
-
-.hero-content {
-  max-width: var(--container-width);
-  width: 100%;
-  margin: auto;
 }
 
 .hero-title {
