@@ -428,7 +428,15 @@ let waveLastDraw = -Infinity;
 function waveFrame(now) {
     if (waveLastTime !== null) {
         const dt = Math.min((now - waveLastTime) / 1000, 0.1);
-        wavePhase = (wavePhase + (2 * Math.PI * WAVE_SPEED * dt) / currentWaveShape().period) % (2 * Math.PI);
+        // Not wrapped mod 2*PI: wavePhase feeds three harmonics at
+        // different phaseRate multiples (see drawWave), and wrapping
+        // it by exactly 2*PI only leaves the freq:1 term unchanged -
+        // the others land at a different point in their own cycle
+        // each time, a real jump in the rendered wave every time this
+        // wrapped around (every few seconds at the current speed).
+        // Left to grow, a double still carries ample precision for
+        // any realistic session length.
+        wavePhase += (2 * Math.PI * WAVE_SPEED * dt) / currentWaveShape().period;
         waveMorphT += dt / WAVE_MORPH_SECONDS;
         if (waveMorphT >= 1) {
             waveMorphT = 0;
