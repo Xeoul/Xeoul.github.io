@@ -279,11 +279,16 @@ const WAVE_FRAME_MS = 33;     // ~30fps is plenty for motion this slow
 const WAVE_GRID = 26;         // must match the dot grid's background-size
 const WAVE_DOT_RADIUS = 1.2;  // and its dot size
 const WAVE_PEAK_ALPHA = 0.85;
+// The dim dot grid drifts at this slice of the wave's own speed (see
+// --grid-shift below), so it reads as the same current the wave rides
+// on rather than a separate animation that merely happens to agree.
+const GRID_DRIFT_RATIO = 0.1;
 const reducedMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
 
 let wavePhase = 0;
 let waveMorph = 0;
 let waveDrift = 0;
+let gridShift = 0;
 let waveRaf = null;
 const waveGeometry = new Map();
 
@@ -386,6 +391,8 @@ function waveFrame(now) {
         wavePhase = (wavePhase + (2 * Math.PI * WAVE_SPEED * dt) / waveShapeAt(waveMorph).period) % (2 * Math.PI);
         waveMorph = (waveMorph + dt / WAVE_MORPH_SECONDS) % WAVE_SHAPES.length;
         waveDrift = (waveDrift + dt / WAVE_DRIFT_SECONDS) % 1;
+        gridShift = (gridShift - WAVE_SPEED * GRID_DRIFT_RATIO * dt) % WAVE_GRID;
+        document.documentElement.style.setProperty('--grid-shift', `${gridShift}px`);
     }
     waveLastTime = now;
     if (now - waveLastDraw >= WAVE_FRAME_MS) {
