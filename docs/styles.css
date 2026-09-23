@@ -1431,6 +1431,28 @@ header {
     padding: 10px 20px;
   }
 
+  /* The hero name/role clamp() floors (38px/17px) were tuned as a
+     readable minimum, but against a phone-width viewport that reads
+     much larger relative to the screen than the same clamp's capped
+     max does against a desktop one - the block ends up dominating the
+     screen instead of sitting in it the way it does on desktop.
+     Smaller floors here bring that ratio back down. */
+  .hero-title .name {
+    font-size: 30px;
+  }
+
+  .hero-title .role {
+    font-size: 15px;
+  }
+
+  .hero-title {
+    margin: 12px 0 14px 0;
+  }
+
+  .hero-description {
+    margin-bottom: 28px;
+  }
+
   .project-card {
     padding: 12px 0;
   }
