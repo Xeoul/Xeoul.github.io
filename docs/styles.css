@@ -793,23 +793,25 @@ header {
 }
 
 @media screen and (max-width: 899px) {
-  /* Top-anchored instead of vertically centered, name sitting in
-     normal reading position right under the header rather than in
-     the middle of the panel. Content measures ~31% down the panel
-     with this, so dots stay hidden through 34% and are fully open by
-     42% - one open area below instead of split strips above and
-     below, so no --wave-y-top glide (there's no top strip to glide
-     into anymore) and --wave-y sits in the middle of that one open
-     area instead of the generic bottom-strip default. */
+  /* Minimal centered layout: just name, role and a one-line tagline
+     in the middle, no CTA buttons - the tab bar already links to
+     Projects and Contact. That block measures ~41-59% down the
+     panel, so dots are hidden only through 38-62% and the open areas
+     above and below are much larger than a full hero would leave;
+     the wave glides between the middle of each. */
   .hero-panel {
-    --safe-mask: linear-gradient(to bottom, transparent 0, transparent 34%, black 42%, black 100%);
-    --wave-y-top: initial;
-    --wave-y: 0.7;
+    --safe-mask: linear-gradient(to bottom, black 0, black 30%, transparent 38%, transparent 62%, black 70%, black 100%);
+    --wave-y: 0.85;
+    --wave-y-top: 0.15;
   }
 
   .hero-content {
-    margin-top: 0;
-    margin-bottom: 0;
+    margin-top: auto;
+    margin-bottom: auto;
+  }
+
+  .hero-panel .hero-actions {
+    display: none;
   }
 }
 
@@ -1446,10 +1448,6 @@ header {
     padding: 10px 20px;
   }
 
-  .hero-content {
-    margin-top: 24px;
-  }
-
   /* The hero name/role clamp() floors (38px/17px) were tuned as a
      readable minimum, but against a phone-width viewport that reads
      much larger relative to the screen than the same clamp's capped
@@ -1480,16 +1478,6 @@ header {
   .project-description p,
   .tech-tags {
     margin-bottom: 6px;
-  }
-
-  .hero-actions {
-    gap: 10px;
-  }
-
-  .cta-primary, .cta-secondary {
-    justify-content: center;
-    font-size: 13px;
-    padding: 10px 16px;
   }
 
   .project-card {
