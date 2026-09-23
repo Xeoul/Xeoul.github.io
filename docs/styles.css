@@ -759,11 +759,11 @@ header {
    layers sit above it since .panel's own stacking context paints its
    background first. Positioned per layout below. */
 .hero-panel {
-  --glow-a: 72% 55%;
-  --glow-b: 88% 32%;
+  --glow-a: 55% 45% at 72% 55%;
+  --glow-b: 35% 30% at 88% 32%;
   background:
-    radial-gradient(ellipse 55% 45% at var(--glow-a), rgba(var(--color-accent-rgb), 0.07), transparent 70%),
-    radial-gradient(ellipse 35% 30% at var(--glow-b), rgba(167, 139, 250, 0.06), transparent 70%);
+    radial-gradient(ellipse var(--glow-a), rgba(var(--color-accent-rgb), 0.07), transparent 70%),
+    radial-gradient(ellipse var(--glow-b), rgba(167, 139, 250, 0.06), transparent 70%);
 }
 
 @media screen and (min-width: 900px) {
@@ -826,11 +826,13 @@ header {
     display: none;
   }
 
-  /* Mobile's dots sit above and below the centered text, so the glow
-     moves into those areas instead of behind the text. */
+  /* Mobile's dots sit in wide strips above and below the centered
+     text, so the glow becomes two flat horizontal bands over those
+     strips - sized as a share of a tall, narrow panel, the desktop
+     proportions would stretch into tall vertical ovals. */
   .hero-panel {
-    --glow-a: 50% 85%;
-    --glow-b: 50% 15%;
+    --glow-a: 90% 14% at 50% 85%;
+    --glow-b: 90% 12% at 50% 15%;
   }
 }
 
@@ -839,34 +841,12 @@ header {
   line-height: 1.05;
 }
 
-/* The name is filled with a gradient that runs ink -> accent -> violet
-   -> ink, twice as wide as the text, and slowly slides across it so the
-   color drifts through the letters. inline-block rather than block so
-   the gradient spans the text's own width, not the whole column. */
 .hero-title .name {
-  display: inline-block;
+  display: block;
   font-size: clamp(38px, 6.4vw, 68px);
   font-weight: 600;
   letter-spacing: -0.03em;
   color: var(--color-ink);
-  background: linear-gradient(100deg, var(--color-ink) 0%, var(--color-ink) 30%, var(--color-accent) 45%, #a78bfa 55%, var(--color-ink) 70%, var(--color-ink) 100%);
-  background-size: 200% 100%;
-  background-position: 100% 0;
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  animation: name-sheen 8s ease-in-out infinite alternate;
-}
-
-@keyframes name-sheen {
-  to { background-position: 0% 0; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .hero-title .name {
-    animation: none;
-    background-position: 50% 0;
-  }
 }
 
 .hero-title .role {
