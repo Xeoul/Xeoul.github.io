@@ -285,11 +285,18 @@ const WAVE_HARMONICS = [
 ];
 const WAVE_MORPH_SECONDS = 6; // per shape-to-shape blend
 const WAVE_DRIFT_SECONDS = 30; // top-to-bottom-and-back, where --wave-y-top is set
-const WAVE_SPEED = 35;        // px/s, leftward
+const WAVE_SPEED = 35;        // px/s, leftward, once settled
 const WAVE_FRAME_MS = 33;     // ~30fps is plenty for motion this slow
 const WAVE_GRID = 26;         // must match the dot grid's background-size
 const WAVE_DOT_RADIUS = 1.2;  // and its dot size
 const WAVE_PEAK_ALPHA = 0.85;
+// On page load the wave starts this many times faster than its normal
+// speed and eases back down to 1x over WAVE_INTRO_SECONDS, reading as
+// a brief "spin-down" flourish rather than a static page waking up.
+// It's a one-time ramp, not a loop: once waveIntroElapsed reaches the
+// duration it stays there for the rest of the session.
+const WAVE_INTRO_SECONDS = 2.5;
+const WAVE_INTRO_SPEED_MULT = 4;
 // The dim dot grid drifts vertically at this slice of the wave's own
 // speed (see --grid-shift below), so it reads as the same current the
 // wave rides on rather than a separate animation that merely happens
@@ -299,6 +306,7 @@ const reducedMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
 
 let wavePhase = 0;
 let waveMorph = 0;
+let waveIntroElapsed = 0;
 let waveDrift = 0;
 let gridShift = 0;
 let waveRaf = null;
@@ -410,10 +418,17 @@ let waveLastDraw = -Infinity;
 function waveFrame(now) {
     if (waveLastTime !== null) {
         const dt = Math.min((now - waveLastTime) / 1000, 0.1);
-        wavePhase = (wavePhase + (2 * Math.PI * WAVE_SPEED * dt) / waveShapeAt(waveMorph).period) % (2 * Math.PI);
+        // Eases from WAVE_INTRO_SPEED_MULT down to 1x with an ease-out
+        // curve (fast at first, decelerating into the settled speed)
+        // over the first WAVE_INTRO_SECONDS, then holds at 1x.
+        waveIntroElapsed = Math.min(waveIntroElapsed + dt, WAVE_INTRO_SECONDS);
+        const introT = waveIntroElapsed / WAVE_INTRO_SECONDS;
+        const introEase = 1 - Math.pow(1 - introT, 3);
+        const speedMult = 1 + (WAVE_INTRO_SPEED_MULT - 1) * (1 - introEase);
+        wavePhase = (wavePhase + (2 * Math.PI * WAVE_SPEED * speedMult * dt) / waveShapeAt(waveMorph).period) % (2 * Math.PI);
         waveMorph = (waveMorph + dt / WAVE_MORPH_SECONDS) % WAVE_SHAPES.length;
         waveDrift = (waveDrift + dt / WAVE_DRIFT_SECONDS) % 1;
-        gridShift = (gridShift - WAVE_SPEED * GRID_DRIFT_RATIO * dt) % WAVE_GRID;
+        gridShift = (gridShift - WAVE_SPEED * speedMult * GRID_DRIFT_RATIO * dt) % WAVE_GRID;
         document.documentElement.style.setProperty('--grid-shift', `${gridShift}px`);
     }
     waveLastTime = now;
