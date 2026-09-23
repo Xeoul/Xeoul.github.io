@@ -1431,6 +1431,11 @@ header {
     padding: 10px 20px;
   }
 
+  .hero-content {
+    margin-top: 16vh;
+    margin-bottom: auto;
+  }
+
   /* The hero name/role clamp() floors (38px/17px) were tuned as a
      readable minimum, but against a phone-width viewport that reads
      much larger relative to the screen than the same clamp's capped
