@@ -376,8 +376,22 @@ function panelWaveGeometry(panel) {
 // too little to show a seam.
 const GLOW_STEP = 8;
 
+// Where a panel currently sits relative to the view - 0 once it's
+// settled, but mid-slide it's partway off one side (see showPanel).
+function panelOffsetX(panel) {
+    return panel.getBoundingClientRect().left - viewEl.getBoundingClientRect().left;
+}
+
+const waveDrawnOffset = new Map();
+
 function drawWave(panel) {
     const { ctx, dpr, width, height, y, yTop, scale, glow } = panelWaveGeometry(panel);
+    // The wave is laid out in view coordinates rather than the panel's
+    // own, so while two panels slide past each other their waves meet
+    // at the seam as one continuous line instead of each carrying its
+    // own copy along - which showed as a visible break between them.
+    const offsetX = panelOffsetX(panel);
+    waveDrawnOffset.set(panel, offsetX);
     const shape = currentWaveShape();
     const centreY = Number.isNaN(yTop) ? y : y + (yTop - y) * (1 - Math.cos(2 * Math.PI * waveDrift)) / 2;
     const mid = height * centreY;
@@ -397,7 +411,7 @@ function drawWave(panel) {
     // producing a moiré between the two layers instead of one grid.
     const rowPhase = ((half + gridShift) % WAVE_GRID + WAVE_GRID) % WAVE_GRID;
     const centreAt = (x) => {
-        const theta = (2 * Math.PI * (x - center)) / shape.period;
+        const theta = (2 * Math.PI * (x + offsetX - center)) / shape.period;
         let wobble = 0;
         for (const h of WAVE_HARMONICS) {
             wobble += h.weight * Math.sin(theta * h.freq + wavePhase * h.phaseRate + h.offset);
@@ -468,7 +482,12 @@ function waveFrame(now) {
         document.documentElement.style.setProperty('--grid-shift', `${gridShift}px`);
     }
     waveLastTime = now;
-    if (now - waveLastDraw >= WAVE_FRAME_MS) {
+    // Mid-slide, redraw every frame rather than at the usual reduced
+    // rate: the wave is positioned from where each panel sat when it
+    // was drawn, so a stale frame would leave the two halves out of
+    // line at the seam for as long as it stayed on screen.
+    const sliding = panels.some((panel) => panelOffsetX(panel) !== waveDrawnOffset.get(panel));
+    if (sliding || now - waveLastDraw >= WAVE_FRAME_MS) {
         panels.forEach(drawWave);
         waveLastDraw = now;
     }
