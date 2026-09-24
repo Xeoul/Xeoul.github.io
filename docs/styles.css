@@ -676,6 +676,12 @@ header {
 .panel {
   --wave-y: 0.91;
   --wave-scale: 0.5;
+  /* A faint accent haze under the wave, drawn on the wave canvas by
+     script.js (see drawWave) so it follows the wave's curve and drift
+     rather than sitting still. The value is its peak opacity. Shared
+     by every panel, like the wave's position below, so the two halves
+     match where panels meet mid-slide. */
+  --wave-glow: 0.09;
 }
 
 .panel::before,
@@ -702,8 +708,12 @@ header {
 }
 
 @media screen and (max-width: 899px) {
+  /* The same glide on every panel, so a wave leaving one panel mid-slide
+     lines up with the one entering beside it. 0.07/0.91 sit in the
+     open strips above and below every panel's text, including the
+     thinnest (About/Projects, see RESPONSIVE). */
   .panel {
-    --wave-y-top: 0.09;
+    --wave-y-top: 0.07;
   }
 
   .wave-canvas {
@@ -754,13 +764,6 @@ header {
   margin: auto;
 }
 
-/* A faint accent haze under the wave, drawn on the wave canvas by
-   script.js (see drawWave) so it follows the wave's curve and drift
-   rather than sitting still. The value is its peak opacity. */
-.hero-panel {
-  --wave-glow: 0.09;
-}
-
 @media screen and (min-width: 900px) {
   .hero-panel {
     /* Shifted 40px right of where the text column now starts (see
@@ -804,12 +807,9 @@ header {
      in the middle, no CTA buttons - the tab bar already links to
      Projects and Contact. That block measures ~41-59% down the
      panel, so dots are hidden only through 38-62% and the open areas
-     above and below are much larger than a full hero would leave;
-     the wave glides between the middle of each. */
+     above and below are much larger than a full hero would leave. */
   .hero-panel {
     --safe-mask: linear-gradient(to bottom, black 0, black 30%, transparent 38%, transparent 62%, black 70%, black 100%);
-    --wave-y: 0.85;
-    --wave-y-top: 0.15;
   }
 
   .hero-content {
@@ -1420,36 +1420,22 @@ header {
     margin-top: 4px;
   }
 
-  /* Give About/Projects/Contact the same wave Home has on mobile:
-     the glow, and a glide between the middle of the empty space
-     above and below their text. Their text measures roughly 17-81%
-     (About), 17-81% (Projects) and 25-75% (Contact) down the panel,
-     so each --safe-mask opens right up to just outside that instead
-     of the wider desktop margins, which left only a sliver the wave
-     rarely showed in. Placed here, after each panel's own
-     --safe-mask, so these win on mobile only. */
-  .about-panel,
-  .projects-panel,
-  .contact-panel {
-    --wave-glow: 0.09;
-  }
-
+  /* Open About/Projects/Contact's dot areas up on mobile. Their text
+     measures roughly 17-81% (About), 17-81% (Projects) and 25-75%
+     (Contact) down the panel, so each --safe-mask opens right up to
+     just outside that instead of the wider desktop margins, which
+     left only a sliver the wave rarely showed in. Placed here, after
+     each panel's own --safe-mask, so these win on mobile only. */
   .about-panel {
     --safe-mask: linear-gradient(to bottom, black 0, black 13%, transparent 17%, transparent 78%, black 82%, black 100%);
-    --wave-y: 0.91;
-    --wave-y-top: 0.07;
   }
 
   .projects-panel {
     --safe-mask: linear-gradient(to bottom, black 0, black 11%, transparent 15%, transparent 82%, black 86%, black 100%);
-    --wave-y: 0.93;
-    --wave-y-top: 0.06;
   }
 
   .contact-panel {
     --safe-mask: linear-gradient(to bottom, black 0, black 19%, transparent 23%, transparent 77%, black 81%, black 100%);
-    --wave-y: 0.9;
-    --wave-y-top: 0.1;
   }
 
   /* Even opened up, those strips are far thinner than Home's, so the
