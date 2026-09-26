@@ -280,7 +280,7 @@ const WAVE_PEAK_ALPHA = 0.85;
 // speed (see --grid-shift below), so it reads as the same current the
 // wave rides on rather than a separate animation that merely happens
 // to agree, even though the wave itself travels sideways.
-const GRID_DRIFT_RATIO = 0.1;
+const GRID_DRIFT_RATIO = 0.06; // ~8px/s at WAVE_SPEED - 0.1 (14px/s) read as too quick
 const reducedMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
 
 // Shapes used to cycle through a fixed list of three, which - combined
