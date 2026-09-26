@@ -382,16 +382,51 @@ function panelOffsetX(panel) {
     return panel.getBoundingClientRect().left - viewEl.getBoundingClientRect().left;
 }
 
-const waveDrawnOffset = new Map();
+// The accent colour only changes with the theme, so it's read from
+// computed style once and cached (see resetWaveColours) instead of on
+// every draw. The glow is likewise pre-rendered once per colour as a
+// single 1px-wide column of its vertical gradient, which each strip
+// then stretches into place - one drawImage per strip rather than
+// building a fresh gradient object for every strip of every frame.
+const GLOW_SPRITE_HEIGHT = 512;
+let accentRgb = null;
+const glowSprites = new Map();
 
-function drawWave(panel) {
+function waveAccent() {
+    if (accentRgb === null) {
+        accentRgb = getComputedStyle(document.documentElement).getPropertyValue('--color-accent-rgb').trim();
+    }
+    return accentRgb;
+}
+
+function glowSprite(rgb, glow) {
+    const key = `${rgb}|${glow}`;
+    let sprite = glowSprites.get(key);
+    if (!sprite) {
+        sprite = document.createElement('canvas');
+        sprite.width = 1;
+        sprite.height = GLOW_SPRITE_HEIGHT;
+        const sctx = sprite.getContext('2d');
+        const grad = sctx.createLinearGradient(0, 0, 0, GLOW_SPRITE_HEIGHT);
+        grad.addColorStop(0, `rgba(${rgb}, 0)`);
+        grad.addColorStop(0.25, `rgba(${rgb}, ${glow * 0.35})`);
+        grad.addColorStop(0.5, `rgba(${rgb}, ${glow})`);
+        grad.addColorStop(0.75, `rgba(${rgb}, ${glow * 0.35})`);
+        grad.addColorStop(1, `rgba(${rgb}, 0)`);
+        sctx.fillStyle = grad;
+        sctx.fillRect(0, 0, 1, GLOW_SPRITE_HEIGHT);
+        glowSprites.set(key, sprite);
+    }
+    return sprite;
+}
+
+function drawWave(panel, offsetX = panelOffsetX(panel)) {
     const { ctx, dpr, width, height, y, yTop, scale, glow } = panelWaveGeometry(panel);
     // The wave is laid out in view coordinates rather than the panel's
-    // own, so while two panels slide past each other their waves meet
-    // at the seam as one continuous line instead of each carrying its
-    // own copy along - which showed as a visible break between them.
-    const offsetX = panelOffsetX(panel);
-    waveDrawnOffset.set(panel, offsetX);
+    // own (offsetX), so while two panels slide past each other their
+    // waves meet at the seam as one continuous line instead of each
+    // carrying its own copy along - which showed as a visible break
+    // between them.
     const shape = currentWaveShape();
     const centreY = Number.isNaN(yTop) ? y : y + (yTop - y) * (1 - Math.cos(2 * Math.PI * waveDrift)) / 2;
     const mid = height * centreY;
@@ -399,7 +434,7 @@ function drawWave(panel) {
     const sigma = (shape.thick * scale) * 0.4;
     const reach = sigma * 3;
     const center = width * 0.6;
-    const rgb = getComputedStyle(document.documentElement).getPropertyValue('--color-accent-rgb').trim();
+    const rgb = waveAccent();
 
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, width, height);
@@ -421,18 +456,11 @@ function drawWave(panel) {
 
     if (glow > 0) {
         const radius = reach * 2.5 + 40;
+        const sprite = glowSprite(rgb, glow);
         for (let x = 0; x < width; x += GLOW_STEP) {
             const c = centreAt(x + GLOW_STEP / 2);
-            const grad = ctx.createLinearGradient(0, c - radius, 0, c + radius);
-            grad.addColorStop(0, `rgba(${rgb}, 0)`);
-            grad.addColorStop(0.25, `rgba(${rgb}, ${glow * 0.35})`);
-            grad.addColorStop(0.5, `rgba(${rgb}, ${glow})`);
-            grad.addColorStop(0.75, `rgba(${rgb}, ${glow * 0.35})`);
-            grad.addColorStop(1, `rgba(${rgb}, 0)`);
-            ctx.fillStyle = grad;
-            ctx.fillRect(x, c - radius, GLOW_STEP, radius * 2);
+            ctx.drawImage(sprite, x, c - radius, GLOW_STEP, radius * 2);
         }
-        ctx.fillStyle = `rgb(${rgb})`;
     }
 
     for (let x = half; x < width; x += WAVE_GRID) {
@@ -447,18 +475,39 @@ function drawWave(panel) {
         }
     }
     ctx.globalAlpha = 1;
+    // Set on the panel itself, alongside its canvas, rather than once on
+    // the root: a custom property changed on <html> restyles the whole
+    // page every frame, where here it only touches the panels actually
+    // on screen - and keeps the dim grid's rows in step with the rowPhase
+    // the lit dots above were just drawn at.
+    panel.style.setProperty('--grid-shift', `${gridShift}px`);
+}
+
+function drawAllWaves() {
+    panels.forEach((panel) => drawWave(panel));
+}
+
+// Drops the cached accent colour and glow (see waveAccent) after a theme
+// change and redraws straight away, so still panels (and reduced
+// motion) pick up the new colour too.
+function resetWaveColours() {
+    accentRgb = null;
+    glowSprites.clear();
+    drawAllWaves();
 }
 
 let waveLastTime = null;
 let waveLastDraw = -Infinity;
+let waveLastOffsets = [];
 
-// Every panel is redrawn each tick, not just the active one. Panels
-// off-screen are cheap to draw and staying still doesn't save the
-// cost of a canvas clear+redraw, but skipping them let wavePhase (a
-// single shared clock, not per-panel) keep advancing in the
-// background while a panel was hidden - so switching back to it after
-// a while would suddenly show wherever the wave now was, a visible
-// jump instead of the smooth motion the rest of the time promises.
+// Only panels at least partly on screen are redrawn each tick - each
+// one is a full-screen canvas, so redrawing (and re-uploading) the
+// three sitting off-screen cost several times the work of the one
+// actually visible. The shared clock below still advances every tick
+// regardless, and a panel is drawn on the very frame it starts sliding
+// back into view, so it never shows a stale frame from when it was
+// last visible - which is what once made a panel returning after a
+// while jump to wherever the wave had since moved.
 function waveFrame(now) {
     if (waveLastTime !== null) {
         const dt = Math.min((now - waveLastTime) / 1000, 0.1);
@@ -479,23 +528,28 @@ function waveFrame(now) {
         }
         waveDrift = (waveDrift + dt / WAVE_DRIFT_SECONDS) % 1;
         gridShift = (gridShift - WAVE_SPEED * GRID_DRIFT_RATIO * dt) % WAVE_GRID;
-        document.documentElement.style.setProperty('--grid-shift', `${gridShift}px`);
     }
     waveLastTime = now;
+    // Every position is read up front, before drawWave writes any
+    // style, so reading them never forces an extra style/layout pass.
+    const offsets = panels.map(panelOffsetX);
     // Mid-slide, redraw every frame rather than at the usual reduced
     // rate: the wave is positioned from where each panel sat when it
     // was drawn, so a stale frame would leave the two halves out of
     // line at the seam for as long as it stayed on screen.
-    const sliding = panels.some((panel) => panelOffsetX(panel) !== waveDrawnOffset.get(panel));
+    const sliding = offsets.some((offset, i) => offset !== waveLastOffsets[i]);
     if (sliding || now - waveLastDraw >= WAVE_FRAME_MS) {
-        panels.forEach(drawWave);
+        panels.forEach((panel, i) => {
+            if (Math.abs(offsets[i]) < panelWaveGeometry(panel).width) drawWave(panel, offsets[i]);
+        });
+        waveLastOffsets = offsets;
         waveLastDraw = now;
     }
     waveRaf = requestAnimationFrame(waveFrame);
 }
 
 function syncWaveMotion() {
-    panels.forEach(drawWave);
+    drawAllWaves();
     if (reducedMotionQuery.matches) {
         cancelAnimationFrame(waveRaf);
         waveRaf = null;
@@ -507,14 +561,13 @@ function syncWaveMotion() {
 
 window.addEventListener('resize', () => {
     waveGeometry.clear();
-    panels.forEach(drawWave);
+    drawAllWaves();
 });
 reducedMotionQuery.addEventListener('change', syncWaveMotion);
-// The dots take the accent colour, which changes with the theme; redraw
-// straight away so still panels (and reduced motion) pick it up too.
-new MutationObserver(() => panels.forEach(drawWave))
+// The dots take the accent colour, which changes with the theme.
+new MutationObserver(resetWaveColours)
     .observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
-window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => panels.forEach(drawWave));
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', resetWaveColours);
 syncWaveMotion();
 
 // LIVE GITHUB PROFILE STATS (public repo count, followers). Pulled from
@@ -542,16 +595,49 @@ function animateCount(el, target, duration = 800) {
     requestAnimationFrame(tick);
 }
 
-const githubStatsEls = document.querySelectorAll('.github-stats[data-github-user]');
-if (githubStatsEls.length) {
-    const username = githubStatsEls[0].getAttribute('data-github-user');
-    fetch(`https://api.github.com/users/${username}`, {
+// Both GitHub requests below go through here. Unauthenticated calls to
+// the API are capped at 60 an hour per visitor, and every page load used
+// to spend two - a few reloads or tab revisits could run a visitor out,
+// after which both sections hide themselves (see the .catch()es). So the
+// part of each response actually used is kept for a few minutes: only
+// that summary is stored, not the raw response (the events list alone
+// runs to hundreds of KB), and a cached result also skips the loading
+// shimmer. Storage can throw in private-browsing/locked-down contexts,
+// in which case this just falls back to fetching every time.
+const GITHUB_CACHE_MS = 10 * 60 * 1000;
+
+function fetchGitHub(path, summarize) {
+    const key = `github:${path}`;
+    try {
+        const cached = JSON.parse(localStorage.getItem(key));
+        if (cached && Date.now() - cached.time < GITHUB_CACHE_MS) {
+            return Promise.resolve(cached.data);
+        }
+    } catch (e) {
+        // Fall through to a fresh fetch.
+    }
+    return fetch(`https://api.github.com${path}`, {
         headers: { 'Accept': 'application/vnd.github+json' }
     })
         .then(res => {
             if (!res.ok) throw new Error(`GitHub API error ${res.status}`);
             return res.json();
         })
+        .then(json => {
+            const data = summarize(json);
+            try {
+                localStorage.setItem(key, JSON.stringify({ time: Date.now(), data }));
+            } catch (e) {
+                // Not cached this time - still shown.
+            }
+            return data;
+        });
+}
+
+const githubStatsEls = document.querySelectorAll('.github-stats[data-github-user]');
+if (githubStatsEls.length) {
+    const username = githubStatsEls[0].getAttribute('data-github-user');
+    fetchGitHub(`/users/${username}`, ({ public_repos, followers }) => ({ public_repos, followers }))
         .then(data => {
             githubStatsEls.forEach(githubStats => {
                 const setStat = (selector, count, noun) => {
@@ -602,20 +688,15 @@ if (ghHeatmap) {
     }
     ghHeatmap.appendChild(skeletonFragment);
 
-    fetch(`https://api.github.com/users/${username}/events/public?per_page=100`, {
-        headers: { 'Accept': 'application/vnd.github+json' }
+    fetchGitHub(`/users/${username}/events/public?per_page=100`, events => {
+        const counts = {};
+        events.forEach(ev => {
+            const day = ev.created_at.slice(0, 10); // YYYY-MM-DD, UTC
+            counts[day] = (counts[day] || 0) + 1;
+        });
+        return counts;
     })
-        .then(res => {
-            if (!res.ok) throw new Error(`GitHub API error ${res.status}`);
-            return res.json();
-        })
-        .then(events => {
-            const counts = {};
-            events.forEach(ev => {
-                const day = ev.created_at.slice(0, 10); // YYYY-MM-DD, UTC
-                counts[day] = (counts[day] || 0) + 1;
-            });
-
+        .then(counts => {
             const fragment = document.createDocumentFragment();
 
             for (let i = 0; i < totalDays; i++) {
