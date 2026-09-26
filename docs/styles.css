@@ -647,7 +647,7 @@ header {
    Both layers share the per-panel --safe-mask, which keeps dots out
    of each panel's text area.
    The dim grid also drifts slowly up and down, driven by the same
-   clock as the wave (see --grid-shift in script.js's waveFrame) at a
+   clock as the wave (see --grid-shift in script.js's drawWave) at a
    slice of its speed - so the two feel like one current even though
    the wave itself travels sideways. It's a CSS custom property
    rather than a keyframe animation so it starts, stops and respects
