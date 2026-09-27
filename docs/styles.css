@@ -16,6 +16,7 @@
   --color-border: #e3e2dd;
   --color-border-strong: #cfcec8;
   --color-skeleton-highlight: #e9e7e1;
+  --color-status: #16a34a;
   --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-mono: ui-monospace, 'SFMono-Regular', 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
   --radius: 6px;
@@ -53,6 +54,7 @@
     --color-border: #232328;
     --color-border-strong: #5f5f64;
     --color-skeleton-highlight: #2b2b31;
+    --color-status: #4ade80;
   }
 }
 
@@ -68,6 +70,7 @@
   --color-border: #232328;
   --color-border-strong: #5f5f64;
   --color-skeleton-highlight: #2b2b31;
+  --color-status: #4ade80;
 }
 
 /* ============================================================
@@ -820,6 +823,56 @@ header {
   .hero-panel .hero-actions {
     display: none;
   }
+
+  /* 404.html reuses the hero layout, but there the buttons are the
+     whole point - the only way back besides the tab bar. */
+  .hero-panel.not-found .hero-actions {
+    display: flex;
+  }
+}
+
+/* Availability line above the name - small and mono like the other
+   labels on the site so it reads as a status, not a headline. The dot
+   pulses gently to suggest "live"; reduced motion keeps it still. */
+.hero-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--color-ink-soft);
+  letter-spacing: 0.02em;
+}
+
+.status-dot {
+  position: relative;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--color-status);
+  flex-shrink: 0;
+}
+
+.status-dot::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: var(--color-status);
+  animation: statusPulse 2.4s ease-out infinite;
+}
+
+@keyframes statusPulse {
+  0% { transform: scale(1); opacity: 0.6; }
+  70%, 100% { transform: scale(2.6); opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .status-dot::after {
+    animation: none;
+    opacity: 0;
+  }
 }
 
 .hero-title {
@@ -1241,6 +1294,81 @@ header {
   color: var(--color-accent);
 }
 
+/* More on GitHub - a compact row of links under the featured
+   projects, kept deliberately lighter than the cards above it. */
+.more-repos {
+  margin-top: 22px;
+}
+
+.more-repos-title {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin: 0 0 10px 0;
+}
+
+.more-repos-title a {
+  color: var(--color-ink-soft);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.more-repos-title a:hover {
+  color: var(--color-accent);
+}
+
+.repo-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.repo-link {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 6px 10px;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  font-size: 13px;
+  color: var(--color-ink);
+  text-decoration: none;
+  transition: border-color 0.2s ease, color 0.2s ease;
+}
+
+.repo-link:hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+.repo-meta {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--color-ink-soft);
+}
+
+/* Phones get just the heading, as a link to the full list - the
+   list itself would push the featured projects to the screen edges
+   (or off a shorter one). */
+@media screen and (max-width: 640px) {
+  .more-repos {
+    margin-top: 14px;
+  }
+
+  .more-repos-title {
+    margin: 0;
+  }
+
+  .repo-list {
+    display: none;
+  }
+}
+
 /* ============================================================
    CONTACT PANEL
    Each method is a single flat row (icon / label / value) - the
@@ -1421,17 +1549,18 @@ header {
   }
 
   /* Open About/Projects/Contact's dot areas up on mobile. Their text
-     measures roughly 17-81% (About), 17-81% (Projects) and 25-75%
-     (Contact) down the panel, so each --safe-mask opens right up to
-     just outside that instead of the wider desktop margins, which
-     left only a sliver the wave rarely showed in. Placed here, after
-     each panel's own --safe-mask, so these win on mobile only. */
+     measures roughly 17-81% (About), 15-85% (Projects, including its
+     More on GitHub link) and 25-75% (Contact) down the panel, so each
+     --safe-mask opens right up to just outside that instead of the
+     wider desktop margins, which left only a sliver the wave rarely
+     showed in. Placed here, after each panel's own --safe-mask, so
+     these win on mobile only. */
   .about-panel {
     --safe-mask: linear-gradient(to bottom, black 0, black 13%, transparent 17%, transparent 78%, black 82%, black 100%);
   }
 
   .projects-panel {
-    --safe-mask: linear-gradient(to bottom, black 0, black 11%, transparent 15%, transparent 82%, black 86%, black 100%);
+    --safe-mask: linear-gradient(to bottom, black 0, black 10%, transparent 14%, transparent 86%, black 90%, black 100%);
   }
 
   .contact-panel {
@@ -1484,6 +1613,11 @@ header {
     margin-bottom: 24px;
   }
 
+  .hero-status {
+    font-size: 11px;
+    letter-spacing: 0;
+  }
+
   .project-card {
     padding: 12px 0;
   }
@@ -1515,6 +1649,13 @@ header {
   }
 
   .contact-label {
+    display: none;
+  }
+}
+
+/* Keeps the status line to one line on the narrowest phones. */
+@media screen and (max-width: 359px) {
+  .status-where {
     display: none;
   }
 }

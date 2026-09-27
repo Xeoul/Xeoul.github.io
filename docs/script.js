@@ -205,10 +205,44 @@ window.addEventListener('resize', () => moveNavIndicatorToActive(true));
 
 navLinks.forEach(link => {
     link.addEventListener('click', (e) => {
-        e.preventDefault();
         const targetId = link.getAttribute('href').replace('#', '');
+        // Links to a panel that isn't on this page (404.html's nav
+        // points back at /#about etc.) are left to navigate normally.
+        if (!validPanelIds.has(targetId)) return;
+        e.preventDefault();
         showPanel(targetId);
     });
+});
+
+// Moves one panel forward (+1) or back (-1) from the active one, if
+// there is one that way - shared by swipe and the arrow keys below.
+function stepPanel(delta) {
+    const current = panels.find(p => p.classList.contains('active'));
+    if (!current) return;
+    const target = panels[panelIndex(current.id) + delta];
+    if (target) showPanel(target.id);
+}
+
+// KEYBOARD NAVIGATION
+// Left/right arrows page through the panels in the same direction the
+// slide moves, and 1-4 jump straight to one - the keyboard equivalent
+// of swiping or the tab bar. Ignored while typing in a field or with a
+// modifier held, so browser/OS shortcuts (e.g. Alt+Left for back) and
+// any future form input keep their normal behaviour.
+document.addEventListener('keydown', (e) => {
+    if (e.defaultPrevented || e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return;
+    const target = e.target;
+    if (target.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName)) return;
+
+    if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+        e.preventDefault();
+        stepPanel(e.key === 'ArrowRight' ? 1 : -1);
+    } else if (/^[1-9]$/.test(e.key)) {
+        const panel = panels[Number(e.key) - 1];
+        if (!panel) return;
+        e.preventDefault();
+        if (!panel.classList.contains('active')) showPanel(panel.id);
+    }
 });
 
 window.addEventListener('popstate', () => {
@@ -239,14 +273,7 @@ if (viewEl) {
 
         if (Math.abs(dx) < SWIPE_THRESHOLD || Math.abs(dx) < Math.abs(dy) * 1.5) return;
 
-        const current = panels.find(p => p.classList.contains('active'));
-        if (!current) return;
-        const currentIndex = panelIndex(current.id);
-        const targetIndex = currentIndex + (dx < 0 ? 1 : -1);
-
-        if (targetIndex >= 0 && targetIndex < panels.length) {
-            showPanel(panels[targetIndex].id);
-        }
+        stepPanel(dx < 0 ? 1 : -1);
     }, { passive: true });
 }
 
@@ -657,6 +684,51 @@ if (githubStatsEls.length) {
                 githubStats.style.display = 'none';
             });
         });
+}
+
+// MORE ON GITHUB: the most recently updated public repos under
+// Projects, so new work shows up without editing the page. Forks,
+// archived repos and this site's own repo are left out. On a phone CSS
+// shows only the heading, which links to the full list (see
+// .repo-list in styles.css).
+// Fails closed like the rest: the section stays hidden on error or if
+// nothing is left after filtering.
+const REPO_LIMIT = 6;
+const moreRepos = document.querySelector('.more-repos[data-github-user]');
+if (moreRepos) {
+    const username = moreRepos.getAttribute('data-github-user');
+    const siteRepo = `${username}.github.io`.toLowerCase();
+    fetchGitHub(`/users/${username}/repos?sort=pushed&per_page=30`, repos => repos
+        .filter(r => !r.fork && !r.archived && r.name.toLowerCase() !== siteRepo && r.name.toLowerCase() !== username.toLowerCase())
+        .slice(0, REPO_LIMIT)
+        .map(r => ({ name: r.name, url: r.html_url, language: r.language, stars: r.stargazers_count })))
+        .then(repos => {
+            if (!repos.length) return;
+            const list = moreRepos.querySelector('.repo-list');
+            repos.forEach(repo => {
+                const item = document.createElement('li');
+                const link = document.createElement('a');
+                link.className = 'repo-link';
+                link.href = repo.url;
+                link.target = '_blank';
+                link.rel = 'noopener noreferrer';
+                const name = document.createElement('span');
+                name.className = 'repo-name';
+                name.textContent = repo.name;
+                link.appendChild(name);
+                const meta = [repo.language, repo.stars > 0 ? `★ ${repo.stars}` : null].filter(Boolean).join(' · ');
+                if (meta) {
+                    const metaEl = document.createElement('span');
+                    metaEl.className = 'repo-meta';
+                    metaEl.textContent = meta;
+                    link.appendChild(metaEl);
+                }
+                item.appendChild(link);
+                list.appendChild(item);
+            });
+            moreRepos.hidden = false;
+        })
+        .catch(() => {});
 }
 
 // GITHUB ACTIVITY HEATMAP: built from GitHub's own public Events API
