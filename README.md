@@ -34,7 +34,7 @@ Serve `docs/` with any static server:
 python3 -m http.server 8080 --directory docs
 ```
 
-Run the smoke tests (at desktop and phone sizes):
+Run the tests (Playwright, at desktop and phone sizes):
 
 ```sh
 npm ci
@@ -42,4 +42,16 @@ npx playwright install chromium
 npm test
 ```
 
-The same tests run on every pull request via `.github/workflows/ci.yml`.
+- `tests/site.spec.js`: smoke tests for page load, navigation, referenced files, the project catalog and the 404 page.
+- `tests/interactions.spec.js`: every feature in depth, plus edge cases:
+  - printing and cancelling
+  - deep links, the back button, rapid clicks and swipes
+  - theme and email copy
+  - blocked storage and GitHub API failures
+  - the command menu and keyboard shortcuts
+  - overflow from 320px to 1440px
+  - resizing and reduced motion
+  - an axe accessibility scan of every panel in both themes
+  - a seeded stress run of random actions (`STRESS_SEED` / `STRESS_STEPS` make it longer or different)
+
+Both run on every pull request via `.github/workflows/ci.yml`.

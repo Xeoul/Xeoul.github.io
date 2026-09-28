@@ -4,45 +4,7 @@
 // files, the project catalog, and the 404 page.
 const { test, expect } = require('@playwright/test');
 
-// The site calls the public GitHub API for stats, repos and activity.
-// It's answered locally so tests are fast, deterministic and never
-// spend the API's unauthenticated rate limit.
-const today = new Date().toISOString();
-const GITHUB_FIXTURES = {
-  user: { public_repos: 9, followers: 4 },
-  repos: [
-    { name: 'Xeoul.github.io', fork: false, archived: false, html_url: 'https://github.com/Xeoul/Xeoul.github.io', language: 'CSS', stargazers_count: 1, pushed_at: '2026-09-27T18:53:40Z' },
-    { name: 'Installous', fork: false, archived: false, html_url: 'https://github.com/Xeoul/Installous', language: 'TypeScript', stargazers_count: 0 },
-    { name: 'AgentApply', fork: false, archived: false, html_url: 'https://github.com/Xeoul/AgentApply', language: 'Python', stargazers_count: 0 },
-    { name: 'some-fork', fork: true, archived: false, html_url: 'https://github.com/Xeoul/some-fork', language: 'Go', stargazers_count: 0 },
-    { name: 'side-project', fork: false, archived: false, html_url: 'https://github.com/Xeoul/side-project', language: 'Java', stargazers_count: 3 },
-  ],
-  events: [{ created_at: today }, { created_at: today }],
-};
-
-async function mockGitHub(page) {
-  await page.route('https://api.github.com/**', (route) => {
-    const url = route.request().url();
-    const body = url.includes('/events') ? GITHUB_FIXTURES.events
-      : url.includes('/repos') ? GITHUB_FIXTURES.repos
-        : GITHUB_FIXTURES.user;
-    return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(body) });
-  });
-}
-
-// Collects anything the page logs as an error, so each test can assert
-// the page stayed clean.
-function watchErrors(page) {
-  const errors = [];
-  page.on('pageerror', (err) => errors.push(`pageerror: ${err.message}`));
-  page.on('console', (msg) => { if (msg.type() === 'error') errors.push(`console: ${msg.text()}`); });
-  return errors;
-}
-
-// Phones navigate with the bottom tab bar, desktop with the header nav.
-function navLink(page, isMobile, id) {
-  return page.locator(isMobile ? `.tab-bar a[href="#${id}"]` : `.in-menu a[href="#${id}"]`);
-}
+const { mockGitHub, watchErrors, navLink } = require('./helpers');
 
 test.beforeEach(async ({ page }) => {
   await mockGitHub(page);

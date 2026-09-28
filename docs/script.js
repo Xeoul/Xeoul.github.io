@@ -289,6 +289,19 @@ window.addEventListener('popstate', () => {
     showPanel(id, false);
 });
 
+// The view only ever shows one panel, positioned by transform, so it
+// should never be scrolled. Following a #panel link the site doesn't
+// handle itself (e.g. editing the address bar) makes the browser scroll
+// that off-screen panel into view, shifting every panel sideways -
+// styles.css prevents that with overflow: clip; this undoes it in
+// browsers without clip support.
+const viewForScroll = document.querySelector('.view');
+if (viewForScroll) {
+    viewForScroll.addEventListener('scroll', () => {
+        if (viewForScroll.scrollLeft || viewForScroll.scrollTop) viewForScroll.scrollTo(0, 0);
+    });
+}
+
 // SWIPE BETWEEN PANELS (touch only)
 // Complements the tab bar with the gesture that matches the slide
 // transition itself - swipe left to go forward a panel, right to go
@@ -1031,6 +1044,27 @@ window.addEventListener('afterprint', () => {
         if (projectsBeforePrint[i].name) d.setAttribute('name', projectsBeforePrint[i].name);
     });
     projectsBeforePrint = null;
+});
+
+// LEAVING PRINT
+// The print layout (see PRINT in styles.css) lays every panel out in
+// place, one after another. Coming back from it - after printing, or on
+// cancelling the print dialog - the screen layout's transitions would
+// animate each panel from there back to its off-screen spot: three
+// panels sweeping across the one you were on. .printing switches
+// transitions off until the screen layout is back and has been painted.
+// The wave canvases are re-measured too, in case the print layout
+// resized the page while it was up.
+const rootEl = document.documentElement;
+window.addEventListener('beforeprint', () => rootEl.classList.add('printing'));
+window.addEventListener('afterprint', () => {
+    void document.body.offsetWidth; // apply the screen layout now, while transitions are still off
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+        rootEl.classList.remove('printing');
+        waveGeometry.clear();
+        drawAllWaves();
+        moveNavIndicatorToActive(true);
+    }));
 });
 
 // GITHUB ACTIVITY HEATMAP: built from GitHub's own public Events API
