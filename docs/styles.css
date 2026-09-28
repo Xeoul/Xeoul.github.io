@@ -1346,10 +1346,6 @@ header {
   text-underline-offset: 3px;
 }
 
-.project-private {
-  color: var(--color-ink-soft);
-}
-
 /* More on GitHub - a compact row of links under the featured
    projects, kept deliberately lighter than the cards above it. */
 .more-repos {

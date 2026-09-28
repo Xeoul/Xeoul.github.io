@@ -943,9 +943,11 @@ const lastUpdated = document.querySelector('.last-updated');
 if (moreRepos || lastUpdated) {
     const username = (moreRepos || document.querySelector('[data-github-user]')).getAttribute('data-github-user');
     const siteRepo = `${username}.github.io`.toLowerCase();
-    // Repos already featured in the catalog above aren't listed twice.
+    // Repos already featured in the catalog above aren't listed twice,
+    // and any named in data-exclude aren't listed at all.
     const featured = new Set([...document.querySelectorAll('.project[data-repo]')]
-        .map(el => el.getAttribute('data-repo').toLowerCase()));
+        .map(el => el.getAttribute('data-repo').toLowerCase())
+        .concat((moreRepos ? moreRepos.getAttribute('data-exclude') || '' : '').toLowerCase().split(/[\s,]+/).filter(Boolean)));
     const reposData = fetchGitHub(`/users/${username}/repos?sort=pushed&per_page=30`, repos => {
         const site = repos.find(r => r.name.toLowerCase() === siteRepo);
         return {
