@@ -63,6 +63,20 @@ function panelIndex(id) {
     return panels.findIndex(p => p.id === id);
 }
 
+// Tab title per panel, so history entries and the tab itself say
+// where you are. Home keeps the page's original <title>.
+const PANEL_TITLES = {
+    home: document.title,
+    about: 'About - Vincent Lam',
+    projects: 'Projects - Vincent Lam',
+    contact: 'Contact - Vincent Lam',
+};
+
+function focusPanelHeading(panel) {
+    const heading = panel.querySelector('.hero-title, .section-title');
+    if (heading) heading.focus({ preventScroll: true });
+}
+
 function showPanel(id, updateHash = true, animate = true) {
     if (!validPanelIds.has(id)) return;
 
@@ -157,8 +171,27 @@ function showPanel(id, updateHash = true, animate = true) {
     navLinks.forEach(link => {
         const targetId = link.getAttribute('href').replace('#', '');
         link.classList.toggle('active', targetId === id);
+        // Only the real nav entries claim to be "the current page" to
+        // screen readers - not the logo or the hero's CTA buttons.
+        if (link.closest('.in-menu, .tab-bar')) {
+            if (targetId === id) link.setAttribute('aria-current', 'page');
+            else link.removeAttribute('aria-current');
+        }
     });
     moveNavIndicatorToActive(!animate);
+
+    // Off-screen panels are only slid aside, not removed, so without
+    // this Tab would walk into links you can't see and screen readers
+    // would read all four panels as one page.
+    panels.forEach(panel => { panel.inert = panel !== next; });
+
+    if (PANEL_TITLES[id]) document.title = PANEL_TITLES[id];
+
+    // After a real navigation (not the initial load), move focus to the
+    // new panel's heading, so keyboard and screen-reader users land at
+    // its start - and hear which panel they're on - rather than being
+    // left on a link in the panel that just slid away.
+    if (animate && next !== current) focusPanelHeading(next);
 
     if (updateHash && window.location.hash !== `#${id}`) {
         history.pushState(null, '', `#${id}`);
@@ -229,8 +262,14 @@ function stepPanel(delta) {
 // of swiping or the tab bar. Ignored while typing in a field or with a
 // modifier held, so browser/OS shortcuts (e.g. Alt+Left for back) and
 // any future form input keep their normal behaviour.
+// True while the command menu (or any other modal) is up, so keys meant
+// for it don't also page the panels behind it.
+function modalOpen() {
+    return document.querySelector('dialog[open]') !== null;
+}
+
 document.addEventListener('keydown', (e) => {
-    if (e.defaultPrevented || e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return;
+    if (e.defaultPrevented || e.altKey || e.ctrlKey || e.metaKey || e.shiftKey || modalOpen()) return;
     const target = e.target;
     if (target.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName)) return;
 
@@ -275,6 +314,33 @@ if (viewEl) {
 
         stepPanel(dx < 0 ? 1 : -1);
     }, { passive: true });
+}
+
+// SKIP LINK
+// Jumps keyboard users past the header straight to the visible panel's
+// heading. Without the script it's a plain #main anchor, which also works.
+const skipLink = document.querySelector('.skip-link');
+if (skipLink) {
+    skipLink.addEventListener('click', (e) => {
+        const active = panels.find(p => p.classList.contains('active'));
+        if (!active) return;
+        e.preventDefault();
+        focusPanelHeading(active);
+    });
+}
+
+// TOAST
+// A brief confirmation at the bottom of the screen, announced to screen
+// readers through its role="status" live region.
+const toastEl = document.querySelector('.toast');
+let toastTimeout;
+
+function showToast(message) {
+    if (!toastEl) return;
+    toastEl.textContent = message;
+    toastEl.classList.add('visible');
+    clearTimeout(toastTimeout);
+    toastTimeout = setTimeout(() => toastEl.classList.remove('visible'), 2200);
 }
 
 // AMBIENT WAVE
@@ -331,6 +397,13 @@ function randomWaveShape() {
 }
 
 let wavePhase = 0;
+// The easter egg's temporary surge (see EASTER EGG below): scales the
+// wave's height and speed, easing up from 1 and back down to 1 over
+// WAVE_BOOST_SECONDS so it starts and ends without a jump.
+const WAVE_BOOST_SECONDS = 6;
+const WAVE_BOOST_PEAK = 1.6;
+let waveBoostStart = null;
+let waveBoost = 1;
 let waveShapeFrom = randomWaveShape();
 let waveShapeTo = randomWaveShape();
 let waveMorphT = 0;
@@ -457,7 +530,7 @@ function drawWave(panel, offsetX = panelOffsetX(panel)) {
     const shape = currentWaveShape();
     const centreY = Number.isNaN(yTop) ? y : y + (yTop - y) * (1 - Math.cos(2 * Math.PI * waveDrift)) / 2;
     const mid = height * centreY;
-    const amp = shape.amp * scale;
+    const amp = shape.amp * scale * waveBoost;
     const sigma = (shape.thick * scale) * 0.4;
     const reach = sigma * 3;
     const center = width * 0.6;
@@ -546,7 +619,12 @@ function waveFrame(now) {
         // wrapped around (every few seconds at the current speed).
         // Left to grow, a double still carries ample precision for
         // any realistic session length.
-        wavePhase += (2 * Math.PI * WAVE_SPEED * dt) / currentWaveShape().period;
+        if (waveBoostStart !== null) {
+            const t = (now - waveBoostStart) / 1000 / WAVE_BOOST_SECONDS;
+            waveBoost = t >= 1 ? 1 : 1 + WAVE_BOOST_PEAK * Math.sin(Math.PI * Math.max(t, 0));
+            if (t >= 1) waveBoostStart = null;
+        }
+        wavePhase += (2 * Math.PI * WAVE_SPEED * waveBoost * dt) / currentWaveShape().period;
         waveMorphT += dt / WAVE_MORPH_SECONDS;
         if (waveMorphT >= 1) {
             waveMorphT = 0;
@@ -597,6 +675,166 @@ new MutationObserver(resetWaveColours)
 window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', resetWaveColours);
 syncWaveMotion();
 
+// EASTER EGG
+// Typing "wave" anywhere (outside a text field), or tapping the name on
+// Home five times quickly, sends the wave surging for a few seconds. Under
+// reduced motion there's no animation to boost, so it only says hi.
+function surfsUp() {
+    showToast("\u{1F30A} Surf's up!");
+    if (reducedMotionQuery.matches) return;
+    waveBoostStart = performance.now();
+}
+
+let typedKeys = '';
+document.addEventListener('keydown', (e) => {
+    if (e.altKey || e.ctrlKey || e.metaKey || e.key.length !== 1 || modalOpen()) return;
+    const target = e.target;
+    if (target.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName)) return;
+    typedKeys = (typedKeys + e.key.toLowerCase()).slice(-4);
+    if (typedKeys === 'wave') {
+        typedKeys = '';
+        surfsUp();
+    }
+});
+
+const heroName = document.querySelector('.hero-title .name');
+if (heroName) {
+    let taps = [];
+    heroName.addEventListener('click', () => {
+        const now = performance.now();
+        taps = taps.filter(t => now - t < 2000).concat(now);
+        if (taps.length >= 5) {
+            taps = [];
+            surfsUp();
+        }
+    });
+}
+
+// COMMAND MENU
+// Cmd/Ctrl+K (or the header's shortcut button) opens a small searchable
+// list of everything you can do on the site - jump to a panel, copy the
+// email, open a profile, flip the theme or print. Type to filter,
+// arrows to move, Enter to run.
+const cmdk = document.querySelector('.cmdk');
+if (cmdk && typeof cmdk.showModal === 'function') {
+    const input = cmdk.querySelector('.cmdk-input');
+    const list = cmdk.querySelector('.cmdk-list');
+    const empty = cmdk.querySelector('.cmdk-empty');
+    const trigger = document.querySelector('.cmdk-trigger');
+    const email = emailCard ? emailCard.getAttribute('data-email') : null;
+    const isApple = /Mac|iPhone|iPad|iPod/.test(navigator.platform || navigator.userAgent);
+    if (trigger && !isApple) trigger.querySelector('.cmdk-key').textContent = 'Ctrl K';
+
+    const openUrl = (url) => window.open(url, '_blank', 'noopener');
+    const commands = [
+        { label: 'Go to Home', hint: '1', keywords: 'start intro', run: () => showPanel('home') },
+        { label: 'Go to About', hint: '2', keywords: 'education skills', run: () => showPanel('about') },
+        { label: 'Go to Projects', hint: '3', keywords: 'work portfolio', run: () => showPanel('projects') },
+        { label: 'Go to Contact', hint: '4', keywords: 'reach hire', run: () => showPanel('contact') },
+        email && {
+            label: 'Copy email address', hint: email, keywords: 'mail contact',
+            run: () => {
+                const fallback = () => { window.location.href = `mailto:${email}`; };
+                if (!navigator.clipboard || !navigator.clipboard.writeText) return fallback();
+                navigator.clipboard.writeText(email).then(() => showToast('Email copied to clipboard'), fallback);
+            },
+        },
+        { label: 'Open GitHub', hint: 'github.com/Xeoul', keywords: 'code repos', run: () => openUrl('https://github.com/Xeoul') },
+        { label: 'Open LinkedIn', hint: 'vincentlam812', keywords: 'profile', run: () => openUrl('https://www.linkedin.com/in/vincentlam812') },
+        themeToggle && { label: 'Toggle light / dark theme', keywords: 'dark mode appearance', run: () => themeToggle.click() },
+        { label: 'Print / save as PDF', keywords: 'resume download', run: () => window.print() },
+    ].filter(Boolean);
+
+    let shown = [];
+    let activeIndex = 0;
+
+    function setActive(index) {
+        activeIndex = index;
+        [...list.children].forEach((item, i) => item.setAttribute('aria-selected', String(i === index)));
+        const active = list.children[index];
+        if (active) {
+            input.setAttribute('aria-activedescendant', active.id);
+            active.scrollIntoView({ block: 'nearest' });
+        } else {
+            input.removeAttribute('aria-activedescendant');
+        }
+    }
+
+    function render() {
+        const terms = input.value.toLowerCase().split(/\s+/).filter(Boolean);
+        shown = commands.filter(cmd => {
+            const text = `${cmd.label} ${cmd.keywords || ''}`.toLowerCase();
+            return terms.every(term => text.includes(term));
+        });
+        list.replaceChildren(...shown.map((cmd, i) => {
+            const item = document.createElement('li');
+            item.id = `cmdk-option-${i}`;
+            item.className = 'cmdk-item';
+            item.setAttribute('role', 'option');
+            const label = document.createElement('span');
+            label.textContent = cmd.label;
+            item.appendChild(label);
+            if (cmd.hint) {
+                const hint = document.createElement('span');
+                hint.className = 'cmdk-hint';
+                hint.textContent = cmd.hint;
+                item.appendChild(hint);
+            }
+            item.addEventListener('mousemove', () => { if (activeIndex !== i) setActive(i); });
+            item.addEventListener('click', () => runCommand(i));
+            return item;
+        }));
+        empty.hidden = shown.length > 0;
+        setActive(shown.length ? 0 : -1);
+    }
+
+    // Closed first so the dialog hands focus back before the command
+    // runs - otherwise it would undo e.g. showPanel's own focus move.
+    function runCommand(index) {
+        const cmd = shown[index];
+        if (!cmd) return;
+        cmdk.close();
+        cmd.run();
+    }
+
+    function openMenu() {
+        if (cmdk.open) return;
+        input.value = '';
+        render();
+        cmdk.showModal();
+        input.focus();
+    }
+
+    input.addEventListener('input', render);
+    input.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+            e.preventDefault();
+            if (!shown.length) return;
+            const step = e.key === 'ArrowDown' ? 1 : -1;
+            setActive((activeIndex + step + shown.length) % shown.length);
+        } else if (e.key === 'Enter') {
+            e.preventDefault();
+            runCommand(activeIndex);
+        }
+    });
+
+    // A click on the backdrop lands on the <dialog> itself (the box
+    // inside fills the rest), so that's the cue to close.
+    cmdk.addEventListener('click', (e) => {
+        if (e.target === cmdk) cmdk.close();
+    });
+
+    if (trigger) trigger.addEventListener('click', openMenu);
+
+    document.addEventListener('keydown', (e) => {
+        if ((e.metaKey || e.ctrlKey) && !e.altKey && !e.shiftKey && e.key.toLowerCase() === 'k') {
+            e.preventDefault();
+            if (cmdk.open) cmdk.close();
+            else openMenu();
+        }
+    });
+}
+
 // LIVE GITHUB PROFILE STATS (public repo count, followers). Pulled from
 // the public GitHub Users API - profile-level rather than tied to any
 // one repo, so it keeps working regardless of which individual repos
@@ -634,7 +872,10 @@ function animateCount(el, target, duration = 800) {
 const GITHUB_CACHE_MS = 10 * 60 * 1000;
 
 function fetchGitHub(path, summarize) {
-    const key = `github:${path}`;
+    // v2: the repos entry now also carries the site's own last push
+    // (see MORE ON GITHUB), so summaries cached in the old shape are
+    // ignored rather than misread.
+    const key = `github-v2:${path}`;
     try {
         const cached = JSON.parse(localStorage.getItem(key));
         if (cached && Date.now() - cached.time < GITHUB_CACHE_MS) {
@@ -693,16 +934,39 @@ if (githubStatsEls.length) {
 // .repo-list in styles.css).
 // Fails closed like the rest: the section stays hidden on error or if
 // nothing is left after filtering.
+// The same response also says when this site's own repo was last pushed
+// to, which the Contact footer shows as "Updated <date>" - so that line
+// costs no request of its own.
 const REPO_LIMIT = 6;
 const moreRepos = document.querySelector('.more-repos[data-github-user]');
-if (moreRepos) {
-    const username = moreRepos.getAttribute('data-github-user');
+const lastUpdated = document.querySelector('.last-updated');
+if (moreRepos || lastUpdated) {
+    const username = (moreRepos || document.querySelector('[data-github-user]')).getAttribute('data-github-user');
     const siteRepo = `${username}.github.io`.toLowerCase();
-    fetchGitHub(`/users/${username}/repos?sort=pushed&per_page=30`, repos => repos
-        .filter(r => !r.fork && !r.archived && r.name.toLowerCase() !== siteRepo && r.name.toLowerCase() !== username.toLowerCase())
-        .slice(0, REPO_LIMIT)
-        .map(r => ({ name: r.name, url: r.html_url, language: r.language, stars: r.stargazers_count })))
-        .then(repos => {
+    const reposData = fetchGitHub(`/users/${username}/repos?sort=pushed&per_page=30`, repos => {
+        const site = repos.find(r => r.name.toLowerCase() === siteRepo);
+        return {
+            updated: site ? site.pushed_at : null,
+            repos: repos
+                .filter(r => !r.fork && !r.archived && r.name.toLowerCase() !== siteRepo && r.name.toLowerCase() !== username.toLowerCase())
+                .slice(0, REPO_LIMIT)
+                .map(r => ({ name: r.name, url: r.html_url, language: r.language, stars: r.stargazers_count })),
+        };
+    });
+
+    if (lastUpdated) {
+        reposData.then(({ updated }) => {
+            const date = updated && new Date(updated);
+            if (!date || Number.isNaN(date.getTime())) return;
+            const time = lastUpdated.querySelector('time');
+            time.dateTime = updated;
+            time.textContent = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+            lastUpdated.hidden = false;
+        }).catch(() => {});
+    }
+
+    if (moreRepos) reposData
+        .then(({ repos }) => {
             if (!repos.length) return;
             const list = moreRepos.querySelector('.repo-list');
             repos.forEach(repo => {

@@ -1723,3 +1723,330 @@ header {
     margin-top: 6px;
   }
 }
+
+/* ============================================================
+   ACCESSIBILITY
+   ============================================================ */
+/* Off-screen until focused - the first Tab stop on the page, for
+   keyboard users to jump past the header (see SKIP LINK in script.js). */
+.skip-link {
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  z-index: 300;
+  padding: 8px 14px;
+  border-radius: 6px;
+  background: var(--color-ink);
+  color: var(--color-bg);
+  font-size: 13px;
+  text-decoration: none;
+  transform: translateY(-160%);
+  transition: transform 0.2s ease;
+}
+
+.skip-link:focus {
+  transform: translateY(0);
+}
+
+/* Panel headings take focus when you switch panels (so screen readers
+   announce them), but they aren't controls - no ring on them. */
+[tabindex="-1"]:focus,
+[tabindex="-1"]:focus-visible {
+  outline: none;
+}
+
+/* ============================================================
+   COMMAND MENU (Cmd/Ctrl+K)
+   ============================================================ */
+.cmdk-trigger {
+  display: none;
+  align-items: center;
+  height: 28px;
+  padding: 0 9px;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  background: none;
+  color: var(--color-ink-soft);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  cursor: pointer;
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+
+.cmdk-trigger:hover {
+  color: var(--color-accent);
+  border-color: var(--color-accent);
+}
+
+.cmdk-trigger kbd {
+  font: inherit;
+}
+
+/* Keyboard shortcut, so desktop only - it takes over the GitHub icon's
+   job of pushing the right-hand group to the edge. */
+@media screen and (min-width: 900px) {
+  .cmdk-trigger {
+    display: inline-flex;
+    margin-left: auto;
+  }
+
+  .cmdk-trigger ~ .github-icon {
+    margin-left: 0;
+  }
+}
+
+.cmdk {
+  width: min(540px, calc(100vw - 32px));
+  max-height: min(520px, 76vh);
+  margin: 14vh auto auto;
+  padding: 0;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 12px;
+  background: var(--color-bg);
+  color: var(--color-ink);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+}
+
+.cmdk::backdrop {
+  background: rgba(10, 10, 14, 0.45);
+}
+
+.cmdk[open] {
+  animation: cmdkIn 0.18s var(--ease-fluid);
+}
+
+@keyframes cmdkIn {
+  from { opacity: 0; transform: translateY(-6px) scale(0.98); }
+  to { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cmdk[open] {
+    animation: none;
+  }
+}
+
+.cmdk-box {
+  display: flex;
+  flex-direction: column;
+  max-height: inherit;
+}
+
+.cmdk-input {
+  padding: 16px 18px;
+  border: none;
+  border-bottom: 1px solid var(--color-border);
+  background: transparent;
+  color: var(--color-ink);
+  font: inherit;
+  font-size: 15px;
+}
+
+.cmdk-input:focus,
+.cmdk-input:focus-visible {
+  outline: none;
+}
+
+.cmdk-input::placeholder {
+  color: var(--color-ink-soft);
+}
+
+.cmdk-list {
+  list-style: none;
+  margin: 0;
+  padding: 6px;
+  overflow-y: auto;
+}
+
+.cmdk-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.cmdk-item[aria-selected="true"] {
+  background: var(--color-accent-tint);
+  color: var(--color-accent);
+}
+
+.cmdk-hint {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--color-ink-soft);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cmdk-empty {
+  margin: 0;
+  padding: 18px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--color-ink-soft);
+}
+
+.cmdk-footer {
+  display: flex;
+  gap: 16px;
+  padding: 10px 16px;
+  border-top: 1px solid var(--color-border);
+  font-size: 11px;
+  color: var(--color-ink-soft);
+}
+
+.cmdk-footer kbd {
+  margin-right: 3px;
+  padding: 1px 5px;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+}
+
+/* ============================================================
+   TOAST
+   ============================================================ */
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(24px + var(--tab-bar-height));
+  z-index: 250;
+  padding: 10px 16px;
+  border-radius: 8px;
+  background: var(--color-ink);
+  color: var(--color-bg);
+  font-size: 13px;
+  white-space: nowrap;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  opacity: 0;
+  transform: translate(-50%, 12px);
+  pointer-events: none;
+  transition: opacity 0.2s ease, transform 0.25s var(--ease-fluid);
+}
+
+.toast.visible {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+/* ============================================================
+   PRINT / SAVE AS PDF
+   The screen layout is one fixed-height view showing a single panel,
+   which would print as just that panel. For print every panel is laid
+   out one after another as a plain document instead - light theme
+   regardless of the one on screen, no dots, wave or controls - so
+   "Save as PDF" gives a clean one-to-two page summary. Last in the
+   file so it outranks the screen rules above.
+   ============================================================ */
+@media print {
+  :root,
+  :root[data-theme="dark"],
+  :root:not([data-theme="light"]) {
+    --color-bg: #ffffff;
+    --color-surface: #f2f1ee;
+    --color-ink: #14141a;
+    --color-ink-soft: #55555b;
+    --color-accent: #4f46e5;
+    --color-accent-rgb: 79, 70, 229;
+    --color-border: #e3e2dd;
+    --color-border-strong: #cfcec8;
+    --color-status: #16a34a;
+  }
+
+  @page {
+    margin: 14mm 16mm;
+  }
+
+  html,
+  body {
+    height: auto;
+    overflow: visible;
+    background: #ffffff;
+  }
+
+  header,
+  .tab-bar,
+  .skip-link,
+  .cmdk,
+  .toast,
+  .wave-canvas,
+  .panel::before,
+  .hero-actions,
+  .github-stats,
+  .github-activity,
+  .copied-text {
+    display: none !important;
+  }
+
+  .view {
+    position: static;
+  }
+
+  .panel {
+    position: static;
+    display: block;
+    padding: 0;
+    overflow: visible;
+    transform: none !important;
+    transition: none !important;
+  }
+
+  .panel + .panel {
+    margin-top: 9mm;
+    padding-top: 7mm;
+    border-top: 1px solid var(--color-border);
+  }
+
+  .reveal,
+  .panel .reveal {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+
+  .hero-content,
+  .panel-content {
+    max-width: none;
+    margin: 0;
+  }
+
+  .hero-title .name {
+    font-size: 34px;
+  }
+
+  .hero-description {
+    margin-bottom: 0;
+  }
+
+  .panel-header {
+    margin-bottom: 12px;
+    break-after: avoid;
+  }
+
+  .project-card,
+  .skill-category,
+  .contact-card,
+  .more-repos {
+    break-inside: avoid;
+  }
+
+  .project-card:hover {
+    transform: none;
+  }
+
+  .status-dot::after {
+    display: none;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+}
