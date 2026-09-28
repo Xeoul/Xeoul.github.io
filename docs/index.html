@@ -15,6 +15,15 @@
     <meta name="twitter:title" content="Vincent Lam - Portfolio">
     <meta name="twitter:description" content="Software Engineer specializing in full-stack development, database systems, and automation.">
     <meta name="twitter:image" content="https://xeoul.github.io/og-image.png?v=2">
+    <meta name="twitter:image:alt" content="Vincent Lam - Software Engineer">
+    <meta property="og:image:alt" content="Vincent Lam - Software Engineer">
+    <meta property="og:site_name" content="Vincent Lam">
+    <meta property="og:locale" content="en_US">
+    <meta name="author" content="Vincent Lam">
+    <link rel="canonical" href="https://xeoul.github.io/">
+    <!-- Tints the mobile browser's address bar to match the page. -->
+    <meta name="theme-color" content="#fafaf9" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#0d0d10" media="(prefers-color-scheme: dark)">
     <!-- style-src allows 'unsafe-inline': the animation work below sets a
          handful of styles inline (per-panel stagger indices, and the nav
          indicator/heatmap cells positioned by script.js reading live
@@ -57,26 +66,28 @@
     </script>
 </head>
 <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+
     <header>
         <a href="#home" class="header-title nav-link">
             <h1>@Xeoul</h1>
         </a>
-        <nav class="in-menu">
+        <nav class="in-menu" aria-label="Primary">
             <span class="nav-indicator" aria-hidden="true"></span>
             <a href="#home" class="nav-link">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M10,20V14H14V20H19V12H22L12,3L2,12H5V20H10Z"/></svg>
+                <svg aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M10,20V14H14V20H19V12H22L12,3L2,12H5V20H10Z"/></svg>
                 Home
             </a>
             <a href="#about" class="nav-link">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12,4A4,4 0 0,1 16,8A4,4 0 0,1 12,12A4,4 0 0,1 8,8A4,4 0 0,1 12,4M12,14C16.42,14 20,15.79 20,18V20H4V18C4,15.79 7.58,14 12,14Z"/></svg>
+                <svg aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12,4A4,4 0 0,1 16,8A4,4 0 0,1 12,12A4,4 0 0,1 8,8A4,4 0 0,1 12,4M12,14C16.42,14 20,15.79 20,18V20H4V18C4,15.79 7.58,14 12,14Z"/></svg>
                 About
             </a>
             <a href="#projects" class="nav-link">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M10,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V8C22,6.89 21.1,6 20,6H12L10,4Z"/></svg>
+                <svg aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M10,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V8C22,6.89 21.1,6 20,6H12L10,4Z"/></svg>
                 Projects
             </a>
             <a href="#contact" class="nav-link">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M20,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V6C22,4.89 21.1,4 20,4M20,8L12,13L4,8V6L12,11L20,6V8Z"/></svg>
+                <svg aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M20,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V6C22,4.89 21.1,4 20,4M20,8L12,13L4,8V6L12,11L20,6V8Z"/></svg>
                 Contact
             </a>
 
@@ -97,17 +108,24 @@
         </nav>
 
         <button class="theme-toggle" aria-label="Switch to dark theme" aria-pressed="false">
-            <svg class="icon-sun" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <svg aria-hidden="true" focusable="false" class="icon-sun" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
                 <circle cx="12" cy="12" r="4.5"/>
                 <path d="M12 2.5v2.5M12 19v2.5M4.6 4.6l1.8 1.8M17.6 17.6l1.8 1.8M2.5 12h2.5M19 12h2.5M4.6 19.4l1.8-1.8M17.6 6.4l1.8-1.8"/>
             </svg>
-            <svg class="icon-moon" width="19" height="19" viewBox="0 0 24 24" fill="currentColor">
+            <svg aria-hidden="true" focusable="false" class="icon-moon" width="19" height="19" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M20.7 14.9A8.6 8.6 0 0 1 9.1 3.3a8.6 8.6 0 1 0 11.6 11.6Z"/>
             </svg>
         </button>
 
-        <a href="https://github.com/Xeoul" target="_blank" rel="noopener noreferrer" class="github-icon">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+        <!-- Opens the command menu (see COMMAND MENU in script.js).
+             Desktop only - it's a keyboard feature, and phones have the
+             tab bar. script.js swaps in "Ctrl K" off Apple platforms. -->
+        <button class="cmdk-trigger" type="button" aria-label="Open command menu" aria-keyshortcuts="Meta+K Control+K" aria-haspopup="dialog">
+            <kbd class="cmdk-key">&#8984;K</kbd>
+        </button>
+
+        <a href="https://github.com/Xeoul" target="_blank" rel="noopener noreferrer" class="github-icon" aria-label="GitHub profile">
+            <svg aria-hidden="true" focusable="false" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.30.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
             </svg>
         </a>
@@ -117,26 +135,26 @@
          hamburger + off-canvas drawer - every destination is one thumb-tap
          away and always visible, instead of hidden behind a menu button.
          Hidden entirely on desktop, where the inline bar above is used. -->
-    <nav class="tab-bar">
+    <nav class="tab-bar" aria-label="Primary">
         <a href="#home" class="nav-link tab-link">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M10,20V14H14V20H19V12H22L12,3L2,12H5V20H10Z"/></svg>
+            <svg aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M10,20V14H14V20H19V12H22L12,3L2,12H5V20H10Z"/></svg>
             <span>Home</span>
         </a>
         <a href="#about" class="nav-link tab-link">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12,4A4,4 0 0,1 16,8A4,4 0 0,1 12,12A4,4 0 0,1 8,8A4,4 0 0,1 12,4M12,14C16.42,14 20,15.79 20,18V20H4V18C4,15.79 7.58,14 12,14Z"/></svg>
+            <svg aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12,4A4,4 0 0,1 16,8A4,4 0 0,1 12,12A4,4 0 0,1 8,8A4,4 0 0,1 12,4M12,14C16.42,14 20,15.79 20,18V20H4V18C4,15.79 7.58,14 12,14Z"/></svg>
             <span>About</span>
         </a>
         <a href="#projects" class="nav-link tab-link">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M10,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V8C22,6.89 21.1,6 20,6H12L10,4Z"/></svg>
+            <svg aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M10,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V8C22,6.89 21.1,6 20,6H12L10,4Z"/></svg>
             <span>Projects</span>
         </a>
         <a href="#contact" class="nav-link tab-link">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M20,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V6C22,4.89 21.1,4 20,4M20,8L12,13L4,8V6L12,11L20,6V8Z"/></svg>
+            <svg aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M20,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V6C22,4.89 21.1,4 20,4M20,8L12,13L4,8V6L12,11L20,6V8Z"/></svg>
             <span>Contact</span>
         </a>
     </nav>
 
-    <main class="view">
+    <main class="view" id="main">
         <!-- HOME -->
         <section id="home" class="panel hero-panel active">
             <div class="hero-content">
@@ -145,7 +163,7 @@
                     Open to full-time roles<span class="status-where"> · Sacramento / Remote</span>
                 </p>
 
-                <h1 class="hero-title reveal init-pending" style="--i:0">
+                <h1 class="hero-title reveal init-pending" style="--i:0" tabindex="-1">
                     <span class="name">Vincent Lam</span>
                     <span class="role">Software Engineer</span>
                 </h1>
@@ -165,7 +183,7 @@
         <section id="about" class="panel about-panel">
             <div class="panel-content">
                 <div class="panel-header reveal" style="--i:0">
-                    <h2 class="section-title">About Me</h2>
+                    <h2 class="section-title" tabindex="-1">About Me</h2>
                 </div>
 
                 <div class="about-grid reveal" style="--i:1">
@@ -245,7 +263,7 @@
         <section id="projects" class="panel projects-panel">
             <div class="panel-content">
                 <div class="panel-header reveal" style="--i:0">
-                    <h2 class="section-title">My Projects</h2>
+                    <h2 class="section-title" tabindex="-1">My Projects</h2>
                 </div>
 
                 <div class="projects-grid">
@@ -308,7 +326,7 @@
         <section id="contact" class="panel contact-panel">
             <div class="panel-content">
                 <div class="panel-header reveal" style="--i:0">
-                    <h2 class="section-title">Get In Touch</h2>
+                    <h2 class="section-title" tabindex="-1">Get In Touch</h2>
                 </div>
 
                 <p class="contact-intro reveal" style="--i:1">I'm always interested in new opportunities and collaborations - reach out any time.</p>
@@ -316,10 +334,10 @@
                 <div class="contact-methods reveal" style="--i:2">
                     <a href="mailto:v812.io@gmail.com" class="contact-card" id="email-card" data-email="v812.io@gmail.com">
                         <div class="contact-icon">
-                            <svg class="icon-mail" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                            <svg aria-hidden="true" focusable="false" class="icon-mail" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
                                 <path d="M20,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V6C22,4.89 21.1,4 20,4M20,8L12,13L4,8V6L12,11L20,6V8Z"/>
                             </svg>
-                            <svg class="icon-check" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <svg aria-hidden="true" focusable="false" class="icon-check" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                                 <polyline points="4 12 9 17 20 6"/>
                             </svg>
                         </div>
@@ -332,7 +350,7 @@
 
                     <div class="contact-card">
                         <div class="contact-icon">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                            <svg aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
                                 <path d="M12,2C8.13,2 5,5.13 5,9C5,14.25 12,22 12,22C12,22 19,14.25 19,9C19,5.13 15.87,2 12,2M12,11.5A2.5,2.5 0 0,1 9.5,9A2.5,2.5 0 0,1 12,6.5A2.5,2.5 0 0,1 14.5,9A2.5,2.5 0 0,1 12,11.5Z"/>
                             </svg>
                         </div>
@@ -350,7 +368,7 @@
 
                     <a href="https://github.com/Xeoul" target="_blank" rel="noopener noreferrer" class="contact-card">
                         <div class="contact-icon">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                            <svg aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
                                 <path d="M12,2A10,10 0 0,0 2,12C2,16.42 4.87,20.17 8.84,21.5C9.34,21.58 9.5,21.27 9.5,21C9.5,20.77 9.5,20.14 9.5,19.31C6.73,19.91 6.14,17.97 6.14,17.97C5.68,16.81 5.03,16.5 5.03,16.5C4.12,15.88 5.1,15.9 5.1,15.9C6.1,15.97 6.63,16.93 6.63,16.93C7.5,18.45 8.97,18 9.54,17.76C9.63,17.11 9.89,16.67 10.17,16.42C7.95,16.17 5.62,15.31 5.62,11.5C5.62,10.39 6,9.5 6.65,8.79C6.55,8.54 6.2,7.5 6.75,6.15C6.75,6.15 7.59,5.88 9.5,7.17C10.29,6.95 11.15,6.84 12,6.84C12.85,6.84 13.71,6.95 14.5,7.17C16.41,5.88 17.25,6.15 17.25,6.15C17.8,7.5 17.45,8.54 17.35,8.79C18,9.5 18.38,10.39 18.38,11.5C18.38,15.32 16.04,16.16 13.81,16.41C14.17,16.72 14.5,17.33 14.5,18.26C14.5,19.6 14.5,20.68 14.5,21C14.5,21.27 14.66,21.59 15.17,21.5C19.14,20.16 22,16.42 22,12A10,10 0 0,0 12,2Z"/>
                             </svg>
                         </div>
@@ -371,10 +389,30 @@
                     </a>
                 </div>
 
-                <div class="panel-footer reveal" style="--i:3">&copy; 2025 Vincent Lam</div>
+                <div class="panel-footer reveal" style="--i:3">&copy; 2025 Vincent Lam<span class="last-updated" hidden> &middot; Updated <time></time></span></div>
             </div>
         </section>
     </main>
+
+    <!-- COMMAND MENU: opened with Cmd/Ctrl+K or the header button. A
+         native <dialog> so focus trapping, Escape and the backdrop come
+         for free; script.js fills in and filters the list. -->
+    <dialog class="cmdk" aria-label="Command menu">
+        <div class="cmdk-box">
+            <input class="cmdk-input" type="text" placeholder="Type a command or search..." aria-label="Search commands" role="combobox" aria-expanded="true" aria-controls="cmdk-list" aria-autocomplete="list" autocomplete="off" spellcheck="false">
+            <ul class="cmdk-list" id="cmdk-list" role="listbox" aria-label="Commands"></ul>
+            <p class="cmdk-empty" hidden>No matching commands</p>
+            <div class="cmdk-footer" aria-hidden="true">
+                <span><kbd>&uarr;</kbd><kbd>&darr;</kbd> to navigate</span>
+                <span><kbd>&crarr;</kbd> to select</span>
+                <span><kbd>esc</kbd> to close</span>
+            </div>
+        </div>
+    </dialog>
+
+    <!-- Short confirmations (email copied, etc.), read out by screen
+         readers via the live region. -->
+    <div class="toast" role="status" aria-live="polite"></div>
 
     <script src="script.js"></script>
 </body>
