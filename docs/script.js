@@ -943,12 +943,16 @@ const lastUpdated = document.querySelector('.last-updated');
 if (moreRepos || lastUpdated) {
     const username = (moreRepos || document.querySelector('[data-github-user]')).getAttribute('data-github-user');
     const siteRepo = `${username}.github.io`.toLowerCase();
+    // Repos already featured in the catalog above aren't listed twice.
+    const featured = new Set([...document.querySelectorAll('.project[data-repo]')]
+        .map(el => el.getAttribute('data-repo').toLowerCase()));
     const reposData = fetchGitHub(`/users/${username}/repos?sort=pushed&per_page=30`, repos => {
         const site = repos.find(r => r.name.toLowerCase() === siteRepo);
         return {
             updated: site ? site.pushed_at : null,
             repos: repos
-                .filter(r => !r.fork && !r.archived && r.name.toLowerCase() !== siteRepo && r.name.toLowerCase() !== username.toLowerCase())
+                .filter(r => !r.fork && !r.archived && r.name.toLowerCase() !== siteRepo
+                    && r.name.toLowerCase() !== username.toLowerCase() && !featured.has(r.name.toLowerCase()))
                 .slice(0, REPO_LIMIT)
                 .map(r => ({ name: r.name, url: r.html_url, language: r.language, stars: r.stargazers_count })),
         };
@@ -994,6 +998,29 @@ if (moreRepos || lastUpdated) {
         })
         .catch(() => {});
 }
+
+// PRINTING THE PROJECT CATALOG
+// Collapsed projects would print as just their one-line summary, so every
+// one is opened for printing and put back afterwards. The shared name
+// that makes them an accordion is lifted first - otherwise opening each
+// one would close the one before it.
+const projectDetails = [...document.querySelectorAll('details.project')];
+let projectsBeforePrint = null;
+window.addEventListener('beforeprint', () => {
+    projectsBeforePrint = projectDetails.map(d => ({ open: d.open, name: d.getAttribute('name') }));
+    projectDetails.forEach(d => {
+        d.removeAttribute('name');
+        d.open = true;
+    });
+});
+window.addEventListener('afterprint', () => {
+    if (!projectsBeforePrint) return;
+    projectDetails.forEach((d, i) => { d.open = projectsBeforePrint[i].open; });
+    projectDetails.forEach((d, i) => {
+        if (projectsBeforePrint[i].name) d.setAttribute('name', projectsBeforePrint[i].name);
+    });
+    projectsBeforePrint = null;
+});
 
 // GITHUB ACTIVITY HEATMAP: built from GitHub's own public Events API
 // (first-party, same trust level as the profile stats above) rather than a

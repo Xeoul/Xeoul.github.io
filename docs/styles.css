@@ -1180,9 +1180,10 @@ header {
    numbered, separated by a hairline.
    ============================================================ */
 /* This panel's content is likewise full-width and vertically
-   centered, so the same vertical safe-zone as About. */
+   centered, so a vertical safe-zone like About's - kept wider, since
+   the catalog runs taller, most of all with a project expanded. */
 .projects-panel {
-  --safe-mask: linear-gradient(to bottom, black 0, black 8%, transparent 20%, transparent 80%, black 92%, black 100%);
+  --safe-mask: linear-gradient(to bottom, black 0, black 4%, transparent 12%, transparent 88%, black 96%, black 100%);
 }
 
 .projects-grid {
@@ -1192,64 +1193,78 @@ header {
   counter-reset: project-count;
 }
 
-.project-card {
-  padding: 22px 0;
+/* Each project is a <details> row: the summary line (number, name,
+   one-line tagline, badge) is always shown, and tapping it opens the
+   description, stack and links underneath - so the whole catalog fits
+   on one screen with just one project expanded at a time (the shared
+   name="project" makes them an exclusive accordion). */
+.project {
   border-bottom: 1px solid var(--color-border);
-  display: grid;
-  grid-template-columns: 40px 1fr;
-  gap: 16px;
-  /* Same shorthand-conflict fix as .github-activity, but transform
-     stays undelayed here (unlike opacity) - the hover lift below
-     reuses transform, and a stagger delay meant for the one-time
-     entrance would otherwise make every hover after that feel
-     laggy, since a transition's delay/duration apply to *any* future
-     change of that property, not just the first. Opacity alone
-     carries the stagger; while a card is still at opacity: 0 its
-     transform position isn't visible anyway, so nothing looks off. */
-  transition: opacity 0.65s var(--ease-fluid) calc(var(--i, 0) * 70ms),
-    transform 0.35s var(--ease-fluid),
-    border-color 0.2s ease;
-}
-
-.panel.active .project-card:hover {
-  transform: translateY(-3px);
-  border-color: var(--color-border-strong);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .panel.active .project-card:hover {
-    transform: none;
-  }
-}
-
-.project-card::before {
   counter-increment: project-count;
+  transition: opacity 0.65s var(--ease-fluid) calc(var(--i, 0) * 70ms),
+    transform 0.65s var(--ease-fluid) calc(var(--i, 0) * 70ms);
+}
+
+.project-summary {
+  display: grid;
+  grid-template-columns: 40px 1fr auto 14px;
+  align-items: baseline;
+  column-gap: 16px;
+  padding: 13px 0;
+  list-style: none;
+  cursor: pointer;
+}
+
+.project-summary::-webkit-details-marker {
+  display: none;
+}
+
+.project-summary::before {
   content: '0' counter(project-count);
   font-family: var(--font-mono);
   font-size: 12px;
   color: var(--color-ink-soft);
-  padding-top: 3px;
-  grid-column: 1;
-  grid-row: 1;
 }
 
-.project-header,
-.project-description,
-.tech-stack {
-  grid-column: 2;
+/* Chevron, drawn from two borders so it follows the text colour. */
+.project-summary::after {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-right: 1.5px solid var(--color-ink-soft);
+  border-bottom: 1.5px solid var(--color-ink-soft);
+  transform: translateY(-3px) rotate(45deg);
+  transition: transform 0.25s var(--ease-fluid);
 }
 
-.project-header {
+.project[open] > .project-summary::after {
+  transform: translateY(0) rotate(-135deg);
+}
+
+.project-heading {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 12px;
-  margin-bottom: 8px;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: 12px;
+  row-gap: 2px;
+  min-width: 0;
 }
 
-.project-header h3 {
-  font-size: 18px;
+.project-title {
+  margin: 0;
+  font-size: 17px;
   color: var(--color-ink);
+  transition: color 0.2s ease;
+}
+
+.project-summary:hover .project-title,
+.project[open] .project-title {
+  color: var(--color-accent);
+}
+
+.project-tagline {
+  font-size: 13px;
+  color: var(--color-ink-soft);
 }
 
 .project-badge {
@@ -1260,26 +1275,43 @@ header {
   text-transform: uppercase;
   letter-spacing: 0.04em;
   white-space: nowrap;
-  padding-top: 3px;
 }
 
 .project-badge.secondary {
   color: var(--color-ink-soft);
 }
 
-.project-description p {
+.project-body {
+  padding: 0 30px 16px 56px;
+}
+
+.project[open] .project-body {
+  animation: projectOpen 0.3s var(--ease-fluid);
+}
+
+@keyframes projectOpen {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .project[open] .project-body {
+    animation: none;
+  }
+}
+
+.project-description {
   font-size: 14px;
   line-height: 1.55;
   color: var(--color-ink-soft);
   margin: 0 0 10px 0;
-  max-width: 600px;
+  max-width: 640px;
 }
 
 .tech-tags {
   display: flex;
   flex-wrap: wrap;
   gap: 4px 14px;
-  margin-bottom: 10px;
 }
 
 .tech-tag {
@@ -1292,6 +1324,30 @@ header {
 
 .tech-tag:hover {
   color: var(--color-accent);
+}
+
+.project-links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 16px;
+  margin-top: 10px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+.project-links a {
+  color: var(--color-accent);
+  text-decoration: none;
+}
+
+.project-links a:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.project-private {
+  color: var(--color-ink-soft);
 }
 
 /* More on GitHub - a compact row of links under the featured
@@ -1549,8 +1605,8 @@ header {
   }
 
   /* Open About/Projects/Contact's dot areas up on mobile. Their text
-     measures roughly 17-81% (About), 15-85% (Projects, including its
-     More on GitHub link) and 25-75% (Contact) down the panel, so each
+     measures roughly 17-81% (About) and 25-75% (Contact) down the
+     panel (Projects is its own case, below), so each
      --safe-mask opens right up to just outside that instead of the
      wider desktop margins, which left only a sliver the wave rarely
      showed in. Placed here, after each panel's own --safe-mask, so
@@ -1559,8 +1615,11 @@ header {
     --safe-mask: linear-gradient(to bottom, black 0, black 13%, transparent 17%, transparent 78%, black 82%, black 100%);
   }
 
+  /* The project catalog fills nearly the whole panel on a phone, so
+     only the strip above its heading stays open - the wave still shows
+     through the dim layer below as it glides past. */
   .projects-panel {
-    --safe-mask: linear-gradient(to bottom, black 0, black 10%, transparent 14%, transparent 86%, black 90%, black 100%);
+    --safe-mask: linear-gradient(to bottom, black 0, black 7%, transparent 11%);
   }
 
   .contact-panel {
@@ -1618,34 +1677,37 @@ header {
     letter-spacing: 0;
   }
 
-  .project-card {
-    padding: 12px 0;
+  /* Phones: a narrower number column, the badge dropped (the tagline
+     says enough), and the tagline on its own line under the name. */
+  .project-summary {
+    grid-template-columns: 24px 1fr 12px;
+    column-gap: 10px;
+    padding: 11px 0;
   }
 
-  .project-description p,
-  .tech-tags {
-    margin-bottom: 6px;
+  .project-summary .project-badge {
+    display: none;
   }
 
-  .project-card {
-    grid-template-columns: 1fr;
-    gap: 6px;
-  }
-
-  .project-card::before {
-    padding-top: 0;
-    grid-column: 1;
-  }
-
-  .project-header,
-  .project-description,
-  .tech-stack {
-    grid-column: 1;
-  }
-
-  .project-header {
+  .project-heading {
     flex-direction: column;
-    gap: 4px;
+  }
+
+  .project-title {
+    font-size: 16px;
+  }
+
+  .project-tagline {
+    font-size: 12px;
+  }
+
+  .project-body {
+    padding: 0 0 14px 34px;
+  }
+
+  .project-description {
+    font-size: 13px;
+    margin-bottom: 8px;
   }
 
   .contact-label {
@@ -1709,6 +1771,18 @@ header {
 
   .skill-category {
     padding: 5px 0;
+    grid-template-columns: 96px 1fr;
+    gap: 10px;
+  }
+
+  /* Most rows wrap to a second line at phone width - a touch smaller
+     keeps short phones from spilling past the screen. */
+  .skill-tags {
+    gap: 2px 9px;
+  }
+
+  .skill-tag {
+    font-size: 12px;
   }
 
   .github-activity {
@@ -2030,15 +2104,15 @@ header {
     break-after: avoid;
   }
 
-  .project-card,
+  .project,
   .skill-category,
   .contact-card,
   .more-repos {
     break-inside: avoid;
   }
 
-  .project-card:hover {
-    transform: none;
+  .project-summary::after {
+    display: none;
   }
 
   .status-dot::after {

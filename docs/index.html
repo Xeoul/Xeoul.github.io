@@ -211,14 +211,18 @@
                                     <span class="skill-tag">Python</span>
                                     <span class="skill-tag">SQL</span>
                                     <span class="skill-tag">JavaScript</span>
+                                    <span class="skill-tag">TypeScript</span>
                                 </div>
                             </div>
 
                             <div class="skill-category">
                                 <h4>Technologies</h4>
                                 <div class="skill-tags">
+                                    <span class="skill-tag">Next.js</span>
+                                    <span class="skill-tag">React</span>
                                     <span class="skill-tag">Docker</span>
                                     <span class="skill-tag">MySQL</span>
+                                    <span class="skill-tag">Playwright</span>
                                     <span class="skill-tag">SharePoint</span>
                                 </div>
                             </div>
@@ -235,7 +239,9 @@
                             <div class="skill-category">
                                 <h4>AI &amp; Automation</h4>
                                 <div class="skill-tags">
+                                    <span class="skill-tag">Claude API</span>
                                     <span class="skill-tag">Ollama / Llama3</span>
+                                    <span class="skill-tag">GitHub Actions</span>
                                     <span class="skill-tag">Power Automate</span>
                                 </div>
                             </div>
@@ -267,38 +273,149 @@
                 </div>
 
                 <div class="projects-grid">
-                    <!-- Project: W.E.M.U 2.0 -->
-                    <div class="project-card reveal" style="--i:1">
-                        <div class="project-header">
-                            <h3>Project: W.E.M.U 2.0</h3>
+                    <details class="project reveal" name="project" style="--i:1" data-repo="Installous">
+                        <summary class="project-summary">
+                            <span class="project-heading">
+                                <h3 class="project-title">Installous</h3>
+                                <span class="project-tagline">AI stock research app</span>
+                            </span>
+                            <span class="project-badge secondary">Personal</span>
+                        </summary>
+                        <div class="project-body">
+                            <p class="project-description">A personal investing assistant with live market data, a five-factor stock score (value, quality, growth, momentum and analyst sentiment), Robinhood-style charts, and a Claude-powered advisor that calls live tools for quotes, fundamentals and news.</p>
+                            <div class="tech-tags">
+                                <span class="tech-tag">TypeScript</span>
+                                <span class="tech-tag">Next.js</span>
+                                <span class="tech-tag">Claude API</span>
+                                <span class="tech-tag">Recharts</span>
+                                <span class="tech-tag">Yahoo Finance</span>
+                            </div>
+                            <div class="project-links">
+                                <a href="https://github.com/Xeoul/Installous" target="_blank" rel="noopener noreferrer">Code <span aria-hidden="true">&nearr;</span></a>
+                            </div>
+                        </div>
+                    </details>
+
+                    <details class="project reveal" name="project" style="--i:2" data-repo="nagare">
+                        <summary class="project-summary">
+                            <span class="project-heading">
+                                <h3 class="project-title">Nagare</h3>
+                                <span class="project-tagline">Japanese reader that teaches as you read</span>
+                            </span>
+                            <span class="project-badge secondary">Personal</span>
+                        </summary>
+                        <div class="project-body">
+                            <p class="project-description">Import a .txt or .epub, toggle furigana, and tap any word for its reading, meaning and JLPT level. Text is tokenized in the browser with kuromoji.js against a JMdict-derived dictionary of 22k common words, with saved words kept in IndexedDB.</p>
+                            <div class="tech-tags">
+                                <span class="tech-tag">TypeScript</span>
+                                <span class="tech-tag">Next.js</span>
+                                <span class="tech-tag">kuromoji.js</span>
+                                <span class="tech-tag">IndexedDB</span>
+                                <span class="tech-tag">JMdict</span>
+                            </div>
+                            <div class="project-links">
+                                <span class="project-private">Private repo</span>
+                            </div>
+                        </div>
+                    </details>
+
+                    <details class="project reveal" name="project" style="--i:3" data-repo="AgentApply">
+                        <summary class="project-summary">
+                            <span class="project-heading">
+                                <h3 class="project-title">AgentApply</h3>
+                                <span class="project-tagline">Automated job application pipeline</span>
+                            </span>
+                            <span class="project-badge secondary">Personal</span>
+                        </summary>
+                        <div class="project-body">
+                            <p class="project-description">A four-stage agent that scrapes job listings, ranks them against a candidate profile, generates the resume, cover letter and CalCareers statement of qualifications, then fills in the application forms over HTTP or Playwright.</p>
+                            <div class="tech-tags">
+                                <span class="tech-tag">Python</span>
+                                <span class="tech-tag">Playwright</span>
+                                <span class="tech-tag">Pydantic</span>
+                                <span class="tech-tag">pytest</span>
+                                <span class="tech-tag">Claude API</span>
+                            </div>
+                            <div class="project-links">
+                                <span class="project-private">Private repo</span>
+                            </div>
+                        </div>
+                    </details>
+
+                    <details class="project reveal" name="project" style="--i:4" data-repo="privacyblocker">
+                        <summary class="project-summary">
+                            <span class="project-heading">
+                                <h3 class="project-title">Privacy Blocker</h3>
+                                <span class="project-tagline">Get your personal data off data brokers</span>
+                            </span>
+                            <span class="project-badge secondary">Personal</span>
+                        </summary>
+                        <div class="project-body">
+                            <p class="project-description">A local-first tool for California's data-broker opt-outs: an encrypted in-browser vault (AES-256-GCM), step-by-step tracking for about 40 people-search sites, CCPA request emails, and a scheduled GitHub Actions job that emails brokers for you.</p>
+                            <div class="tech-tags">
+                                <span class="tech-tag">JavaScript</span>
+                                <span class="tech-tag">Web Crypto</span>
+                                <span class="tech-tag">PWA</span>
+                                <span class="tech-tag">GitHub Actions</span>
+                                <span class="tech-tag">Python</span>
+                            </div>
+                            <div class="project-links">
+                                <a href="https://xeoul.github.io/privacyblocker/" target="_blank" rel="noopener noreferrer">Live <span aria-hidden="true">&nearr;</span></a>
+                                <a href="https://github.com/Xeoul/privacyblocker" target="_blank" rel="noopener noreferrer">Code <span aria-hidden="true">&nearr;</span></a>
+                            </div>
+                        </div>
+                    </details>
+
+                    <details class="project reveal" name="project" style="--i:4" data-repo="sous-chef">
+                        <summary class="project-summary">
+                            <span class="project-heading">
+                                <h3 class="project-title">Sous Chef</h3>
+                                <span class="project-tagline">Meal planner and shopping list</span>
+                            </span>
+                            <span class="project-badge secondary">Personal</span>
+                        </summary>
+                        <div class="project-body">
+                            <p class="project-description">Plan the week's recipes and get one shopping list: servings scaling, US and metric conversion, combined or per-recipe lists, and AI recipe import from a web search, a link or pasted ingredients.</p>
+                            <div class="tech-tags">
+                                <span class="tech-tag">JavaScript</span>
+                                <span class="tech-tag">HTML/CSS</span>
+                                <span class="tech-tag">AI parsing</span>
+                                <span class="tech-tag">Unit conversion</span>
+                            </div>
+                            <div class="project-links">
+                                <span class="project-private">Private repo</span>
+                            </div>
+                        </div>
+                    </details>
+
+                    <details class="project reveal" name="project" style="--i:4">
+                        <summary class="project-summary">
+                            <span class="project-heading">
+                                <h3 class="project-title">Project: W.E.M.U 2.0</h3>
+                                <span class="project-tagline">License and forms system for a state department</span>
+                            </span>
                             <span class="project-badge">Senior Project</span>
-                        </div>
-
-                        <div class="project-description">
-                            <p>Built for the Department of Consumer Affairs to manage 3.4 million licenses and forms, streamlining updates across test, development, and production.</p>
-                        </div>
-
-                        <div class="tech-stack">
+                        </summary>
+                        <div class="project-body">
+                            <p class="project-description">Built for the Department of Consumer Affairs to manage 3.4 million licenses and forms, streamlining updates across test, development, and production.</p>
                             <div class="tech-tags">
                                 <span class="tech-tag">Database Management</span>
                                 <span class="tech-tag">Data Migration</span>
                                 <span class="tech-tag">Full-Stack</span>
                             </div>
                         </div>
-                    </div>
+                    </details>
 
-                    <!-- Movie Recommendation Project -->
-                    <div class="project-card reveal" style="--i:2">
-                        <div class="project-header">
-                            <h3>Movie Recommendation Service</h3>
+                    <details class="project reveal" name="project" style="--i:4">
+                        <summary class="project-summary">
+                            <span class="project-heading">
+                                <h3 class="project-title">Movie Recommendation Service</h3>
+                                <span class="project-tagline">REST API and web app</span>
+                            </span>
                             <span class="project-badge secondary">Team Project</span>
-                        </div>
-
-                        <div class="project-description">
-                            <p>Full CRUD REST API and front-end movie recommendation app, built with a team using Scrum methodology.</p>
-                        </div>
-
-                        <div class="tech-stack">
+                        </summary>
+                        <div class="project-body">
+                            <p class="project-description">Full CRUD REST API and front-end movie recommendation app, built with a team using Scrum methodology.</p>
                             <div class="tech-tags">
                                 <span class="tech-tag">Java</span>
                                 <span class="tech-tag">Jersey</span>
@@ -306,7 +423,7 @@
                                 <span class="tech-tag">MySQL</span>
                             </div>
                         </div>
-                    </div>
+                    </details>
                 </div>
 
                 <!-- Filled in from the public GitHub API by script.js -
