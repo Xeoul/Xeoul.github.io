@@ -657,6 +657,64 @@ test.describe('layout and motion', () => {
     expect(await shift()).not.toBe(a);
   });
 
+  // Regression: left open a long time, the browser could drop the
+  // canvas's pixels while the page was out of sight, and the wave stayed
+  // gone until switching panel repainted it. Each way back into view now
+  // swaps in fresh canvases and draws them at once.
+  test('the wave is redrawn on fresh canvases whenever the page comes back', async ({ page }) => {
+    const errors = watchErrors(page);
+    await page.goto('/');
+    const canvasCount = () => page.locator('.wave-canvas').count();
+    const litNow = () => page.evaluate(() => {
+      const c = document.querySelector('#home .wave-canvas');
+      const d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data;
+      let n = 0; for (let i = 3; i < d.length; i += 16) if (d[i] > 20) n++;
+      return n;
+    });
+    // Marks the current canvases, then checks each was replaced by a new,
+    // already-drawn one - without waiting for the next animation frame.
+    const expectRebuilt = async (trigger) => {
+      await page.evaluate(() => document.querySelectorAll('.wave-canvas').forEach((c) => { c.dataset.old = '1'; }));
+      await page.evaluate(trigger);
+      expect(await page.locator('.wave-canvas[data-old]').count()).toBe(0);
+      expect(await canvasCount()).toBe(4);
+      expect(await litNow()).toBeGreaterThan(0);
+    };
+    await expect.poll(litNow).toBeGreaterThan(0);
+
+    await expectRebuilt(() => document.dispatchEvent(new Event('visibilitychange')));
+    await expectRebuilt(() => {
+      const e = new Event('pageshow');
+      Object.defineProperty(e, 'persisted', { value: true });
+      window.dispatchEvent(e);
+    });
+    await expectRebuilt(() => document.dispatchEvent(new Event('resume')));
+    await expectRebuilt(() => document.querySelector('#home .wave-canvas').dispatchEvent(new Event('contextrestored')));
+
+    // Hidden: nothing to redraw yet.
+    await page.evaluate(() => document.querySelectorAll('.wave-canvas').forEach((c) => { c.dataset.old = '1'; }));
+    await page.evaluate(() => {
+      Object.defineProperty(document, 'visibilityState', { value: 'hidden', configurable: true });
+      document.dispatchEvent(new Event('visibilitychange'));
+      delete document.visibilityState;
+    });
+    expect(await page.locator('.wave-canvas[data-old]').count()).toBe(4);
+
+    // And it keeps animating on the new canvases, on every panel.
+    const shift = () => page.evaluate(() => document.getElementById('home').style.getPropertyValue('--grid-shift'));
+    const a = await shift();
+    await expect.poll(shift).not.toBe(a);
+    await page.goto('/#contact');
+    await expectSettled(page, 'contact');
+    expect(await page.evaluate(() => {
+      const c = document.querySelector('#contact .wave-canvas');
+      const d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data;
+      for (let i = 3; i < d.length; i += 16) if (d[i] > 20) return true;
+      return false;
+    })).toBe(true);
+    expect(errors).toEqual([]);
+  });
+
   test('reduced motion: panels crossfade in place and everything still works', async ({ page, isMobile }) => {
     await page.emulateMedia({ reducedMotion: 'reduce' });
     const errors = watchErrors(page);
@@ -774,6 +832,7 @@ test(`stress: ${STRESS_STEPS} random actions leave the page consistent`, async (
       const button = page.locator('#projects.active details.project[open] .project-copy-link');
       if (await button.count()) await button.click({ timeout: 3000 }).catch(() => {});
     },
+    async () => page.evaluate(() => document.dispatchEvent(new Event('visibilitychange'))),
     // Back only within the site: from the first entry (no hash yet) it
     // would leave for the blank page the test browser started on.
     async () => page.evaluate(() => { if (location.hash) history.back(); }),
@@ -791,6 +850,7 @@ test(`stress: ${STRESS_STEPS} random actions leave the page consistent`, async (
       });
       expect(linked).toBe(true);
       await expect(page.locator('html')).not.toHaveClass(/printing/);
+      expect(await page.locator('.wave-canvas').count()).toBe(4);
     }
   }
   await expectSettled(page);

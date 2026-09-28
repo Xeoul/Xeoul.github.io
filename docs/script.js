@@ -437,6 +437,9 @@ function panelWaveCanvas(panel) {
         canvas = document.createElement('canvas');
         canvas.className = 'wave-canvas';
         canvas.setAttribute('aria-hidden', 'true');
+        // Fired when the browser gives a canvas back after dropping it
+        // (see RECOVERING THE CANVASES).
+        canvas.addEventListener('contextrestored', rebuildWaveCanvases);
         panel.prepend(canvas);
     }
     return canvas;
@@ -688,6 +691,34 @@ window.addEventListener('resize', () => {
     drawAllWaves();
 });
 reducedMotionQuery.addEventListener('change', syncWaveMotion);
+
+// RECOVERING THE CANVASES
+// Browsers can throw away a canvas's pixels while the page is out of
+// sight - a background tab, a locked phone, a sleeping computer, or the
+// graphics driver restarting - and don't always show what's drawn on it
+// afterwards until something else repaints that part of the screen.
+// Left open long enough, the wave would vanish that way and stay gone
+// until switching panel slid a fresh paint over it. So whenever the page
+// comes back into view (or the browser reports a canvas restored), the
+// canvases - and the glow sprites drawn from - are replaced with new
+// ones and drawn straight away.
+function rebuildWaveCanvases() {
+    panels.forEach((panel) => {
+        const old = panel.querySelector(':scope > .wave-canvas');
+        if (old) old.remove();
+    });
+    waveGeometry.clear();
+    glowSprites.clear();
+    drawAllWaves();
+}
+
+document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') rebuildWaveCanvases();
+});
+// Back from the back/forward cache, or a page the browser froze to save
+// power, which don't always count as becoming visible.
+window.addEventListener('pageshow', (e) => { if (e.persisted) rebuildWaveCanvases(); });
+document.addEventListener('resume', rebuildWaveCanvases);
 // The dots take the accent colour, which changes with the theme.
 new MutationObserver(resetWaveColours)
     .observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
