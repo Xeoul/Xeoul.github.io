@@ -1,0 +1,177 @@
+// Smoke tests for the portfolio site (docs/). They load the real pages in
+// Chromium at desktop and phone sizes and check the things a broken
+// change would most likely take out: script errors, navigation, missing
+// files, the project catalog, and the 404 page.
+const { test, expect } = require('@playwright/test');
+
+// The site calls the public GitHub API for stats, repos and activity.
+// It's answered locally so tests are fast, deterministic and never
+// spend the API's unauthenticated rate limit.
+const today = new Date().toISOString();
+const GITHUB_FIXTURES = {
+  user: { public_repos: 9, followers: 4 },
+  repos: [
+    { name: 'Xeoul.github.io', fork: false, archived: false, html_url: 'https://github.com/Xeoul/Xeoul.github.io', language: 'CSS', stargazers_count: 1, pushed_at: '2026-09-27T18:53:40Z' },
+    { name: 'Installous', fork: false, archived: false, html_url: 'https://github.com/Xeoul/Installous', language: 'TypeScript', stargazers_count: 0 },
+    { name: 'AgentApply', fork: false, archived: false, html_url: 'https://github.com/Xeoul/AgentApply', language: 'Python', stargazers_count: 0 },
+    { name: 'some-fork', fork: true, archived: false, html_url: 'https://github.com/Xeoul/some-fork', language: 'Go', stargazers_count: 0 },
+    { name: 'side-project', fork: false, archived: false, html_url: 'https://github.com/Xeoul/side-project', language: 'Java', stargazers_count: 3 },
+  ],
+  events: [{ created_at: today }, { created_at: today }],
+};
+
+async function mockGitHub(page) {
+  await page.route('https://api.github.com/**', (route) => {
+    const url = route.request().url();
+    const body = url.includes('/events') ? GITHUB_FIXTURES.events
+      : url.includes('/repos') ? GITHUB_FIXTURES.repos
+        : GITHUB_FIXTURES.user;
+    return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(body) });
+  });
+}
+
+// Collects anything the page logs as an error, so each test can assert
+// the page stayed clean.
+function watchErrors(page) {
+  const errors = [];
+  page.on('pageerror', (err) => errors.push(`pageerror: ${err.message}`));
+  page.on('console', (msg) => { if (msg.type() === 'error') errors.push(`console: ${msg.text()}`); });
+  return errors;
+}
+
+// Phones navigate with the bottom tab bar, desktop with the header nav.
+function navLink(page, isMobile, id) {
+  return page.locator(isMobile ? `.tab-bar a[href="#${id}"]` : `.in-menu a[href="#${id}"]`);
+}
+
+test.beforeEach(async ({ page }) => {
+  await mockGitHub(page);
+});
+
+test('home loads without errors and the hero becomes visible', async ({ page }) => {
+  const errors = watchErrors(page);
+  await page.goto('/');
+  await expect(page).toHaveTitle('Vincent Lam - Portfolio');
+  await expect(page.locator('#home.panel.active')).toBeVisible();
+  // The entrance animation ends fully opaque.
+  await expect(page.locator('#home .hero-title')).toHaveCSS('opacity', '1', { timeout: 5000 });
+  await expect(page.locator('.wave-canvas').first()).toBeAttached();
+  expect(errors).toEqual([]);
+});
+
+test('every panel is reachable from the navigation', async ({ page, isMobile }) => {
+  const errors = watchErrors(page);
+  await page.goto('/');
+  for (const id of ['about', 'projects', 'contact', 'home']) {
+    await navLink(page, isMobile, id).click();
+    await expect(page.locator(`#${id}.panel.active`)).toBeVisible();
+    await expect(page).toHaveURL(new RegExp(`#${id}$`));
+    await expect(navLink(page, isMobile, id)).toHaveAttribute('aria-current', 'page');
+    // Panels that slid away can't be tabbed into.
+    const inertOthers = await page.evaluate((active) =>
+      [...document.querySelectorAll('.panel')].filter((p) => p.id !== active).every((p) => p.inert), id);
+    expect(inertOthers).toBe(true);
+  }
+  await page.goBack();
+  await expect(page.locator('#contact.panel.active')).toBeVisible();
+  expect(errors).toEqual([]);
+});
+
+test('every local file the pages reference exists', async ({ page, request }) => {
+  for (const pagePath of ['/', '/404.html']) {
+    await page.goto(pagePath);
+    const refs = await page.evaluate(() => [
+      ...[...document.querySelectorAll('[src]')].map((el) => el.getAttribute('src')),
+      ...[...document.querySelectorAll('link[href]')].map((el) => el.getAttribute('href')),
+    ]);
+    const local = [...new Set(refs)].filter((ref) => ref && !/^(https?:|mailto:|data:|#)/.test(ref));
+    expect(local.length).toBeGreaterThan(0);
+    for (const ref of local) {
+      const res = await request.get(new URL(ref, `http://127.0.0.1${pagePath}`).pathname);
+      expect(res.status(), `${ref} (referenced from ${pagePath})`).toBe(200);
+    }
+  }
+});
+
+test('project catalog opens one project at a time and loads its preview', async ({ page, isMobile }) => {
+  const errors = watchErrors(page);
+  await page.goto('/');
+  await navLink(page, isMobile, 'projects').click();
+  const installous = page.locator('details.project[data-repo="Installous"]');
+  const nagare = page.locator('details.project[data-repo="nagare"]');
+  await installous.locator('summary').click();
+  await expect(installous).toHaveAttribute('open', '');
+  const preview = installous.locator('img.project-preview');
+  await expect(preview).toBeVisible();
+  await expect.poll(() => preview.evaluate((img) => img.complete && img.naturalWidth)).toBeGreaterThan(0);
+  await nagare.locator('summary').click();
+  await expect(nagare).toHaveAttribute('open', '');
+  await expect(installous).not.toHaveAttribute('open', '');
+  expect(errors).toEqual([]);
+});
+
+test('GitHub data renders, excluding featured and hidden repos', async ({ page, isMobile }) => {
+  await page.goto('/');
+  if (!isMobile) {
+    await expect(page.locator('header .gh-stat-repos .gh-stat-value')).toHaveText('9');
+  }
+  await navLink(page, isMobile, 'projects').click();
+  const moreRepos = page.locator('.more-repos');
+  await expect(moreRepos).toBeVisible();
+  if (!isMobile) {
+    // Installous is featured above, AgentApply is excluded, forks and the
+    // site's own repo are skipped - which leaves just side-project.
+    await expect(page.locator('.repo-link .repo-name')).toHaveText(['side-project']);
+  }
+  await navLink(page, isMobile, 'contact').click();
+  await expect(page.locator('.last-updated')).toBeVisible();
+  await expect(page.locator('.last-updated time')).toHaveAttribute('datetime', '2026-09-27T18:53:40Z');
+});
+
+test('printing expands every project and restores them afterwards', async ({ page }) => {
+  await page.goto('/#projects');
+  const openStates = () => page.locator('details.project').evaluateAll((els) => els.map((d) => d.open));
+  const before = await openStates();
+  await page.evaluate(() => window.dispatchEvent(new Event('beforeprint')));
+  expect((await openStates()).every(Boolean)).toBe(true);
+  await page.evaluate(() => window.dispatchEvent(new Event('afterprint')));
+  expect(await openStates()).toEqual(before);
+});
+
+test('the 404 page renders in the site style and links back home', async ({ page }) => {
+  const errors = watchErrors(page);
+  await page.goto('/404.html');
+  await expect(page).toHaveTitle('Page not found - Vincent Lam');
+  await expect(page.locator('.hero-title .name')).toHaveText('404');
+  await expect(page.locator('.hero-actions')).toBeVisible();
+  await page.locator('.hero-actions a', { hasText: 'Back to home' }).click();
+  await expect(page).toHaveURL(/\/$/);
+  await expect(page.locator('#home.panel.active')).toBeVisible();
+  expect(errors).toEqual([]);
+});
+
+test.describe('desktop keyboard', () => {
+  test.skip(({ isMobile }) => isMobile, 'keyboard shortcuts are a desktop feature');
+
+  test('arrow keys and number keys switch panels', async ({ page }) => {
+    await page.goto('/');
+    await page.keyboard.press('ArrowRight');
+    await expect(page.locator('#about.panel.active')).toBeVisible();
+    await page.keyboard.press('4');
+    await expect(page.locator('#contact.panel.active')).toBeVisible();
+    await page.keyboard.press('ArrowLeft');
+    await expect(page.locator('#projects.panel.active')).toBeVisible();
+  });
+
+  test('the command menu opens with Ctrl+K and runs a command', async ({ page }) => {
+    await page.goto('/');
+    await page.keyboard.press('Control+k');
+    const menu = page.locator('dialog.cmdk');
+    await expect(menu).toBeVisible();
+    await page.keyboard.type('contact');
+    await expect(page.locator('.cmdk-item').first()).toHaveText(/Go to Contact/);
+    await page.keyboard.press('Enter');
+    await expect(menu).toBeHidden();
+    await expect(page.locator('#contact.panel.active')).toBeVisible();
+  });
+});
