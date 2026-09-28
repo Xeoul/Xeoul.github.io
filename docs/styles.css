@@ -1285,6 +1285,31 @@ header {
   padding: 0 30px 16px 56px;
 }
 
+/* A screenshot of the app beside the text (below it on phones). It's
+   lazy-loaded, and a closed <details> isn't rendered, so no preview is
+   downloaded until its project is opened. */
+.project-body:has(.project-preview) {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 240px;
+  column-gap: 24px;
+  align-items: start;
+}
+
+.project-body:has(.project-preview) > :not(.project-preview) {
+  grid-column: 1;
+}
+
+.project-preview {
+  grid-column: 2;
+  grid-row: 1 / span 3;
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-surface);
+}
+
 .project[open] .project-body {
   animation: projectOpen 0.3s var(--ease-fluid);
 }
@@ -1701,6 +1726,17 @@ header {
     padding: 0 0 14px 34px;
   }
 
+  .project-body:has(.project-preview) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .project-preview {
+    grid-column: 1;
+    grid-row: auto;
+    order: 1;
+    margin-top: 12px;
+  }
+
   .project-description {
     font-size: 13px;
     margin-bottom: 8px;
@@ -2107,7 +2143,8 @@ header {
     break-inside: avoid;
   }
 
-  .project-summary::after {
+  .project-summary::after,
+  .project-preview {
     display: none;
   }
 
