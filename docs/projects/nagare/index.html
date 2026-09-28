@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+    <meta name="description" content="How Nagare works: a Japanese reader that runs entirely in the browser, with furigana, tap-to-look-up words, JLPT levels and on-device translation.">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://xeoul.github.io/projects/nagare/">
+    <meta property="og:title" content="Nagare case study - Vincent Lam">
+    <meta property="og:description" content="How Nagare works: a Japanese reader that runs entirely in the browser, with furigana, tap-to-look-up words, JLPT levels and on-device translation.">
+    <meta property="og:image" content="https://xeoul.github.io/images/projects/nagare.webp">
+    <meta property="og:image:width" content="800">
+    <meta property="og:image:height" content="500">
+    <meta property="og:image:alt" content="Nagare reading a starter story with furigana, with the word 公園 tapped to show its reading, JLPT level and meaning">
+    <meta property="og:site_name" content="Vincent Lam">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="author" content="Vincent Lam">
+    <link rel="canonical" href="https://xeoul.github.io/projects/nagare/">
+    <meta name="theme-color" content="#fafaf9" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#0d0d10" media="(prefers-color-scheme: dark)">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self'; connect-src 'self' https://api.github.com; object-src 'none'; base-uri 'self'; form-action 'none';">
+    <meta name="color-scheme" content="light dark">
+    <title>Nagare case study - Vincent Lam</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="preload" href="/fonts/Inter-Variable.woff2" as="font" type="font/woff2" crossorigin>
+    <script src="/theme-init.js"></script>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+    <a class="skip-link" href="#main">Skip to content</a>
+
+    <header>
+        <a href="/#home" class="header-title nav-link">
+            <h1>@Xeoul</h1>
+        </a>
+        <nav class="in-menu" aria-label="Primary">
+            <span class="nav-indicator" aria-hidden="true"></span>
+            <a href="/#home" class="nav-link">
+                <svg aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M10,20V14H14V20H19V12H22L12,3L2,12H5V20H10Z"/></svg>
+                Home
+            </a>
+            <a href="/#about" class="nav-link">
+                <svg aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12,4A4,4 0 0,1 16,8A4,4 0 0,1 12,12A4,4 0 0,1 8,8A4,4 0 0,1 12,4M12,14C16.42,14 20,15.79 20,18V20H4V18C4,15.79 7.58,14 12,14Z"/></svg>
+                About
+            </a>
+            <a href="/#projects" class="nav-link active" aria-current="page">
+                <svg aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M10,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V8C22,6.89 21.1,6 20,6H12L10,4Z"/></svg>
+                Projects
+            </a>
+            <a href="/#contact" class="nav-link">
+                <svg aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M20,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V6C22,4.89 21.1,4 20,4M20,8L12,13L4,8V6L12,11L20,6V8Z"/></svg>
+                Contact
+            </a>
+        </nav>
+
+        <button class="theme-toggle" aria-label="Switch to dark theme" aria-pressed="false">
+            <svg aria-hidden="true" focusable="false" class="icon-sun" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                <circle cx="12" cy="12" r="4.5"/>
+                <path d="M12 2.5v2.5M12 19v2.5M4.6 4.6l1.8 1.8M17.6 17.6l1.8 1.8M2.5 12h2.5M19 12h2.5M4.6 19.4l1.8-1.8M17.6 6.4l1.8-1.8"/>
+            </svg>
+            <svg aria-hidden="true" focusable="false" class="icon-moon" width="19" height="19" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M20.7 14.9A8.6 8.6 0 0 1 9.1 3.3a8.6 8.6 0 1 0 11.6 11.6Z"/>
+            </svg>
+        </button>
+
+        <a href="https://github.com/Xeoul" target="_blank" rel="noopener noreferrer" class="github-icon" aria-label="GitHub profile">
+            <svg aria-hidden="true" focusable="false" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.30.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+            </svg>
+        </a>
+    </header>
+
+    <nav class="tab-bar" aria-label="Primary">
+        <a href="/#home" class="nav-link tab-link">
+            <svg aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M10,20V14H14V20H19V12H22L12,3L2,12H5V20H10Z"/></svg>
+            <span>Home</span>
+        </a>
+        <a href="/#about" class="nav-link tab-link">
+            <svg aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12,4A4,4 0 0,1 16,8A4,4 0 0,1 12,12A4,4 0 0,1 8,8A4,4 0 0,1 12,4M12,14C16.42,14 20,15.79 20,18V20H4V18C4,15.79 7.58,14 12,14Z"/></svg>
+            <span>About</span>
+        </a>
+        <a href="/#projects" class="nav-link tab-link active" aria-current="page">
+            <svg aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M10,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V8C22,6.89 21.1,6 20,6H12L10,4Z"/></svg>
+            <span>Projects</span>
+        </a>
+        <a href="/#contact" class="nav-link tab-link">
+            <svg aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M20,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V6C22,4.89 21.1,4 20,4M20,8L12,13L4,8V6L12,11L20,6V8Z"/></svg>
+            <span>Contact</span>
+        </a>
+    </nav>
+
+    <main class="view" id="main">
+        <!-- A case study is one long panel: it scrolls inside .case-scroll
+             while the dot grid and wave stay put behind it. -->
+        <section id="case" class="panel case-panel active">
+            <div class="case-scroll">
+                <article class="case-study">
+                    <a class="case-back" href="/#projects/nagare"><span aria-hidden="true">&larr;</span> All projects</a>
+
+                    <div class="case-intro">
+                        <p class="case-kicker">Case study &middot; Personal project</p>
+                        <h1 class="section-title case-title" tabindex="-1">Nagare</h1>
+                        <p class="case-lede">A Japanese reader that teaches as you read: import a book or pick a story, turn on furigana, and tap any word for its reading, meaning and JLPT level.</p>
+                        <dl class="case-meta">
+                            <div>
+                                <dt>Stack</dt>
+                                <dd>TypeScript, Next.js, React, kuromoji.js, JMdict, transformers.js, IndexedDB</dd>
+                            </div>
+                            <div>
+                                <dt>Links</dt>
+                                <dd class="case-links">
+                                <a href="https://xeoul.github.io/nagare/" target="_blank" rel="noopener noreferrer">Live <span aria-hidden="true">&nearr;</span></a>
+                                <a href="https://github.com/Xeoul/nagare" target="_blank" rel="noopener noreferrer">Code <span aria-hidden="true">&nearr;</span></a>
+                                </dd>
+                            </div>
+                        </dl>
+                    </div>
+
+                    <img class="case-preview" src="/images/projects/nagare.webp" width="800" height="500" decoding="async" alt="Nagare reading a starter story with furigana, with the word 公園 tapped to show its reading, JLPT level and meaning">
+
+                    <section class="case-section" aria-labelledby="problem">
+                        <h2 id="problem">The problem</h2>
+                        <p>Reading real Japanese is some of the best practice there is, but every unknown word means leaving the text for a dictionary, and most study apps put drills and streaks ahead of reading. Nagare starts from the other end: the reader is the product, and study tools only exist to reinforce what you've read. There are no streaks, hearts or leaderboards.</p>
+                    </section>
+
+                    <section class="case-section" aria-labelledby="features">
+                        <h2 id="features">What it does</h2>
+                        <ul>
+                            <li><strong>Import</strong> a .txt or .epub file, or start from the built-in shelf: starter readings, Wikibooks graded readers, and Aozora Bunko classics, each tagged with a level.</li>
+                            <li><strong>Furigana</strong> you can switch on or off, and it remembers your choice.</li>
+                            <li><strong>Tap any word</strong> for its reading, meaning, part of speech and JLPT level, and add it to your word list.</li>
+                            <li><strong>Translate a sentence</strong> with a model that runs on your device.</li>
+                            <li><strong>A sentence feed</strong> filtered by level (N5, N4, N3+), with a link to read the full story and a list of sentences you've saved.</li>
+                            <li><strong>Continue reading</strong> from where you left off.</li>
+                        </ul>
+                    </section>
+
+                    <section class="case-section" aria-labelledby="build">
+                        <h2 id="build">How it's built</h2>
+                        <p>Next.js and TypeScript, exported as a static site, so everything runs in the browser with no backend and no account. kuromoji.js splits text into words on the page. Lookups use a dictionary of about 22,000 common words built from JMdict, tagged with JLPT levels from an MIT-licensed word list; both files are generated ahead of time by Node scripts.</p>
+                        <p>EPUBs are unzipped with JSZip, following the book's spine to get the text in order. The library, reading progress, word list and saved sentences live in IndexedDB. A GitHub Actions workflow builds the site and publishes it to GitHub Pages.</p>
+                    </section>
+
+                    <section class="case-section" aria-labelledby="decisions">
+                        <h2 id="decisions">Key decisions</h2>
+                        <h3>Everything in the browser, for now</h3>
+                        <p>Splitting text into words, dictionary lookups and translation all run client-side, so there's no server to host. The plan is to move tokenizing to a server-side Sudachi service once accuracy, or accounts and sync, need a backend.</p>
+                        <h3>Furigana only over the kanji</h3>
+                        <p>Readings come from the tokenizer rather than the source text, and matching kana at the end of a word is split off, so in 食べる only 食 gets た and べる stays plain.</p>
+                        <h3>Leveling the classics honestly</h3>
+                        <p>Aozora Bunko has no JLPT grading, so a script reads each work, looks up every content word's JLPT level, and assigns the lowest level that covers 80% of the words it could classify. It also reports how much of the text falls outside every JLPT list (names, archaic forms, rare compounds), because that makes a text harder too. Native literature almost never reads as N5 or N4, so the classics start at N3.</p>
+                        <h3>Translation in a Web Worker</h3>
+                        <p>Sentence translation uses the opus-mt-ja-en model through transformers.js. In testing, the model's WebAssembly call could sometimes block for a very long time, and a timeout on the same thread can't interrupt that, so it runs in a worker that can be shut down after 20 seconds.</p>
+                    </section>
+
+                    <section class="case-section" aria-labelledby="next">
+                        <h2 id="next">What's next</h2>
+                        <p>This is phase 0 of the plan. Next up:</p>
+                        <ol>
+                            <li><strong>Vocabulary review:</strong> spaced repetition for saved words, with key vocabulary pulled out of each text when it's imported.</li>
+                            <li><strong>Kanji and grammar:</strong> decks for both, fill-in-the-blank practice, and an N5 to N1 progress view.</li>
+                            <li><strong>Manga:</strong> import comic archives and use OCR, so tapping a speech bubble works like tapping text.</li>
+                            <li><strong>Accounts and sync</strong> across devices.</li>
+                        </ol>
+                    </section>
+
+                    <nav class="case-pager" aria-label="More case studies">
+                        <a href="/projects/installous/" rel="prev"><span class="case-pager-label"><span aria-hidden="true">&larr;</span> Previous</span>Installous</a>
+                        <a href="/projects/privacy-blocker/" rel="next"><span class="case-pager-label">Next <span aria-hidden="true">&rarr;</span></span>Privacy Blocker</a>
+                    </nav>
+                </article>
+            </div>
+        </section>
+    </main>
+
+    <script src="/script.js" defer></script>
+</body>
+</html>

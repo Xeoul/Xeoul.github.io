@@ -40,13 +40,16 @@ test('every panel is reachable from the navigation', async ({ page, isMobile }) 
 });
 
 test('every local file the pages reference exists', async ({ page, request }) => {
-  for (const pagePath of ['/', '/404.html']) {
+  const pages = ['/', '/404.html', ...['installous', 'nagare', 'privacy-blocker', 'sous-chef'].map((slug) => `/projects/${slug}/`)];
+  for (const pagePath of pages) {
     await page.goto(pagePath);
+    // Scripts, styles, images, and every same-site link (case studies,
+    // the contact card, the case studies' pager).
     const refs = await page.evaluate(() => [
       ...[...document.querySelectorAll('[src]')].map((el) => el.getAttribute('src')),
-      ...[...document.querySelectorAll('link[href]')].map((el) => el.getAttribute('href')),
+      ...[...document.querySelectorAll('link[href], a[href]')].map((el) => el.getAttribute('href')),
     ]);
-    const local = [...new Set(refs)].filter((ref) => ref && !/^(https?:|mailto:|data:|#)/.test(ref));
+    const local = [...new Set(refs)].filter((ref) => ref && !/^(https?:|mailto:|data:|#|\/#)/.test(ref));
     expect(local.length).toBeGreaterThan(0);
     for (const ref of local) {
       const res = await request.get(new URL(ref, `http://127.0.0.1${pagePath}`).pathname);

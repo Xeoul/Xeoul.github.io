@@ -6,6 +6,7 @@ const AxeBuilder = require('@axe-core/playwright').default;
 const { GITHUB_FIXTURES, mockGitHub, watchErrors, navLink, panelOffsets, expectSettled } = require('./helpers');
 
 const PANELS = ['home', 'about', 'projects', 'contact'];
+const CASE_STUDIES = ['installous', 'nagare', 'privacy-blocker', 'sous-chef'];
 
 // ---------------------------------------------------------------- print
 
@@ -312,7 +313,7 @@ test.describe('command menu and shortcuts', () => {
     await expect(page.locator('.cmdk-input')).toBeFocused();
     const items = page.locator('.cmdk-item');
     const total = await items.count();
-    expect(total).toBe(9);
+    expect(total).toBe(10);
     // Up from the first wraps to the last.
     await page.keyboard.press('ArrowUp');
     await expect(items.nth(total - 1)).toHaveAttribute('aria-selected', 'true');
@@ -408,6 +409,179 @@ test.describe('command menu and shortcuts', () => {
   });
 });
 
+// ---------------------------------------------------------------- project links, case studies, contact card
+
+test.describe('project links, case studies and the contact card', () => {
+  test.beforeEach(async ({ page }) => { await mockGitHub(page); });
+
+  const openSlugs = (page) => page.locator('details.project').evaluateAll((els) => els.filter((d) => d.open).map((d) => d.dataset.slug));
+
+  test('a link to #projects/<slug> opens the catalog with that project expanded', async ({ page }) => {
+    const errors = watchErrors(page);
+    for (const slug of ['nagare', 'movie-recommender']) {
+      await page.goto(`/#projects/${slug}`);
+      await expectSettled(page, 'projects');
+      expect(await openSlugs(page)).toEqual([slug]);
+      // Scrolled into view, even at the bottom of a phone-length list.
+      const visible = await page.locator(`details[data-slug="${slug}"] summary`).evaluate((el) => {
+        const r = el.getBoundingClientRect();
+        const p = el.closest('.panel').getBoundingClientRect();
+        return r.top >= p.top && r.bottom <= p.bottom;
+      });
+      expect(visible).toBe(true);
+    }
+    expect(errors).toEqual([]);
+  });
+
+  test('an unknown project still opens the catalog, with nothing expanded', async ({ page }) => {
+    const errors = watchErrors(page);
+    await page.goto('/#projects/not-a-project');
+    await expectSettled(page, 'projects');
+    expect(await openSlugs(page)).toEqual([]);
+    // A fresh load of an unknown panel falls back to Home, as for #nope.
+    await page.goto('about:blank');
+    await page.goto('/#nope/nagare');
+    await expectSettled(page, 'home');
+    expect(errors).toEqual([]);
+  });
+
+  test('opening and closing a project keeps the address bar in step', async ({ page, isMobile }) => {
+    await page.goto('/');
+    await navLink(page, isMobile, 'projects').click();
+    await expectSettled(page, 'projects');
+    const historyLength = await page.evaluate(() => history.length);
+    await page.locator('details[data-slug="nagare"] summary').click();
+    await expect(page).toHaveURL(/#projects\/nagare$/);
+    await page.locator('details[data-slug="sous-chef"] summary').click();
+    await expect(page).toHaveURL(/#projects\/sous-chef$/);
+    await page.locator('details[data-slug="sous-chef"] summary').click();
+    await expect(page).toHaveURL(/#projects$/);
+    // Replaced, not pushed: Back still steps through panels.
+    expect(await page.evaluate(() => history.length)).toBe(historyLength);
+  });
+
+  test('Back returns to the project that was open', async ({ page, isMobile }) => {
+    await page.goto('/#projects/privacy-blocker');
+    await expectSettled(page, 'projects');
+    await navLink(page, isMobile, 'contact').click();
+    await expectSettled(page, 'contact');
+    await page.locator('details[data-slug="privacy-blocker"]').evaluate((d) => { d.open = false; });
+    await page.goBack();
+    await expectSettled(page, 'projects');
+    expect(await openSlugs(page)).toEqual(['privacy-blocker']);
+  });
+
+  test('Copy link copies a link to the project', async ({ page, context, browserName }) => {
+    test.skip(browserName !== 'chromium', 'clipboard permissions are Chromium-only here');
+    await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+    await page.goto('/#projects/nagare');
+    await expectSettled(page, 'projects');
+    const button = page.locator('details[data-slug="nagare"] .project-copy-link');
+    await expect(button).toHaveAccessibleName('Copy link to Nagare');
+    await button.click();
+    await expect(page.locator('.toast')).toHaveText('Link copied');
+    expect(await page.evaluate(() => navigator.clipboard.readText())).toBe('http://127.0.0.1:4173/#projects/nagare');
+    // Every project gets one, including those without links of their own.
+    await expect(page.locator('.project-copy-link')).toHaveCount(6);
+  });
+
+  test('Copy link falls back to the address bar when the clipboard is refused', async ({ page }) => {
+    await page.addInitScript(() => {
+      Object.defineProperty(navigator, 'clipboard', { value: { writeText: () => Promise.reject(new Error('denied')) } });
+    });
+    await page.goto('/#projects');
+    await expectSettled(page, 'projects');
+    await page.locator('details[data-slug="wemu"] summary').click();
+    await page.locator('details[data-slug="wemu"] .project-copy-link').click();
+    await expect(page.locator('.toast')).toHaveText('Copy the link from the address bar');
+    await expect(page).toHaveURL(/#projects\/wemu$/);
+  });
+
+  test('each case-study link opens its page, and its back link reopens the project', async ({ page, isMobile }) => {
+    const errors = watchErrors(page);
+    await page.goto('/#projects/sous-chef');
+    await expectSettled(page, 'projects');
+    await page.locator('details[data-slug="sous-chef"] .project-links a', { hasText: 'Case study' }).click();
+    await expect(page).toHaveURL(/\/projects\/sous-chef\/$/);
+    await expect(page).toHaveTitle('Sous Chef case study - Vincent Lam');
+    await expect(page.locator('h1.case-title')).toHaveText('Sous Chef');
+    await expect(page.locator('#case')).toBeVisible();
+    // The page's section is marked in the nav.
+    await expect(page.locator(isMobile ? '.tab-bar a[href="/#projects"]' : '.in-menu a[href="/#projects"]')).toHaveAttribute('aria-current', 'page');
+    await page.locator('.case-back').click();
+    await expect(page).toHaveURL(/\/#projects\/sous-chef$/);
+    await expectSettled(page, 'projects');
+    expect(await openSlugs(page)).toEqual(['sous-chef']);
+    expect(errors).toEqual([]);
+  });
+
+  for (const slug of CASE_STUDIES) {
+    test(`the ${slug} case study loads cleanly, scrolls and links on`, async ({ page }) => {
+      const errors = watchErrors(page);
+      await page.goto(`/projects/${slug}/`);
+      await expect(page.locator('.case-section h2').first()).toBeVisible();
+      await expect(page.locator('.case-preview')).toHaveJSProperty('complete', true);
+      expect(await page.locator('.case-preview').evaluate((img) => img.naturalWidth)).toBeGreaterThan(0);
+      // The article scrolls inside the still panel, all the way to the pager.
+      const scroller = page.locator('.case-scroll');
+      expect(await scroller.evaluate((el) => el.scrollHeight > el.clientHeight)).toBe(true);
+      await page.locator('.case-pager a[rel="next"]').scrollIntoViewIfNeeded();
+      await expect(page.locator('.case-pager a[rel="next"]')).toBeInViewport();
+      expect(await page.evaluate(() => document.querySelector('.view').scrollLeft + document.documentElement.scrollTop)).toBe(0);
+      // Nothing sticks out sideways.
+      const wide = await page.evaluate(() => [...document.querySelectorAll('.case-study *')]
+        .filter((el) => el.getBoundingClientRect().right > document.querySelector('.case-scroll').clientWidth + 1)
+        .map((el) => el.className || el.tagName));
+      expect(wide).toEqual([]);
+      // The pager walks through all four and comes back around.
+      const next = CASE_STUDIES[(CASE_STUDIES.indexOf(slug) + 1) % CASE_STUDIES.length];
+      await page.locator('.case-pager a[rel="next"]').click();
+      await expect(page).toHaveURL(new RegExp(`/projects/${next}/$`));
+      expect(errors).toEqual([]);
+    });
+  }
+
+  test('a case study prints as a plain document', async ({ page }) => {
+    await page.goto('/projects/nagare/');
+    await page.emulateMedia({ media: 'print' });
+    const layout = await page.evaluate(() => ({
+      scroll: getComputedStyle(document.querySelector('.case-scroll')).position,
+      back: getComputedStyle(document.querySelector('.case-back')).display,
+      pager: getComputedStyle(document.querySelector('.case-pager')).display,
+      header: getComputedStyle(document.querySelector('header')).display,
+    }));
+    expect(layout).toEqual({ scroll: 'static', back: 'none', pager: 'none', header: 'none' });
+  });
+
+  test('the contact card downloads a valid vCard', async ({ page, request, isMobile }) => {
+    const res = await request.get('/vincent-lam.vcf');
+    expect(res.status()).toBe(200);
+    const card = await res.text();
+    expect(card).toMatch(/^BEGIN:VCARD\r\nVERSION:3\.0\r\n/);
+    expect(card).toMatch(/\r\nEND:VCARD\r\n$/);
+    for (const line of ['FN:Vincent Lam', 'EMAIL;TYPE=INTERNET:v812.io@gmail.com', 'URL:https://xeoul.github.io/', 'https://www.linkedin.com/in/vincentlam812', 'https://github.com/Xeoul']) {
+      expect(card).toContain(line);
+    }
+    await page.goto('/');
+    await navLink(page, isMobile, 'contact').click();
+    await expectSettled(page, 'contact');
+    const download = page.waitForEvent('download');
+    await page.locator('a.save-contact').click();
+    expect((await download).suggestedFilename()).toBe('vincent-lam.vcf');
+  });
+
+  test('the command menu can save the contact card', async ({ page, isMobile }) => {
+    test.skip(isMobile, 'keyboard features are desktop-only');
+    await page.goto('/');
+    await page.keyboard.press('Control+k');
+    await page.keyboard.type('vcard');
+    await expect(page.locator('.cmdk-item')).toHaveText([/Save contact card/]);
+    const download = page.waitForEvent('download');
+    await page.keyboard.press('Enter');
+    expect((await download).suggestedFilename()).toBe('vincent-lam.vcf');
+  });
+});
+
 // ---------------------------------------------------------------- layout and motion
 
 test.describe('layout and motion', () => {
@@ -428,6 +602,14 @@ test.describe('layout and motion', () => {
           return { page: document.documentElement.scrollWidth > window.innerWidth, panel: panel.scrollWidth > panel.clientWidth + 1, wide: wide.slice(0, 3) };
         }, id);
         expect(overflow, `#${id} at ${width}px`).toEqual({ page: false, panel: false, wide: [] });
+      }
+      for (const slug of CASE_STUDIES) {
+        await page.goto(`/projects/${slug}/`);
+        const overflow = await page.evaluate(() => ({
+          page: document.documentElement.scrollWidth > window.innerWidth,
+          article: document.querySelector('.case-scroll').scrollWidth > document.querySelector('.case-scroll').clientWidth,
+        }));
+        expect(overflow, `${slug} at ${width}px`).toEqual({ page: false, article: false });
       }
     });
   }
@@ -516,6 +698,18 @@ test.describe('accessibility scan', () => {
     }
   }
 
+  for (const scheme of ['light', 'dark']) {
+    test(`the case studies have no accessibility violations (${scheme})`, async ({ page }) => {
+      await page.emulateMedia({ colorScheme: scheme, reducedMotion: 'reduce' });
+      for (const slug of CASE_STUDIES) {
+        await page.goto(`/projects/${slug}/`);
+        const results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze();
+        const summary = results.violations.map((v) => `${slug} ${v.id}: ${v.nodes.map((n) => n.target.join(' ')).slice(0, 3).join(', ')}`);
+        expect(summary).toEqual([]);
+      }
+    });
+  }
+
   test('the 404 page has no accessibility violations', async ({ page }) => {
     await page.goto('/404.html');
     const results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa']).analyze();
@@ -576,6 +770,10 @@ test(`stress: ${STRESS_STEPS} random actions leave the page consistent`, async (
       const n = await summaries.count();
       if (n) await summaries.nth(rand(n)).click({ timeout: 3000 }).catch(() => {}); // the panel may slide away first
     },
+    async () => {
+      const button = page.locator('#projects.active details.project[open] .project-copy-link');
+      if (await button.count()) await button.click({ timeout: 3000 }).catch(() => {});
+    },
     // Back only within the site: from the first entry (no hash yet) it
     // would leave for the blank page the test browser started on.
     async () => page.evaluate(() => { if (location.hash) history.back(); }),
@@ -586,6 +784,12 @@ test(`stress: ${STRESS_STEPS} random actions leave the page consistent`, async (
       await expect(page.locator('dialog.cmdk')).toBeHidden();
       await expectSettled(page);
       expect(await page.locator('details.project[open]').count()).toBeLessThanOrEqual(1);
+      // A #projects/<slug> address always shows that project open.
+      const linked = await page.evaluate(() => {
+        const m = location.hash.match(/^#projects\/(.+)$/);
+        return m && document.querySelector('#projects.active') ? document.querySelector(`details[data-slug="${m[1]}"]`).open : true;
+      });
+      expect(linked).toBe(true);
       await expect(page.locator('html')).not.toHaveClass(/printing/);
     }
   }
