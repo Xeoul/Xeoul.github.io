@@ -494,6 +494,13 @@ header {
   right: 0;
   bottom: 0;
   overflow: hidden;
+  /* clip, not hidden, where supported: overflow: hidden still makes this a
+     scroll container, so following a #panel link the site doesn't handle
+     itself (e.g. editing the address bar) scrolled the off-screen panel
+     into view sideways, shifting every panel a screen out of place.
+     Clipped content can't be scrolled to. script.js resets any sideways
+     scroll for browsers without clip. */
+  overflow: clip;
 }
 
 /* Panels push each other off-screen edge-to-edge (like paging through a
@@ -810,6 +817,11 @@ header {
      against the panel's own 28px padding - keeps it from reading as
      jammed against the edge. */
   .hero-content {
+    /* The full width minus this margin: 100% plus the margin ran past
+       the panel's right edge (and let Home scroll sideways) on screens
+       between 900px and ~1200px. Wider screens are capped by max-width
+       as before, so nothing moves there. */
+    width: calc(100% - 112px);
     margin-left: 112px;
     margin-right: auto;
   }
@@ -2064,6 +2076,15 @@ header {
 .toast.visible {
   opacity: 1;
   transform: translate(-50%, 0);
+}
+
+/* Set while printing and for a frame after (see LEAVING PRINT in
+   script.js), so switching between the print and screen layouts snaps
+   instead of animating every panel across the page. */
+html.printing *,
+html.printing *::before,
+html.printing *::after {
+  transition: none !important;
 }
 
 /* ============================================================
