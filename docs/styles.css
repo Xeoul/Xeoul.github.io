@@ -1388,9 +1388,21 @@ header {
   text-decoration: none;
 }
 
-.project-links a:hover {
+.project-links a:hover,
+.project-copy-link:hover {
   text-decoration: underline;
   text-underline-offset: 3px;
+}
+
+/* Added by script.js (see LINKS TO ONE PROJECT). Styled as a quieter
+   sibling of the links beside it. */
+.project-copy-link {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: var(--color-ink-soft);
+  cursor: pointer;
 }
 
 /* More on GitHub - a compact row of links under the featured
@@ -1648,7 +1660,7 @@ header {
   }
 
   /* Open About/Projects/Contact's dot areas up on mobile. Their text
-     measures roughly 17-81% (About) and 25-75% (Contact) down the
+     measures roughly 17-81% (About) and 21-79% (Contact) down the
      panel (Projects is its own case, below), so each
      --safe-mask opens right up to just outside that instead of the
      wider desktop margins, which left only a sliver the wave rarely
@@ -1666,7 +1678,7 @@ header {
   }
 
   .contact-panel {
-    --safe-mask: linear-gradient(to bottom, black 0, black 19%, transparent 23%, transparent 77%, black 81%, black 100%);
+    --safe-mask: linear-gradient(to bottom, black 0, black 15%, transparent 19%, transparent 81%, black 85%, black 100%);
   }
 
   /* Even opened up, those strips are far thinner than Home's, so the
@@ -2088,6 +2100,221 @@ html.printing *::after {
 }
 
 /* ============================================================
+   CASE STUDIES (projects/<slug>/)
+   One long article per project, in a single panel like the 404 page.
+   The panel itself stays still so its dot grid and wave don't scroll
+   away; .case-scroll scrolls the article over them instead. On desktop
+   --safe-mask keeps the dots to either side of the text column, and on
+   phones - where the text is full width - only the faint glide of the
+   wave shows (see the shared mobile .wave-canvas rule), with no grid.
+   ============================================================ */
+.case-panel {
+  padding: 0;
+  overflow: hidden;
+  --wave-y: 0.55;
+  --wave-scale: 1;
+  --safe-mask: linear-gradient(to right, black 0, black calc(50% - 440px), transparent calc(50% - 380px), transparent calc(50% + 380px), black calc(50% + 440px));
+}
+
+.case-scroll {
+  position: absolute;
+  inset: 0;
+  overflow-y: auto;
+  padding: 40px 28px 72px;
+}
+
+.case-study {
+  max-width: 680px;
+  margin: 0 auto;
+}
+
+.case-back {
+  display: inline-block;
+  margin-bottom: 28px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  text-decoration: none;
+}
+
+.case-back:hover,
+.case-links a:hover,
+.case-section a:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.case-kicker {
+  margin: 0 0 6px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-accent);
+}
+
+.case-title {
+  font-size: clamp(30px, 5vw, 44px);
+}
+
+.case-lede {
+  margin: 12px 0 24px;
+  font-size: 18px;
+  color: var(--color-ink);
+}
+
+.case-meta {
+  display: grid;
+  gap: 8px;
+  margin: 0 0 28px;
+  padding: 14px 0;
+  border-top: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-border);
+  font-size: 14px;
+}
+
+.case-meta > div {
+  display: grid;
+  grid-template-columns: 64px 1fr;
+  gap: 12px;
+}
+
+.case-meta dt {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 21px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-ink-soft);
+}
+
+.case-meta dd {
+  margin: 0;
+  color: var(--color-ink);
+}
+
+.case-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+}
+
+.case-links a {
+  text-decoration: none;
+}
+
+.case-preview {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin-bottom: 8px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-surface);
+}
+
+.case-section {
+  margin-top: 36px;
+}
+
+.case-section h2 {
+  margin-bottom: 12px;
+  font-size: 22px;
+}
+
+.case-section h3 {
+  margin: 22px 0 6px;
+  font-size: 16px;
+}
+
+.case-section p,
+.case-section li {
+  max-width: none;
+  font-size: 16px;
+  line-height: 1.65;
+  color: var(--color-ink-soft);
+}
+
+.case-section ul,
+.case-section ol {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.case-section li + li {
+  margin-top: 8px;
+}
+
+.case-section strong {
+  font-weight: 600;
+  color: var(--color-ink);
+}
+
+.case-section code {
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+  color: var(--color-ink);
+}
+
+.case-pager {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 48px;
+  padding-top: 20px;
+  border-top: 1px solid var(--color-border);
+}
+
+.case-pager a {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-weight: 600;
+  text-decoration: none;
+  color: var(--color-ink);
+  transition: color 0.2s ease;
+}
+
+.case-pager a:hover {
+  color: var(--color-accent);
+}
+
+.case-pager a[rel="next"] {
+  text-align: right;
+}
+
+.case-pager-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-ink-soft);
+}
+
+@media screen and (max-width: 899px) {
+  .case-panel {
+    --safe-mask: linear-gradient(transparent, transparent);
+  }
+}
+
+@media screen and (max-width: 640px) {
+  .case-scroll {
+    padding: 24px 20px 48px;
+  }
+
+  .case-lede {
+    font-size: 17px;
+  }
+
+  .case-meta > div {
+    grid-template-columns: 1fr;
+    gap: 2px;
+  }
+}
+
+/* ============================================================
    PRINT / SAVE AS PDF
    The screen layout is one fixed-height view showing a single panel,
    which would print as just that panel. For print every panel is laid
@@ -2195,6 +2422,31 @@ html.printing *::after {
 
   .status-dot::after {
     display: none;
+  }
+
+  .case-scroll {
+    position: static;
+    overflow: visible;
+    padding: 0;
+  }
+
+  .case-study {
+    max-width: none;
+  }
+
+  .case-back,
+  .case-pager,
+  .project-copy-link {
+    display: none;
+  }
+
+  .case-section h2,
+  .case-section h3 {
+    break-after: avoid;
+  }
+
+  .case-preview {
+    max-width: 60%;
   }
 
   a {

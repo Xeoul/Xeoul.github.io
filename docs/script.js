@@ -284,10 +284,7 @@ document.addEventListener('keydown', (e) => {
     }
 });
 
-window.addEventListener('popstate', () => {
-    const id = window.location.hash.replace('#', '') || 'home';
-    showPanel(id, false);
-});
+window.addEventListener('popstate', () => showFromHash(true));
 
 // The view only ever shows one panel, positioned by transform, so it
 // should never be scrolled. Following a #panel link the site doesn't
@@ -763,6 +760,7 @@ if (cmdk && typeof cmdk.showModal === 'function') {
         },
         { label: 'Open GitHub', hint: 'github.com/Xeoul', keywords: 'code repos', run: () => openUrl('https://github.com/Xeoul') },
         { label: 'Open LinkedIn', hint: 'vincentlam812', keywords: 'profile', run: () => openUrl('https://www.linkedin.com/in/vincentlam812') },
+        { label: 'Save contact card', hint: '.vcf', keywords: 'vcard address book download', run: () => { window.location.href = 'vincent-lam.vcf'; } },
         themeToggle && { label: 'Toggle light / dark theme', keywords: 'dark mode appearance', run: () => themeToggle.click() },
         { label: 'Print / save as PDF', keywords: 'resume download', run: () => window.print() },
     ].filter(Boolean);
@@ -1046,6 +1044,75 @@ window.addEventListener('afterprint', () => {
     projectsBeforePrint = null;
 });
 
+// LINKS TO ONE PROJECT
+// A hash is either "#panel" or "#projects/<slug>", which opens that
+// project in the catalog - what each project's Copy link button shares.
+// Opening or closing a project by hand keeps the address bar in step
+// (replaced, not pushed, so Back still steps through panels rather than
+// every project you peeked at).
+function parseHash() {
+    const [panel, project] = window.location.hash.slice(1).split('/');
+    return { panel: panel || 'home', project: project || null };
+}
+
+function openProject(slug) {
+    const details = projectDetails.find(d => d.dataset.slug === slug);
+    if (!details) return;
+    details.open = true;
+    // The catalog scrolls on its own on phones. Measured by hand rather
+    // than scrollIntoView(), which would also scroll the view sideways
+    // toward a panel that's still sliding in.
+    const panel = details.closest('.panel');
+    const top = details.getBoundingClientRect().top - panel.getBoundingClientRect().top;
+    if (top < 0 || top + details.offsetHeight > panel.clientHeight) panel.scrollTop += top - 16;
+}
+
+function showFromHash(animate) {
+    const { panel, project } = parseHash();
+    showPanel(panel, false, animate);
+    if (panel === 'projects' && project) openProject(project);
+}
+
+projectDetails.forEach(details => {
+    const slug = details.dataset.slug;
+    if (!slug) return;
+
+    // Runs before the <details> toggles, so .open is still the old state.
+    details.querySelector('summary').addEventListener('click', () => {
+        if (parseHash().panel !== 'projects') return;
+        const hash = details.open ? '#projects' : `#projects/${slug}`;
+        if (window.location.hash !== hash) history.replaceState(null, '', hash);
+    });
+
+    // Added here rather than in the markup since it needs the script.
+    let links = details.querySelector('.project-links');
+    if (!links) {
+        links = document.createElement('div');
+        links.className = 'project-links';
+        details.querySelector('.project-body').appendChild(links);
+    }
+    const title = details.querySelector('.project-title').textContent;
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'project-copy-link';
+    button.append('Copy link');
+    const hidden = document.createElement('span');
+    hidden.className = 'visually-hidden';
+    hidden.textContent = ` to ${title}`;
+    button.appendChild(hidden);
+    button.addEventListener('click', () => {
+        const hash = `#projects/${slug}`;
+        const url = `${window.location.origin}${window.location.pathname}${hash}`;
+        const fallback = () => {
+            history.replaceState(null, '', hash);
+            showToast('Copy the link from the address bar');
+        };
+        if (!navigator.clipboard || !navigator.clipboard.writeText) return fallback();
+        navigator.clipboard.writeText(url).then(() => showToast('Link copied'), fallback);
+    });
+    links.appendChild(button);
+});
+
 // LEAVING PRINT
 // The print layout (see PRINT in styles.css) lays every panel out in
 // place, one after another. Coming back from it - after printing, or on
@@ -1138,8 +1205,10 @@ if (ghHeatmap) {
 
 // INITIALIZE ON PAGE LOAD
 document.addEventListener('DOMContentLoaded', () => {
-    const initialId = window.location.hash.replace('#', '') || 'home';
-    showPanel(initialId, false, false);
+    showFromHash(false);
+    // Pages outside the four panels (a case study, the 404) mark their
+    // section's nav link active in the markup - place the pill under it.
+    moveNavIndicatorToActive(true);
 
     // Home's .reveal children play their first entrance as a CSS
     // animation (.init-pending, see CONTENT ENTRANCE in styles.css).

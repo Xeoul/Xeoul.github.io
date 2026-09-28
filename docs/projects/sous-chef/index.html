@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+    <meta name="description" content="How Sous Chef works: a single-page meal planner that scales recipes, merges them into one shopping list and converts between US and metric units.">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://xeoul.github.io/projects/sous-chef/">
+    <meta property="og:title" content="Sous Chef case study - Vincent Lam">
+    <meta property="og:description" content="How Sous Chef works: a single-page meal planner that scales recipes, merges them into one shopping list and converts between US and metric units.">
+    <meta property="og:image" content="https://xeoul.github.io/images/projects/sous-chef.webp">
+    <meta property="og:image:width" content="800">
+    <meta property="og:image:height" content="500">
+    <meta property="og:image:alt" content="Sous Chef's combined shopping list for the week, with one item checked off">
+    <meta property="og:site_name" content="Vincent Lam">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="author" content="Vincent Lam">
+    <link rel="canonical" href="https://xeoul.github.io/projects/sous-chef/">
+    <meta name="theme-color" content="#fafaf9" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#0d0d10" media="(prefers-color-scheme: dark)">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self'; connect-src 'self' https://api.github.com; object-src 'none'; base-uri 'self'; form-action 'none';">
+    <meta name="color-scheme" content="light dark">
+    <title>Sous Chef case study - Vincent Lam</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="preload" href="/fonts/Inter-Variable.woff2" as="font" type="font/woff2" crossorigin>
+    <script src="/theme-init.js"></script>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+    <a class="skip-link" href="#main">Skip to content</a>
+
+    <header>
+        <a href="/#home" class="header-title nav-link">
+            <h1>@Xeoul</h1>
+        </a>
+        <nav class="in-menu" aria-label="Primary">
+            <span class="nav-indicator" aria-hidden="true"></span>
+            <a href="/#home" class="nav-link">
+                <svg aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M10,20V14H14V20H19V12H22L12,3L2,12H5V20H10Z"/></svg>
+                Home
+            </a>
+            <a href="/#about" class="nav-link">
+                <svg aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12,4A4,4 0 0,1 16,8A4,4 0 0,1 12,12A4,4 0 0,1 8,8A4,4 0 0,1 12,4M12,14C16.42,14 20,15.79 20,18V20H4V18C4,15.79 7.58,14 12,14Z"/></svg>
+                About
+            </a>
+            <a href="/#projects" class="nav-link active" aria-current="page">
+                <svg aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M10,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V8C22,6.89 21.1,6 20,6H12L10,4Z"/></svg>
+                Projects
+            </a>
+            <a href="/#contact" class="nav-link">
+                <svg aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M20,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V6C22,4.89 21.1,4 20,4M20,8L12,13L4,8V6L12,11L20,6V8Z"/></svg>
+                Contact
+            </a>
+        </nav>
+
+        <button class="theme-toggle" aria-label="Switch to dark theme" aria-pressed="false">
+            <svg aria-hidden="true" focusable="false" class="icon-sun" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                <circle cx="12" cy="12" r="4.5"/>
+                <path d="M12 2.5v2.5M12 19v2.5M4.6 4.6l1.8 1.8M17.6 17.6l1.8 1.8M2.5 12h2.5M19 12h2.5M4.6 19.4l1.8-1.8M17.6 6.4l1.8-1.8"/>
+            </svg>
+            <svg aria-hidden="true" focusable="false" class="icon-moon" width="19" height="19" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M20.7 14.9A8.6 8.6 0 0 1 9.1 3.3a8.6 8.6 0 1 0 11.6 11.6Z"/>
+            </svg>
+        </button>
+
+        <a href="https://github.com/Xeoul" target="_blank" rel="noopener noreferrer" class="github-icon" aria-label="GitHub profile">
+            <svg aria-hidden="true" focusable="false" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.30.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+            </svg>
+        </a>
+    </header>
+
+    <nav class="tab-bar" aria-label="Primary">
+        <a href="/#home" class="nav-link tab-link">
+            <svg aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M10,20V14H14V20H19V12H22L12,3L2,12H5V20H10Z"/></svg>
+            <span>Home</span>
+        </a>
+        <a href="/#about" class="nav-link tab-link">
+            <svg aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12,4A4,4 0 0,1 16,8A4,4 0 0,1 12,12A4,4 0 0,1 8,8A4,4 0 0,1 12,4M12,14C16.42,14 20,15.79 20,18V20H4V18C4,15.79 7.58,14 12,14Z"/></svg>
+            <span>About</span>
+        </a>
+        <a href="/#projects" class="nav-link tab-link active" aria-current="page">
+            <svg aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M10,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V8C22,6.89 21.1,6 20,6H12L10,4Z"/></svg>
+            <span>Projects</span>
+        </a>
+        <a href="/#contact" class="nav-link tab-link">
+            <svg aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M20,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V6C22,4.89 21.1,4 20,4M20,8L12,13L4,8V6L12,11L20,6V8Z"/></svg>
+            <span>Contact</span>
+        </a>
+    </nav>
+
+    <main class="view" id="main">
+        <!-- A case study is one long panel: it scrolls inside .case-scroll
+             while the dot grid and wave stay put behind it. -->
+        <section id="case" class="panel case-panel active">
+            <div class="case-scroll">
+                <article class="case-study">
+                    <a class="case-back" href="/#projects/sous-chef"><span aria-hidden="true">&larr;</span> All projects</a>
+
+                    <div class="case-intro">
+                        <p class="case-kicker">Case study &middot; Personal project</p>
+                        <h1 class="section-title case-title" tabindex="-1">Sous Chef</h1>
+                        <p class="case-lede">A weekly meal planner that turns the recipes you pick into one shopping list.</p>
+                        <dl class="case-meta">
+                            <div>
+                                <dt>Stack</dt>
+                                <dd>JavaScript, HTML/CSS, Claude artifacts, localStorage</dd>
+                            </div>
+                            <div>
+                                <dt>Links</dt>
+                                <dd class="case-links">
+                                <a href="https://xeoul.github.io/sous-chef/" target="_blank" rel="noopener noreferrer">Live <span aria-hidden="true">&nearr;</span></a>
+                                <a href="https://github.com/Xeoul/sous-chef" target="_blank" rel="noopener noreferrer">Code <span aria-hidden="true">&nearr;</span></a>
+                                </dd>
+                            </div>
+                        </dl>
+                    </div>
+
+                    <img class="case-preview" src="/images/projects/sous-chef.webp" width="800" height="500" decoding="async" alt="Sous Chef's combined shopping list for the week, with one item checked off">
+
+                    <section class="case-section" aria-labelledby="problem">
+                        <h2 id="problem">The problem</h2>
+                        <p>Planning a week of meals and then writing the shopping list means adding up the same ingredients across several recipes, scaled to how many people you're cooking for, with some recipes in cups and others in grams. Sous Chef does that arithmetic for you.</p>
+                    </section>
+
+                    <section class="case-section" aria-labelledby="features">
+                        <h2 id="features">What it does</h2>
+                        <ul>
+                            <li><strong>Plan the week:</strong> tap recipes to plan them and set how many servings of each you're cooking.</li>
+                            <li><strong>One shopping list:</strong> ingredients scaled to your servings and merged across recipes, shown combined or grouped by recipe, and checked off as you shop.</li>
+                            <li><strong>US or metric</strong> units, switched with one tap.</li>
+                            <li><strong>Cook view:</strong> each planned recipe's scaled ingredients and step-by-step directions.</li>
+                            <li><strong>AI recipe import:</strong> search the web, paste a link or paste an ingredient list, and the recipe is sorted into fields for you.</li>
+                        </ul>
+                    </section>
+
+                    <section class="case-section" aria-labelledby="build">
+                        <h2 id="build">How it's built</h2>
+                        <p>A single self-contained HTML page of plain JavaScript, with no build step and no dependencies. It was built as a Claude artifact: run inside Claude, recipes and the week's plan sync through the artifact's database, and recipe import uses AI parsing plus web search and fetch. Anywhere else, including the live demo, it saves to localStorage and works the same apart from the AI import.</p>
+                        <p>A GitHub Actions workflow publishes the demo to GitHub Pages, with a small script that adds a few sample recipes the first time it opens with nothing saved.</p>
+                    </section>
+
+                    <section class="case-section" aria-labelledby="decisions">
+                        <h2 id="decisions">Key decisions</h2>
+                        <h3>Recipes as plain data</h3>
+                        <p>A recipe is a name, a base number of servings, a list of ingredients (amount, unit and name) and a list of steps. Scaling is one multiplication, and the combined list adds up ingredients whose name and unit match.</p>
+                        <h3>Converting through a base unit</h3>
+                        <p>Every weight is converted to grams and every volume to millilitres, then back into the most readable unit for the chosen system: under 15 ml shows as teaspoons, under 59 ml as tablespoons, then cups, quarts and gallons, and ounces become pounds at 16. So 48 teaspoons across three recipes shows up as 1 cup.</p>
+                        <h3>Update the list, don't rebuild it</h3>
+                        <p>Rebuilding the whole list on every tap replayed each row's entrance animation whenever you checked something off or changed a serving count. A keyed update patches the rows that are already there and only creates new ones, so only new items animate in.</p>
+                        <h3>No lost check-offs while syncing</h3>
+                        <p>Changes to the week are saved to the database after a short 350 ms pause. Until a change has been sent and acknowledged, any copy the database sends back is older than what's on screen, so it's held until the save settles. Otherwise it could briefly undo newer check-offs, and the next one would be built on that stale copy.</p>
+                    </section>
+
+                    <section class="case-section" aria-labelledby="limits">
+                        <h2 id="limits">Current limits</h2>
+                        <p>AI import only works inside Claude, where the page can call a model and search the web; the standalone demo supports recipes you type in. Outside Claude, your recipes live in one browser.</p>
+                    </section>
+
+                    <nav class="case-pager" aria-label="More case studies">
+                        <a href="/projects/privacy-blocker/" rel="prev"><span class="case-pager-label"><span aria-hidden="true">&larr;</span> Previous</span>Privacy Blocker</a>
+                        <a href="/projects/installous/" rel="next"><span class="case-pager-label">Next <span aria-hidden="true">&rarr;</span></span>Installous</a>
+                    </nav>
+                </article>
+            </div>
+        </section>
+    </main>
+
+    <script src="/script.js" defer></script>
+</body>
+</html>
