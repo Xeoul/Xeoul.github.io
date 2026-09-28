@@ -583,8 +583,17 @@ function drawWave(panel, offsetX = panelOffsetX(panel)) {
     panel.style.setProperty('--grid-shift', `${gridShift}px`);
 }
 
+// Redraws straight away rather than on the next tick - but only the
+// panels on screen: off-screen ones are drawn by waveFrame the moment
+// they start sliding in, so drawing them here too (as page load, resize
+// and theme changes all used to) was just extra startup work. Under
+// reduced motion every panel stays in place and only fades, so they all
+// count as on screen and are all drawn.
 function drawAllWaves() {
-    panels.forEach((panel) => drawWave(panel));
+    panels.forEach((panel) => {
+        const offsetX = panelOffsetX(panel);
+        if (Math.abs(offsetX) < panelWaveGeometry(panel).width) drawWave(panel, offsetX);
+    });
 }
 
 // Drops the cached accent colour and glow (see waveAccent) after a theme
@@ -1098,17 +1107,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const initialId = window.location.hash.replace('#', '') || 'home';
     showPanel(initialId, false, false);
 
-    // Home's .reveal children start hidden via .init-pending (see
-    // styles.css) even though the panel itself is marked active in the
-    // raw HTML - this unhides them so the same entrance plays on the
-    // actual first page load instead of skipping straight to visible.
-    // The double rAF guarantees that hidden state has already painted
-    // once before removing the class, same reasoning as the panel
-    // push's off-screen snap above.
-    requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-            document.querySelectorAll('.reveal.init-pending').forEach(el => el.classList.remove('init-pending'));
-        });
+    // Home's .reveal children play their first entrance as a CSS
+    // animation (.init-pending, see CONTENT ENTRANCE in styles.css).
+    // Once it ends, the class comes off so later visits to Home use the
+    // same .panel.active transition as every other panel - otherwise the
+    // animation's final state would keep them visible even off-screen.
+    document.querySelectorAll('.reveal.init-pending').forEach(el => {
+        el.addEventListener('animationend', () => el.classList.remove('init-pending'), { once: true });
     });
 
     if (themeToggle) {

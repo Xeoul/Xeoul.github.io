@@ -120,7 +120,8 @@
         <!-- Opens the command menu (see COMMAND MENU in script.js).
              Desktop only - it's a keyboard feature, and phones have the
              tab bar. script.js swaps in "Ctrl K" off Apple platforms. -->
-        <button class="cmdk-trigger" type="button" aria-label="Open command menu" aria-keyshortcuts="Meta+K Control+K" aria-haspopup="dialog">
+        <button class="cmdk-trigger" type="button" aria-keyshortcuts="Meta+K Control+K" aria-haspopup="dialog">
+            <span class="visually-hidden">Open command menu</span>
             <kbd class="cmdk-key">&#8984;K</kbd>
         </button>
 
@@ -512,6 +513,6 @@
          readers via the live region. -->
     <div class="toast" role="status" aria-live="polite"></div>
 
-    <script src="script.js"></script>
+    <script src="script.js" defer></script>
 </body>
 </html>

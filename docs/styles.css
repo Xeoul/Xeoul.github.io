@@ -549,14 +549,14 @@ header {
    (set inline in the markup) and fade/rise in with a short stagger
    whenever .panel.active is added - which already happens on every
    navigation via showPanel(), so this needed no JS of its own. Home
-   starts pre-active in the HTML (no page-load flash while JS boots),
-   so its .reveal children also carry .init-pending, which forces the
-   hidden state back on despite .panel.active - script.js removes that
-   class shortly after the very first paint (see the IIFE near the
-   bottom of the file), letting the same entrance play on genuine page
-   load rather than skipping straight to visible. Every other panel,
-   and Home on any later visit, is driven purely by .panel.active as
-   below - .init-pending only ever exists for that first paint.
+   starts pre-active in the HTML, so a transition would have nothing to
+   animate on page load - its .reveal children also carry .init-pending,
+   which plays the same entrance as a CSS animation instead, starting
+   with the very first paint rather than waiting for script.js to load
+   (that wait was holding back Largest Contentful Paint, and without the
+   script at all the text never appeared). script.js drops the class
+   once each element's animation ends, handing it back to the
+   .panel.active transition for every later visit.
    Uses --ease-fluid (see :root) rather than a front-loaded ease-out -
    an ease-out's instant top-speed start (no ramp-up, straight to full
    speed then decelerating) read as too abrupt for entrances this size;
@@ -574,9 +574,18 @@ header {
   transform: translateY(0) scale(1);
 }
 
+@keyframes revealIn {
+  from { opacity: 0; transform: translateY(14px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes revealFade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
 .panel.active .reveal.init-pending {
-  opacity: 0;
-  transform: translateY(14px) scale(0.98);
+  animation: revealIn 0.65s var(--ease-fluid) calc(var(--i, 0) * 70ms) both;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -594,7 +603,8 @@ header {
   }
 
   .panel.active .reveal.init-pending {
-    transform: none;
+    animation-name: revealFade;
+    animation-delay: 0s;
   }
 
   .panel.enter-from-right,
@@ -1833,6 +1843,20 @@ header {
 /* ============================================================
    ACCESSIBILITY
    ============================================================ */
+/* Read by screen readers but not shown - e.g. the command menu button's
+   name, which has to include its visible "⌘K" text as well. */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 /* Off-screen until focused - the first Tab stop on the page, for
    keyboard users to jump past the header (see SKIP LINK in script.js). */
 .skip-link {
