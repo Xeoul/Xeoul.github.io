@@ -1,0 +1,11 @@
+{
+  "name": "xeoul-github-io",
+  "private": true,
+  "description": "Smoke tests for the portfolio site in docs/ (served by GitHub Pages).",
+  "scripts": {
+    "test": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.56.1"
+  }
+}
