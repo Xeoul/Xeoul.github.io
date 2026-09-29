@@ -1096,6 +1096,8 @@ function parseHash() {
 function openProject(slug) {
     const details = projectDetails.find(d => d.dataset.slug === slug);
     if (!details) return;
+    const folding = closingProjects.get(details);
+    if (folding) folding(false);
     details.open = true;
     // The catalog scrolls on its own on phones. Measured by hand rather
     // than scrollIntoView(), which would also scroll the view sideways
@@ -1118,7 +1120,9 @@ projectDetails.forEach(details => {
     // Runs before the <details> toggles, so .open is still the old state.
     details.querySelector('summary').addEventListener('click', () => {
         if (parseHash().panel !== 'projects') return;
-        const hash = details.open ? '#projects' : `#projects/${slug}`;
+        // A click on a row that's mid-fold keeps it open (see CLOSING A PROJECT).
+        const closing = details.open && !('closing' in details.dataset);
+        const hash = closing ? '#projects' : `#projects/${slug}`;
         if (window.location.hash !== hash) history.replaceState(null, '', hash);
     });
 
@@ -1150,6 +1154,72 @@ projectDetails.forEach(details => {
     });
     links.appendChild(button);
 });
+
+// CLOSING A PROJECT
+// A <details> element hides its contents the instant it closes, which
+// read as the row slamming shut next to its gentle opening animation. So
+// a close - clicking an open row, or opening another row while one is
+// open (the shared name makes them an accordion) - first folds the open
+// body away, then actually closes it. The row being closed keeps
+// data-closing while it folds.
+const PROJECT_CLOSE_MS = 300;
+const closingProjects = new Map();
+
+function foldProject(details) {
+    const body = details.querySelector('.project-body');
+    if (!body || reducedMotionQuery.matches) {
+        details.open = false;
+        return;
+    }
+    // Out of the accordion while it folds, so opening the next row doesn't
+    // close this one early.
+    const name = details.getAttribute('name');
+    details.removeAttribute('name');
+    details.dataset.closing = '';
+    const style = getComputedStyle(body);
+    const animation = body.animate([
+        { height: `${body.offsetHeight}px`, paddingBottom: style.paddingBottom, opacity: 1 },
+        { height: '0px', paddingBottom: '0px', opacity: 0 },
+    ], { duration: PROJECT_CLOSE_MS, easing: 'cubic-bezier(0.4, 0, 0.2, 1)' });
+    body.style.overflow = 'hidden';
+    const done = (close) => {
+        closingProjects.delete(details);
+        delete details.dataset.closing;
+        body.style.overflow = '';
+        animation.cancel();
+        if (close) details.open = false;
+        if (name) details.setAttribute('name', name);
+    };
+    closingProjects.set(details, done);
+    animation.onfinish = () => done(true);
+}
+
+projectDetails.forEach(details => {
+    details.querySelector('summary').addEventListener('click', (e) => {
+        const closing = closingProjects.get(details);
+        if (closing) {
+            // Clicked again mid-fold: stay open.
+            e.preventDefault();
+            closing(false);
+            return;
+        }
+        if (details.open) {
+            e.preventDefault();
+            foldProject(details);
+            return;
+        }
+        const name = details.getAttribute('name');
+        if (!name) return;
+        projectDetails
+            .filter(other => other !== details && other.open && other.getAttribute('name') === name)
+            .forEach(foldProject);
+    });
+});
+
+// Printing opens every project; anything mid-fold finishes closing first.
+window.addEventListener('beforeprint', () => {
+    closingProjects.forEach(done => done(true));
+}, { capture: true });
 
 // LEAVING PRINT
 // The print layout (see PRINT in styles.css) lays every panel out in
