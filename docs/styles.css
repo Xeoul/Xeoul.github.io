@@ -531,6 +531,12 @@ header {
   z-index: 1;
 }
 
+/* A focusable panel (About) is outlined inside its edges, since the
+   view clips anything drawn outside them. */
+.panel:focus-visible {
+  outline-offset: -2px;
+}
+
 .panel.active {
   transform: translateX(0);
   pointer-events: auto;
@@ -1013,16 +1019,6 @@ header {
   color: var(--color-ink-soft);
   max-width: none;
   margin: 0 0 20px 0;
-}
-
-/* Two short paragraphs: who, then what (with each project linked). */
-.intro-text:has(+ .intro-text) {
-  margin-bottom: 10px;
-}
-
-.intro-text a {
-  text-decoration-thickness: 1px;
-  text-underline-offset: 3px;
 }
 
 .education-highlight {
@@ -1669,9 +1665,9 @@ header {
     margin-top: 4px;
   }
 
-  /* About and the project catalog are taller than a phone screen and
-     scroll, so only the strip above their heading stays open - the wave
-     still shows through the dim layer below as it glides past. */
+  /* About and the project catalog fill a phone screen (the catalog
+     scrolls), so only the strip above their heading stays open - the
+     wave still shows through the dim layer below as it glides past. */
   .about-panel,
   .projects-panel {
     --safe-mask: linear-gradient(to bottom, black 0, black 7%, transparent 11%);
