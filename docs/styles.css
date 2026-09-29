@@ -1015,6 +1015,16 @@ header {
   margin: 0 0 20px 0;
 }
 
+/* Two short paragraphs: who, then what (with each project linked). */
+.intro-text:has(+ .intro-text) {
+  margin-bottom: 10px;
+}
+
+.intro-text a {
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
 .education-highlight {
   border-top: 1px solid var(--color-border);
   padding-top: 16px;
@@ -1659,24 +1669,19 @@ header {
     margin-top: 4px;
   }
 
-  /* Open About/Projects/Contact's dot areas up on mobile. Their text
-     measures roughly 17-81% (About) and 21-79% (Contact) down the
-     panel (Projects is its own case, below), so each
-     --safe-mask opens right up to just outside that instead of the
-     wider desktop margins, which left only a sliver the wave rarely
-     showed in. Placed here, after each panel's own --safe-mask, so
-     these win on mobile only. */
-  .about-panel {
-    --safe-mask: linear-gradient(to bottom, black 0, black 13%, transparent 17%, transparent 78%, black 82%, black 100%);
-  }
-
-  /* The project catalog fills nearly the whole panel on a phone, so
-     only the strip above its heading stays open - the wave still shows
-     through the dim layer below as it glides past. */
+  /* About and the project catalog are taller than a phone screen and
+     scroll, so only the strip above their heading stays open - the wave
+     still shows through the dim layer below as it glides past. */
+  .about-panel,
   .projects-panel {
     --safe-mask: linear-gradient(to bottom, black 0, black 7%, transparent 11%);
   }
 
+  /* Open Contact's dot area up on mobile. Its text measures roughly
+     21-79% down the panel, so --safe-mask opens right up to just
+     outside that instead of the wider desktop margins, which left only
+     a sliver the wave rarely showed in. Placed here, after the panel's
+     own --safe-mask, so it wins on mobile only. */
   .contact-panel {
     --safe-mask: linear-gradient(to bottom, black 0, black 15%, transparent 19%, transparent 81%, black 85%, black 100%);
   }
