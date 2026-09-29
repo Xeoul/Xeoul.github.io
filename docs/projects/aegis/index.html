@@ -3,11 +3,11 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
-    <meta name="description" content="How Aegis works: a just-in-time IAM engine where Claude parses plain-English access requests, a rules engine decides them, and grants expire on their own, with a tamper-evident audit trail. Live demo runs in the browser.">
+    <meta name="description" content="How Aegis works: a just-in-time IAM engine where Claude parses plain-English access requests, the Cedar policy engine decides them, and grants expire on their own, with a tamper-evident audit trail. Live demo runs in the browser.">
     <meta property="og:type" content="article">
     <meta property="og:url" content="https://xeoul.github.io/projects/aegis/">
     <meta property="og:title" content="Aegis case study - Vincent Lam">
-    <meta property="og:description" content="How Aegis works: a just-in-time IAM engine where Claude parses plain-English access requests, a rules engine decides them, and grants expire on their own, with a tamper-evident audit trail. Live demo runs in the browser.">
+    <meta property="og:description" content="How Aegis works: a just-in-time IAM engine where Claude parses plain-English access requests, the Cedar policy engine decides them, and grants expire on their own, with a tamper-evident audit trail. Live demo runs in the browser.">
     <meta property="og:image" content="https://xeoul.github.io/images/projects/aegis.webp">
     <meta property="og:image:width" content="800">
     <meta property="og:image:height" content="500">
@@ -104,7 +104,7 @@
                         <dl class="case-meta">
                             <div>
                                 <dt>Stack</dt>
-                                <dd>Python, FastAPI, SQLAlchemy, SQLite, Pydantic, Claude API, PyJWT, APScheduler, Pyodide</dd>
+                                <dd>Python, FastAPI, Cedar, SQLAlchemy, SQLite, Pydantic, Claude API, PyJWT, AWS STS, APScheduler, Pyodide</dd>
                             </div>
                             <div>
                                 <dt>Links</dt>
@@ -118,6 +118,14 @@
 
                     <img class="case-preview" src="/images/projects/aegis.webp" width="800" height="500" decoding="async" alt="Aegis demo: an SRE's request for admin on the production Kubernetes cluster, allowed by policy, cut from 6 hours to 2, and waiting for a second approver">
 
+                    <aside class="case-demo" aria-labelledby="case-demo-title">
+                        <div>
+                            <p class="case-demo-label" id="case-demo-title">Try it live</p>
+                            <p>Sign in as one of ten fictional people, ask for access in plain English, approve someone else's request, then tamper with the audit trail and watch the check catch it. It all runs in your browser, with nothing to install.</p>
+                        </div>
+                        <a class="case-demo-link" href="https://xeoul.github.io/aegis/" target="_blank" rel="noopener noreferrer">Open the live demo <span aria-hidden="true">&nearr;</span></a>
+                    </aside>
+
                     <section class="case-section" aria-labelledby="problem">
                         <h2 id="problem">The problem</h2>
                         <p>Access tends to pile up. Someone needs the production database for an afternoon, gets it through a ticket, and still has it a year later, because removing it is a second manual step nobody owns. The safer pattern is just-in-time access: grant exactly what's needed, for as long as it's needed, and take it away automatically. Aegis puts that behind a plain-English request, so asking stays as easy as sending a message.</p>
@@ -127,33 +135,37 @@
                         <h2 id="features">What it does</h2>
                         <ul>
                             <li><strong>Plain-English requests:</strong> "Need admin on prod-k8s-cluster for 6 hours to roll back a bad deploy" becomes a structured policy: resource, action, reason and duration.</li>
-                            <li><strong>A policy decision with reasons:</strong> a rules engine checks the requester's role and department against the resource and returns ALLOW or DENY, with a reason for every rule.</li>
+                            <li><strong>A policy decision with reasons:</strong> Cedar policies check the requester's role and department against the resource and return ALLOW or DENY, naming every rule that blocked the request.</li>
                             <li><strong>Time limits by sensitivity:</strong> grants are capped at 72 hours for public resources, 24 for internal, 8 for confidential and 2 for restricted.</li>
                             <li><strong>A second person for risky access:</strong> restricted resources, and anything that deletes or administers, wait up to 24 hours for an eligible approver.</li>
                             <li><strong>Break-glass:</strong> emergency access skips the wait but still has to pass the policy, is capped at 1 hour, and stays in the approvers' queue until someone reviews it.</li>
                             <li><strong>Automatic revocation:</strong> grants end when they expire, when revoked early, or when the person leaves, moves department or changes role.</li>
+                            <li><strong>Short-lived AWS credentials:</strong> an approved grant can be exchanged for STS credentials limited to that one action on that one resource, which expire with the grant.</li>
                             <li><strong>A tamper-evident audit trail</strong> of every request, decision, approval and revocation, with an endpoint that checks it hasn't been edited.</li>
+                            <li><strong>Detection and review:</strong> rules flag prompt-injection attempts, privilege-escalation attempts and break-glass use, and an access review report gives auditors per-person recommendations and control checks.</li>
                         </ul>
                     </section>
 
                     <section class="case-section" aria-labelledby="build">
                         <h2 id="build">How it's built</h2>
-                        <p>A FastAPI service on SQLite through SQLAlchemy 2, with Pydantic v2 models and an APScheduler job that sweeps for expired grants and stale approvals every minute. Requests are parsed by Claude with structured outputs, so every reply validates against the policy schema; without an API key, a keyword parser takes over. Sign-in is by JWT: Aegis can issue its own tokens for local use, or verify tokens from an external identity provider (Keycloak, Okta, Entra ID, Auth0) against its published keys.</p>
-                        <p>A pytest suite covers the policy rules, the approval workflow, authentication and the audit chain, and runs offline in CI.</p>
+                        <p>A FastAPI service on SQLite through SQLAlchemy 2, with Pydantic v2 models and an APScheduler job that sweeps for expired grants and stale approvals every minute. Requests are parsed by Claude with structured outputs, so every reply validates against the policy schema; without an API key, a keyword parser takes over. Decisions come from Cedar, the policy language behind AWS Verified Permissions, with policies checked against a schema at startup. Sign-in is by JWT: Aegis can issue its own tokens for local use, or verify tokens from an external identity provider (Keycloak, Okta, Entra ID, Auth0) against its published keys.</p>
+                        <p>A pytest suite covers the policy rules, the approval workflow, authentication, the audit chain and the AWS broker (against a mocked AWS), including tests that hijack the parser to prove the policy still holds. CI also runs Ruff, mypy, Bandit, pip-audit and CodeQL.</p>
                     </section>
 
                     <section class="case-section" aria-labelledby="decisions">
                         <h2 id="decisions">Key decisions</h2>
                         <h3>The model reads, the policy decides</h3>
-                        <p>Claude only extracts what was asked for; its instructions say not to judge, soften or refuse, because a separate engine makes the decision. Structured outputs guarantee the reply fits the schema, a resource that isn't in the catalog becomes "unknown" and is denied, and the request text is treated as untrusted data, so instructions hidden in it can't change the rules. The decision itself is plain code that can be read and tested.</p>
+                        <p>Claude only extracts what was asked for; its instructions say not to judge, soften or refuse, because a separate engine makes the decision. Structured outputs guarantee the reply fits the schema, a resource that isn't in the catalog becomes "unknown" and is denied, and the request text is treated as untrusted data, so instructions hidden in it can't change the rules. The decision itself comes from Cedar policies that can be read, validated and tested.</p>
                         <h3>Separation of duties</h3>
                         <p>Nobody approves their own request. An approver must be the requester's manager, a manager in the department that owns the resource, or a security engineer. Identity admins and auditors can't approve, so provisioning, approving and auditing stay with different people, and being an admin grants no access to resources at all. The policy is checked again when the approver acts, in case the requester's role changed in the meantime.</p>
                         <h3>An audit trail that shows tampering</h3>
                         <p>Each audit entry stores the previous entry's hash and an HMAC-SHA256 of itself and that hash, keyed with a secret kept outside the database. Editing, deleting or reordering a row breaks the chain from that point, someone with only database access can't rebuild it, and a unique constraint on the previous hash stops two writers from forking it.</p>
                         <h3>Identity comes only from the token</h3>
                         <p>Who is asking is never taken from the request body. Tokens are matched to people by their email claim, deactivated accounts are refused, and tokens from an external provider must be RS256 or ES256 with a valid issuer, audience and expiry.</p>
+                        <h3>Credentials that can be taken back</h3>
+                        <p>AWS STS credentials can't be recalled once issued. Each session is named after its grant, so revoking early adds a deny rule for that one session name to the role, which blocks credentials already handed out; once they would have expired anyway, the rule is cleaned up.</p>
                         <h3>A live demo with no server</h3>
-                        <p>The demo runs the real service in your browser: Pyodide (Python compiled to WebAssembly) loads the Aegis source, and a small bridge hands each request straight to the FastAPI app. It swaps in the keyword parser, since a public page can't hold an API key, runs the scheduler's sweep from the page, and adds a clock you can skip forward to watch grants expire.</p>
+                        <p>The demo runs the real service in your browser: Pyodide (Python compiled to WebAssembly) loads the Aegis source, and a small bridge hands each request straight to the FastAPI app. Cedar's own WebAssembly build makes the decisions, so they match the server's, and CI checks that they do. It swaps in the keyword parser, since a public page can't hold an API key, runs the scheduler's sweep from the page, and adds a clock you can skip forward to watch grants expire.</p>
                     </section>
 
                     <section class="case-section" aria-labelledby="limits">
