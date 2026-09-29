@@ -1011,9 +1011,9 @@ header {
 .about-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 48px;
+  column-gap: 48px;
+  row-gap: 18px;
   align-items: start;
-  margin-bottom: 28px;
 }
 
 .intro-text {
@@ -1021,7 +1021,13 @@ header {
   line-height: 1.6;
   color: var(--color-ink-soft);
   max-width: none;
-  margin: 0 0 14px 0;
+  margin: 0;
+}
+
+/* Spans both columns above the timeline and skills. */
+.about-grid > .intro-text {
+  grid-column: 1 / -1;
+  max-width: 860px;
 }
 
 .education-highlight {
@@ -1132,7 +1138,7 @@ header {
 }
 
 .skill-category {
-  padding: 10px 0;
+  padding: 8px 0;
   border-bottom: 1px solid var(--color-border);
   display: grid;
   grid-template-columns: 110px 1fr;
@@ -1176,7 +1182,7 @@ header {
 .github-activity {
   margin-top: 16px;
   border: 1px solid var(--color-border);
-  padding: 14px 18px;
+  padding: 12px 16px;
   /* Combines the reveal entrance (opacity/transform, delayed per its
      --i stagger index) with the dark-mode fade (background/border) in
      one declaration - two separate rules both setting the shorthand
@@ -1886,14 +1892,6 @@ header {
     margin-bottom: 18px;
   }
 
-  .about-grid {
-    margin-bottom: 16px;
-  }
-
-  .intro-text {
-    margin-bottom: 12px;
-  }
-
   .skill-category {
     padding: 7px 0;
   }
@@ -1913,11 +1911,6 @@ header {
 
   .about-grid {
     gap: 10px;
-    margin-bottom: 10px;
-  }
-
-  .intro-text {
-    margin-bottom: 8px;
   }
 
   .education-highlight {
