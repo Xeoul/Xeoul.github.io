@@ -433,6 +433,89 @@ test.describe('project links, case studies and the contact card', () => {
     expect(errors).toEqual([]);
   });
 
+  test('closing a project folds it shut instead of snapping', async ({ page }) => {
+    const errors = watchErrors(page);
+    await page.goto('/#projects/aegis');
+    await expectSettled(page, 'projects');
+    const aegis = page.locator('details[data-slug="aegis"]');
+    // Click, then freeze the fold half-way through to look at it: no
+    // dependence on timing.
+    const mid = await aegis.evaluate((d) => {
+      const body = d.querySelector('.project-body');
+      const full = body.offsetHeight; // layout height, unaffected by the panel's entrance scale
+      d.querySelector('summary').click();
+      // The fold, not the row's opening animation (a CSS animation).
+      const fold = body.getAnimations().find((anim) => !(anim instanceof CSSAnimation));
+      if (!fold) return { full, animated: false };
+      fold.pause();
+      fold.currentTime = fold.effect.getTiming().duration / 2;
+      const state = { full, animated: true, open: d.open, closing: 'closing' in d.dataset, height: body.offsetHeight, opacity: Number(getComputedStyle(body).opacity) };
+      fold.play();
+      return state;
+    });
+    expect(mid).toMatchObject({ animated: true, open: true, closing: true });
+    expect(mid.height).toBeGreaterThan(0);
+    expect(mid.height).toBeLessThan(mid.full);
+    expect(mid.opacity).toBeLessThan(1);
+    // ...then closed, with the address bar already back on the catalog.
+    await expect(aegis).not.toHaveAttribute('open', '');
+    await expect(aegis).not.toHaveAttribute('data-closing', '');
+    await expect(page).toHaveURL(/#projects$/);
+    expect(await aegis.getAttribute('name')).toBe('project');
+    expect(errors).toEqual([]);
+  });
+
+  test('opening another project folds the open one, and a second click cancels a fold', async ({ page }) => {
+    await page.goto('/#projects/nagare');
+    await expectSettled(page, 'projects');
+    const nagare = page.locator('details[data-slug="nagare"]');
+    const sous = page.locator('details[data-slug="sous-chef"]');
+    // Checked in the same task as the click, so the fold can't have finished yet.
+    const atClick = await page.evaluate(() => {
+      const n = document.querySelector('details[data-slug="nagare"]');
+      const s = document.querySelector('details[data-slug="sous-chef"]');
+      s.querySelector('summary').click();
+      return { sousOpen: s.open, nagareOpen: n.open, nagareClosing: 'closing' in n.dataset };
+    });
+    expect(atClick).toEqual({ sousOpen: true, nagareOpen: true, nagareClosing: true });
+    await expect(nagare).not.toHaveAttribute('open', '');
+    await expect(page).toHaveURL(/#projects\/sous-chef$/);
+    // Clicking a row again mid-fold keeps it open.
+    const cancelled = await page.evaluate(() => {
+      const s = document.querySelector('details[data-slug="sous-chef"]');
+      s.querySelector('summary').click(); // starts folding
+      const folding = 'closing' in s.dataset;
+      s.querySelector('summary').click(); // changes its mind
+      return { folding, open: s.open, closing: 'closing' in s.dataset };
+    });
+    expect(cancelled).toEqual({ folding: true, open: true, closing: false });
+    await page.waitForTimeout(500);
+    await expect(sous).toHaveAttribute('open', '');
+    await expect(page).toHaveURL(/#projects\/sous-chef$/);
+  });
+
+  test('with reduced motion a project closes at once', async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.goto('/#projects/aegis');
+    await expectSettled(page, 'projects');
+    const aegis = page.locator('details[data-slug="aegis"]');
+    await aegis.locator('summary').click();
+    expect(await aegis.evaluate((d) => d.open)).toBe(false);
+  });
+
+  test('the About timeline lists each role with the current one first', async ({ page }) => {
+    await page.goto('/#about');
+    await expectSettled(page, 'about');
+    const items = page.locator('#about .timeline-item');
+    await expect(items).toHaveCount(5);
+    await expect(items.first()).toHaveClass(/is-current/);
+    await expect(items.first().locator('.timeline-date')).toHaveText(/Present/);
+    await expect(page.locator('#about .timeline-item.is-education .timeline-role')).toHaveText('B.S. Computer Science');
+    await expect(page.locator('#about .timeline-resume')).toHaveAttribute('href', 'Vincent_Lam_Resume.pdf');
+    // Landing straight on #about never draws a focus ring around the panel.
+    expect(await page.locator('#about').evaluate((el) => getComputedStyle(el).outlineStyle)).toBe('none');
+  });
+
   test('an unknown project still opens the catalog, with nothing expanded', async ({ page }) => {
     const errors = watchErrors(page);
     await page.goto('/#projects/not-a-project');
@@ -875,7 +958,7 @@ test(`stress: ${STRESS_STEPS} random actions leave the page consistent`, async (
     if (step % 10 === 9) {
       await expect(page.locator('dialog.cmdk')).toBeHidden();
       await expectSettled(page);
-      expect(await page.locator('details.project[open]').count()).toBeLessThanOrEqual(1);
+      expect(await page.locator('details.project[open]:not([data-closing])').count()).toBeLessThanOrEqual(1);
       // A #projects/<slug> address always shows that project open.
       const linked = await page.evaluate(() => {
         const m = location.hash.match(/^#projects\/(.+)$/);

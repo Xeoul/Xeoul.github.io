@@ -531,10 +531,13 @@ header {
   z-index: 1;
 }
 
-/* A focusable panel (About) is outlined inside its edges, since the
-   view clips anything drawn outside them. */
-.panel:focus-visible {
-  outline-offset: -2px;
+/* Chrome makes a panel that scrolls (About and Projects on short
+   screens) focusable, and opening a link like /#about then focuses it,
+   which drew a focus ring around the whole screen. Keyboard focus goes
+   to the panel's heading and links instead, so the panel itself never
+   shows one. */
+.panel:focus {
+  outline: none;
 }
 
 .panel.active {
@@ -1008,9 +1011,9 @@ header {
 .about-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 48px;
+  column-gap: 48px;
+  row-gap: 18px;
   align-items: start;
-  margin-bottom: 28px;
 }
 
 .intro-text {
@@ -1018,12 +1021,18 @@ header {
   line-height: 1.6;
   color: var(--color-ink-soft);
   max-width: none;
-  margin: 0 0 20px 0;
+  margin: 0;
+}
+
+/* Spans both columns above the timeline and skills. */
+.about-grid > .intro-text {
+  grid-column: 1 / -1;
+  max-width: 860px;
 }
 
 .education-highlight {
   border-top: 1px solid var(--color-border);
-  padding-top: 16px;
+  padding-top: 12px;
 }
 
 .education-highlight h3 {
@@ -1036,17 +1045,90 @@ header {
   margin: 0 0 10px 0;
 }
 
-.education-item h4 {
-  color: var(--color-ink);
-  font-size: 15px;
-  margin: 0 0 4px 0;
+/* EXPERIENCE & EDUCATION TIMELINE
+   Newest first, down a thin rule with a dot per entry: filled accent
+   for the current role, an outlined one for the degree. */
+.timeline {
+  list-style: none;
+  margin: 0;
+  padding: 0;
 }
 
-.degree {
-  font-size: 13px;
+.timeline-item {
+  position: relative;
+  display: grid;
+  gap: 1px;
+  padding: 0 0 9px 22px;
+}
+
+/* The rule, drawn per entry so it stops at the last dot. */
+.timeline-item:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  left: 4px;
+  top: 12px;
+  bottom: -2px;
+  width: 1px;
+  background: var(--color-border-strong);
+}
+
+.timeline-item::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 4px;
+  width: 9px;
+  height: 9px;
+  box-sizing: border-box;
+  border-radius: 50%;
+  background: var(--color-border-strong);
+}
+
+.timeline-item.is-current::before {
+  background: var(--color-accent);
+  box-shadow: 0 0 0 3px var(--color-accent-tint);
+}
+
+.timeline-item.is-education::before {
+  background: var(--color-bg);
+  border: 2px solid var(--color-accent);
+}
+
+.timeline-date {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1.5;
   color: var(--color-ink-soft);
-  margin: 0;
-  max-width: none;
+}
+
+.timeline-item.is-current .timeline-date {
+  color: var(--color-accent);
+}
+
+.timeline-role {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.35;
+  color: var(--color-ink);
+}
+
+.timeline-org {
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--color-ink-soft);
+}
+
+.timeline-resume {
+  display: inline-block;
+  margin-top: 2px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  text-decoration: none;
+}
+
+.timeline-resume:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 .skills-grid {
@@ -1056,7 +1138,7 @@ header {
 }
 
 .skill-category {
-  padding: 10px 0;
+  padding: 8px 0;
   border-bottom: 1px solid var(--color-border);
   display: grid;
   grid-template-columns: 110px 1fr;
@@ -1096,9 +1178,11 @@ header {
 }
 
 /* GITHUB ACTIVITY HEATMAP */
+/* Sits under the skills, in the About grid's right-hand column. */
 .github-activity {
+  margin-top: 16px;
   border: 1px solid var(--color-border);
-  padding: 18px 20px;
+  padding: 12px 16px;
   /* Combines the reveal entrance (opacity/transform, delayed per its
      --i stagger index) with the dark-mode fade (background/border) in
      one declaration - two separate rules both setting the shorthand
@@ -1118,7 +1202,7 @@ header {
   text-transform: uppercase;
   letter-spacing: 0.06em;
   color: var(--color-ink-soft);
-  margin: 0 0 14px 0;
+  margin: 0 0 10px 0;
 }
 
 .gh-heatmap {
@@ -1269,6 +1353,12 @@ header {
   transform: translateY(0) rotate(-135deg);
 }
 
+/* Folding shut (see CLOSING A PROJECT in script.js): the chevron and
+   title turn back as the fold starts, not once it ends. */
+.project[data-closing] > .project-summary::after {
+  transform: translateY(-3px) rotate(45deg);
+}
+
 .project-heading {
   display: flex;
   flex-wrap: wrap;
@@ -1288,6 +1378,10 @@ header {
 .project-summary:hover .project-title,
 .project[open] .project-title {
   color: var(--color-accent);
+}
+
+.project[data-closing]:not(:hover) .project-title {
+  color: var(--color-ink);
 }
 
 .project-tagline {
@@ -1798,14 +1892,6 @@ header {
     margin-bottom: 18px;
   }
 
-  .about-grid {
-    margin-bottom: 16px;
-  }
-
-  .intro-text {
-    margin-bottom: 12px;
-  }
-
   .skill-category {
     padding: 7px 0;
   }
@@ -1825,11 +1911,6 @@ header {
 
   .about-grid {
     gap: 10px;
-    margin-bottom: 10px;
-  }
-
-  .intro-text {
-    margin-bottom: 8px;
   }
 
   .education-highlight {
