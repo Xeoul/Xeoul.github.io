@@ -313,7 +313,7 @@ test.describe('command menu and shortcuts', () => {
     await expect(page.locator('.cmdk-input')).toBeFocused();
     const items = page.locator('.cmdk-item');
     const total = await items.count();
-    expect(total).toBe(10);
+    expect(total).toBe(11);
     // Up from the first wraps to the last.
     await page.keyboard.press('ArrowUp');
     await expect(items.nth(total - 1)).toHaveAttribute('aria-selected', 'true');
@@ -568,6 +568,39 @@ test.describe('project links, case studies and the contact card', () => {
     const download = page.waitForEvent('download');
     await page.locator('a.save-contact').click();
     expect((await download).suggestedFilename()).toBe('vincent-lam.vcf');
+  });
+
+  test('the resume downloads from Home and Contact, without a phone number', async ({ page, request, isMobile }) => {
+    const res = await request.get('/Vincent_Lam_Resume.pdf');
+    expect(res.status()).toBe(200);
+    const pdf = await res.body();
+    expect(pdf.subarray(0, 5).toString()).toBe('%PDF-');
+    // The public copy leaves the phone number out (it's only in the one sent to employers).
+    expect(pdf.toString('latin1')).not.toMatch(/425.?5938/);
+    await page.goto('/');
+    let download;
+    // Home's buttons are desktop-only (phones have the tab bar); Contact has it everywhere.
+    if (!isMobile) {
+      download = page.waitForEvent('download');
+      await page.locator('.hero-actions a', { hasText: 'Resume' }).click();
+      expect((await download).suggestedFilename()).toBe('Vincent_Lam_Resume.pdf');
+    }
+    await navLink(page, isMobile, 'contact').click();
+    await expectSettled(page, 'contact');
+    download = page.waitForEvent('download');
+    await page.locator('a.resume-card').click();
+    expect((await download).suggestedFilename()).toBe('Vincent_Lam_Resume.pdf');
+  });
+
+  test('the command menu can download the resume', async ({ page, isMobile }) => {
+    test.skip(isMobile, 'keyboard features are desktop-only');
+    await page.goto('/');
+    await page.keyboard.press('Control+k');
+    await page.keyboard.type('resume');
+    await expect(page.locator('.cmdk-item')).toHaveText([/Download resume/]);
+    const download = page.waitForEvent('download');
+    await page.keyboard.press('Enter');
+    expect((await download).suggestedFilename()).toBe('Vincent_Lam_Resume.pdf');
   });
 
   test('the command menu can save the contact card', async ({ page, isMobile }) => {
