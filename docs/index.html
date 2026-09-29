@@ -181,10 +181,13 @@
         </section>
 
         <!-- ABOUT -->
-        <section id="about" class="panel about-panel">
+        <!-- Focusable so keyboard users can scroll it on short phone
+             screens: unlike the other panels it has no links or buttons
+             to Tab to. -->
+        <section id="about" class="panel about-panel" tabindex="0" aria-labelledby="about-heading">
             <div class="panel-content">
                 <div class="panel-header reveal" style="--i:0">
-                    <h2 class="section-title" tabindex="-1">About Me</h2>
+                    <h2 class="section-title" id="about-heading" tabindex="-1">About Me</h2>
                 </div>
 
                 <div class="about-grid reveal" style="--i:1">
