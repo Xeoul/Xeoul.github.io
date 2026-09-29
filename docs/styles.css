@@ -2214,6 +2214,55 @@ html.printing *::after {
   background: var(--color-surface);
 }
 
+.case-demo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 24px;
+  margin-top: 20px;
+  padding: 16px 18px;
+  border: 1px solid var(--color-border);
+  border-left: 3px solid var(--color-accent);
+  border-radius: var(--radius);
+  background: var(--color-accent-tint);
+}
+
+.case-demo > div {
+  flex: 1 1 320px;
+}
+
+.case-demo p {
+  margin: 0;
+  font-size: 14px;
+  color: var(--color-ink);
+}
+
+.case-demo .case-demo-label {
+  margin-bottom: 4px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-accent);
+}
+
+.case-demo-link {
+  flex: none;
+  padding: 9px 14px;
+  border: 1px solid var(--color-accent);
+  border-radius: var(--radius);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.case-demo-link:hover {
+  background: var(--color-accent);
+  color: var(--color-bg);
+}
+
 .case-section {
   margin-top: 36px;
 }
