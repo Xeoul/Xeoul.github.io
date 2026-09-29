@@ -776,6 +776,12 @@ if (cmdk && typeof cmdk.showModal === 'function') {
     if (trigger && !isApple) trigger.querySelector('.cmdk-key').textContent = 'Ctrl K';
 
     const openUrl = (url) => window.open(url, '_blank', 'noopener');
+    const downloadFile = (href) => {
+        const a = document.createElement('a');
+        a.href = href;
+        a.download = '';
+        a.click();
+    };
     const commands = [
         { label: 'Go to Home', hint: '1', keywords: 'start intro', run: () => showPanel('home') },
         { label: 'Go to About', hint: '2', keywords: 'education skills', run: () => showPanel('about') },
@@ -791,9 +797,10 @@ if (cmdk && typeof cmdk.showModal === 'function') {
         },
         { label: 'Open GitHub', hint: 'github.com/Xeoul', keywords: 'code repos', run: () => openUrl('https://github.com/Xeoul') },
         { label: 'Open LinkedIn', hint: 'vincentlam812', keywords: 'profile', run: () => openUrl('https://www.linkedin.com/in/vincentlam812') },
+        { label: 'Download resume', hint: 'PDF', keywords: 'cv download', run: () => downloadFile('Vincent_Lam_Resume.pdf') },
         { label: 'Save contact card', hint: '.vcf', keywords: 'vcard address book download', run: () => { window.location.href = 'vincent-lam.vcf'; } },
         themeToggle && { label: 'Toggle light / dark theme', keywords: 'dark mode appearance', run: () => themeToggle.click() },
-        { label: 'Print / save as PDF', keywords: 'resume download', run: () => window.print() },
+        { label: 'Print / save as PDF', keywords: 'print page', run: () => window.print() },
     ].filter(Boolean);
 
     let shown = [];
