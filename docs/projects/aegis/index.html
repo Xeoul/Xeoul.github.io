@@ -3,24 +3,24 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
-    <meta name="description" content="How Installous works: a private stock research app with live market data, a transparent five-factor score and a Claude-powered analyst that looks things up with live tools.">
+    <meta name="description" content="How Aegis works: a just-in-time IAM engine where Claude parses plain-English access requests, a rules engine decides them, and grants expire on their own, with a tamper-evident audit trail. Live demo runs in the browser.">
     <meta property="og:type" content="article">
-    <meta property="og:url" content="https://xeoul.github.io/projects/installous/">
-    <meta property="og:title" content="Installous case study - Vincent Lam">
-    <meta property="og:description" content="How Installous works: a private stock research app with live market data, a transparent five-factor score and a Claude-powered analyst that looks things up with live tools.">
-    <meta property="og:image" content="https://xeoul.github.io/images/projects/installous.webp">
+    <meta property="og:url" content="https://xeoul.github.io/projects/aegis/">
+    <meta property="og:title" content="Aegis case study - Vincent Lam">
+    <meta property="og:description" content="How Aegis works: a just-in-time IAM engine where Claude parses plain-English access requests, a rules engine decides them, and grants expire on their own, with a tamper-evident audit trail. Live demo runs in the browser.">
+    <meta property="og:image" content="https://xeoul.github.io/images/projects/aegis.webp">
     <meta property="og:image:width" content="800">
     <meta property="og:image:height" content="500">
-    <meta property="og:image:alt" content="Installous stock page for Apple: price chart with the previous-close line, and the five-factor Installous score">
+    <meta property="og:image:alt" content="Aegis demo: an SRE's request for admin on the production Kubernetes cluster, allowed by policy, cut from 6 hours to 2, and waiting for a second approver">
     <meta property="og:site_name" content="Vincent Lam">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="author" content="Vincent Lam">
-    <link rel="canonical" href="https://xeoul.github.io/projects/installous/">
+    <link rel="canonical" href="https://xeoul.github.io/projects/aegis/">
     <meta name="theme-color" content="#fafaf9" media="(prefers-color-scheme: light)">
     <meta name="theme-color" content="#0d0d10" media="(prefers-color-scheme: dark)">
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self'; connect-src 'self' https://api.github.com; object-src 'none'; base-uri 'self'; form-action 'none';">
     <meta name="color-scheme" content="light dark">
-    <title>Installous case study - Vincent Lam</title>
+    <title>Aegis case study - Vincent Lam</title>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
     <link rel="preload" href="/fonts/Inter-Variable.woff2" as="font" type="font/woff2" crossorigin>
     <script src="/theme-init.js"></script>
@@ -95,70 +95,75 @@
         <section id="case" class="panel case-panel active">
             <div class="case-scroll">
                 <article class="case-study">
-                    <a class="case-back" href="/#projects/installous"><span aria-hidden="true">&larr;</span> All projects</a>
+                    <a class="case-back" href="/#projects/aegis"><span aria-hidden="true">&larr;</span> All projects</a>
 
                     <div class="case-intro">
                         <p class="case-kicker">Case study &middot; Personal project</p>
-                        <h1 class="section-title case-title" tabindex="-1">Installous</h1>
-                        <p class="case-lede">A private web app for researching stocks: live market data, a five-factor score you can read, and an AI analyst that knows your portfolio and investor profile.</p>
+                        <h1 class="section-title case-title" tabindex="-1">Aegis</h1>
+                        <p class="case-lede">A just-in-time access system: ask for what you need in plain English, get a decision from policy, and lose the access again when it expires.</p>
                         <dl class="case-meta">
                             <div>
                                 <dt>Stack</dt>
-                                <dd>TypeScript, Next.js, React, Tailwind CSS, Recharts, Claude API, Zod, Yahoo Finance</dd>
+                                <dd>Python, FastAPI, SQLAlchemy, SQLite, Pydantic, Claude API, PyJWT, APScheduler, Pyodide</dd>
                             </div>
                             <div>
                                 <dt>Links</dt>
                                 <dd class="case-links">
-                                <a href="https://github.com/Xeoul/Installous" target="_blank" rel="noopener noreferrer">Code <span aria-hidden="true">&nearr;</span></a>
+                                <a href="https://xeoul.github.io/aegis/" target="_blank" rel="noopener noreferrer">Live <span aria-hidden="true">&nearr;</span></a>
+                                <a href="https://github.com/Xeoul/aegis" target="_blank" rel="noopener noreferrer">Code <span aria-hidden="true">&nearr;</span></a>
                                 </dd>
                             </div>
                         </dl>
                     </div>
 
-                    <img class="case-preview" src="/images/projects/installous.webp" width="800" height="500" decoding="async" alt="Installous stock page for Apple: price chart with the previous-close line, and the five-factor Installous score">
+                    <img class="case-preview" src="/images/projects/aegis.webp" width="800" height="500" decoding="async" alt="Aegis demo: an SRE's request for admin on the production Kubernetes cluster, allowed by policy, cut from 6 hours to 2, and waiting for a second approver">
 
                     <section class="case-section" aria-labelledby="problem">
                         <h2 id="problem">The problem</h2>
-                        <p>Researching a stock usually means moving between a quote page, a table of fundamentals, a chart, the news and other people's opinions, and none of them know what you already own or how much risk you want to take. Installous brings those into one place, scores every stock the same way, and lets you ask questions about it in plain English.</p>
+                        <p>Access tends to pile up. Someone needs the production database for an afternoon, gets it through a ticket, and still has it a year later, because removing it is a second manual step nobody owns. The safer pattern is just-in-time access: grant exactly what's needed, for as long as it's needed, and take it away automatically. Aegis puts that behind a plain-English request, so asking stays as easy as sending a message.</p>
                     </section>
 
                     <section class="case-section" aria-labelledby="features">
                         <h2 id="features">What it does</h2>
                         <ul>
-                            <li><strong>Dashboard:</strong> portfolio value, today's change, total gain or loss, a watchlist with one-day sparklines, and the day's top-ranked stocks.</li>
-                            <li><strong>Top Picks:</strong> ranks about 40 large-cap US stocks plus your watchlist by the Installous score, sortable by any factor and filterable by sector.</li>
-                            <li><strong>Stock pages:</strong> a Robinhood-style chart with a live intraday view (a dotted previous-close line, green or red for up or down, and a price that follows your cursor), ranges from one week to five years, the factor breakdown, key metrics, news, and a one-click AI investment thesis.</li>
-                            <li><strong>AI Advisor:</strong> a chat with an analyst that calls live tools and gives buy, hold or avoid views tailored to your risk tolerance, time horizon and goals.</li>
-                            <li><strong>Portfolio:</strong> positions with average cost, live value, gain or loss, and weight.</li>
+                            <li><strong>Plain-English requests:</strong> "Need admin on prod-k8s-cluster for 6 hours to roll back a bad deploy" becomes a structured policy: resource, action, reason and duration.</li>
+                            <li><strong>A policy decision with reasons:</strong> a rules engine checks the requester's role and department against the resource and returns ALLOW or DENY, with a reason for every rule.</li>
+                            <li><strong>Time limits by sensitivity:</strong> grants are capped at 72 hours for public resources, 24 for internal, 8 for confidential and 2 for restricted.</li>
+                            <li><strong>A second person for risky access:</strong> restricted resources, and anything that deletes or administers, wait up to 24 hours for an eligible approver.</li>
+                            <li><strong>Break-glass:</strong> emergency access skips the wait but still has to pass the policy, is capped at 1 hour, and stays in the approvers' queue until someone reviews it.</li>
+                            <li><strong>Automatic revocation:</strong> grants end when they expire, when revoked early, or when the person leaves, moves department or changes role.</li>
+                            <li><strong>A tamper-evident audit trail</strong> of every request, decision, approval and revocation, with an endpoint that checks it hasn't been edited.</li>
                         </ul>
                     </section>
 
                     <section class="case-section" aria-labelledby="build">
                         <h2 id="build">How it's built</h2>
-                        <p>Next.js with the App Router and TypeScript, styled with Tailwind CSS, with charts drawn by Recharts. Server-side API routes (stock, history, sparklines, picks, news, search, portfolio, watchlist, profile and chat) sit between the browser and the data. Market data comes from Yahoo Finance through yahoo-finance2 and needs no API key; the advisor uses the Anthropic SDK and streams its answer back.</p>
-                        <p>Your watchlist, holdings and profile are saved to a local JSON file in a git-ignored folder, so positions never get committed.</p>
+                        <p>A FastAPI service on SQLite through SQLAlchemy 2, with Pydantic v2 models and an APScheduler job that sweeps for expired grants and stale approvals every minute. Requests are parsed by Claude with structured outputs, so every reply validates against the policy schema; without an API key, a keyword parser takes over. Sign-in is by JWT: Aegis can issue its own tokens for local use, or verify tokens from an external identity provider (Keycloak, Okta, Entra ID, Auth0) against its published keys.</p>
+                        <p>A pytest suite covers the policy rules, the approval workflow, authentication and the audit chain, and runs offline in CI.</p>
                     </section>
 
                     <section class="case-section" aria-labelledby="decisions">
                         <h2 id="decisions">Key decisions</h2>
-                        <h3>A score you can read</h3>
-                        <p>Every stock gets 0 to 100 on five factors: value (20%), quality (25%), growth (20%), momentum (20%) and analyst sentiment (15%). They blend into one number with a rating from Strong Buy (72 and up) to Avoid (below 33). When the factors that have data cover less than 45% of the weight, there's no overall score at all rather than a misleading one. The weights and thresholds live in one file, so they're easy to tune.</p>
-                        <h3>An advisor that looks things up</h3>
-                        <p>The advisor doesn't answer from memory. It has tools for stock analysis, price history, ticker search, your portfolio, the top picks, news and adding to your watchlist, plus web search (up to five searches per answer), and each tool's input is checked with a Zod schema before it runs. Its instructions treat the score as one input and ask it to explain where its judgment differs. The chat shows each tool call as it happens, so you can see what it looked at.</p>
-                        <h3>Caching by how fast data changes</h3>
-                        <p>A small in-memory cache sits in front of Yahoo Finance, with a lifetime per kind of data: quotes and intraday prices for 1 minute, fundamentals for 10, longer price history for 15, news for 30, and ticker search for 60. Page loads and the advisor's tool calls share it, so asking about a stock you're looking at doesn't fetch it all again.</p>
-                        <h3>Useful without the AI</h3>
-                        <p>Everything except the advisor works without an Anthropic API key: the dashboard, picks, charts and portfolio run on market data alone.</p>
+                        <h3>The model reads, the policy decides</h3>
+                        <p>Claude only extracts what was asked for; its instructions say not to judge, soften or refuse, because a separate engine makes the decision. Structured outputs guarantee the reply fits the schema, a resource that isn't in the catalog becomes "unknown" and is denied, and the request text is treated as untrusted data, so instructions hidden in it can't change the rules. The decision itself is plain code that can be read and tested.</p>
+                        <h3>Separation of duties</h3>
+                        <p>Nobody approves their own request. An approver must be the requester's manager, a manager in the department that owns the resource, or a security engineer. Identity admins and auditors can't approve, so provisioning, approving and auditing stay with different people, and being an admin grants no access to resources at all. The policy is checked again when the approver acts, in case the requester's role changed in the meantime.</p>
+                        <h3>An audit trail that shows tampering</h3>
+                        <p>Each audit entry stores the previous entry's hash and an HMAC-SHA256 of itself and that hash, keyed with a secret kept outside the database. Editing, deleting or reordering a row breaks the chain from that point, someone with only database access can't rebuild it, and a unique constraint on the previous hash stops two writers from forking it.</p>
+                        <h3>Identity comes only from the token</h3>
+                        <p>Who is asking is never taken from the request body. Tokens are matched to people by their email claim, deactivated accounts are refused, and tokens from an external provider must be RS256 or ES256 with a valid issuer, audience and expiry.</p>
+                        <h3>A live demo with no server</h3>
+                        <p>The demo runs the real service in your browser: Pyodide (Python compiled to WebAssembly) loads the Aegis source, and a small bridge hands each request straight to the FastAPI app. It swaps in the keyword parser, since a public page can't hold an API key, runs the scheduler's sweep from the page, and adds a clock you can skip forward to watch grants expire.</p>
                     </section>
 
                     <section class="case-section" aria-labelledby="limits">
                         <h2 id="limits">Current limits</h2>
-                        <p>It's a single-user app that runs locally, which is why there's no live demo: the advisor needs an API key and your data lives in a file on your machine. Top Picks ranks a fixed list of about 40 large caps plus your watchlist, not the whole market.</p>
+                        <p>It runs on SQLite, so it's a single-node service. Its built-in token issuer lets anyone sign in as anyone and is meant for local use only; a real deployment points it at an identity provider and sets its own audit key. The live demo uses the keyword parser rather than Claude, and starts over whenever the page reloads.</p>
                     </section>
 
                     <nav class="case-pager" aria-label="More case studies">
-                        <a href="/projects/aegis/" rel="prev"><span class="case-pager-label"><span aria-hidden="true">&larr;</span> Previous</span>Aegis</a>
-                        <a href="/projects/nagare/" rel="next"><span class="case-pager-label">Next <span aria-hidden="true">&rarr;</span></span>Nagare</a>
+                        <a href="/projects/sous-chef/" rel="prev"><span class="case-pager-label"><span aria-hidden="true">&larr;</span> Previous</span>Sous Chef</a>
+                        <a href="/projects/installous/" rel="next"><span class="case-pager-label">Next <span aria-hidden="true">&rarr;</span></span>Installous</a>
                     </nav>
                 </article>
             </div>

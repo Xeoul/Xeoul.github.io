@@ -9,6 +9,7 @@ const GITHUB_FIXTURES = {
   repos: [
     { name: 'Xeoul.github.io', fork: false, archived: false, html_url: 'https://github.com/Xeoul/Xeoul.github.io', language: 'CSS', stargazers_count: 1, pushed_at: '2026-09-27T18:53:40Z' },
     { name: 'Installous', fork: false, archived: false, html_url: 'https://github.com/Xeoul/Installous', language: 'TypeScript', stargazers_count: 0 },
+    { name: 'aegis', fork: false, archived: false, html_url: 'https://github.com/Xeoul/aegis', language: 'Python', stargazers_count: 0 },
     { name: 'AgentApply', fork: false, archived: false, html_url: 'https://github.com/Xeoul/AgentApply', language: 'Python', stargazers_count: 0 },
     { name: 'some-fork', fork: true, archived: false, html_url: 'https://github.com/Xeoul/some-fork', language: 'Go', stargazers_count: 0 },
     { name: 'side-project', fork: false, archived: false, html_url: 'https://github.com/Xeoul/side-project', language: 'Java', stargazers_count: 3 },

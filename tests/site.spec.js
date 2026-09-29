@@ -40,7 +40,7 @@ test('every panel is reachable from the navigation', async ({ page, isMobile }) 
 });
 
 test('every local file the pages reference exists', async ({ page, request }) => {
-  const pages = ['/', '/404.html', ...['installous', 'nagare', 'privacy-blocker', 'sous-chef'].map((slug) => `/projects/${slug}/`)];
+  const pages = ['/', '/404.html', ...['aegis', 'installous', 'nagare', 'privacy-blocker', 'sous-chef'].map((slug) => `/projects/${slug}/`)];
   for (const pagePath of pages) {
     await page.goto(pagePath);
     // Scripts, styles, images, and every same-site link (case studies,
@@ -84,7 +84,7 @@ test('GitHub data renders, excluding featured and hidden repos', async ({ page, 
   const moreRepos = page.locator('.more-repos');
   await expect(moreRepos).toBeVisible();
   if (!isMobile) {
-    // Installous is featured above, AgentApply is excluded, forks and the
+    // Installous and Aegis are featured above, AgentApply is excluded, forks and the
     // site's own repo are skipped - which leaves just side-project.
     await expect(page.locator('.repo-link .repo-name')).toHaveText(['side-project']);
   }
