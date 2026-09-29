@@ -6,7 +6,7 @@ const AxeBuilder = require('@axe-core/playwright').default;
 const { GITHUB_FIXTURES, mockGitHub, watchErrors, navLink, panelOffsets, expectSettled } = require('./helpers');
 
 const PANELS = ['home', 'about', 'projects', 'contact'];
-const CASE_STUDIES = ['installous', 'nagare', 'privacy-blocker', 'sous-chef'];
+const CASE_STUDIES = ['aegis', 'installous', 'nagare', 'privacy-blocker', 'sous-chef'];
 
 // ---------------------------------------------------------------- print
 
@@ -292,7 +292,7 @@ test.describe('GitHub data', () => {
     await page.goto('/#projects');
     const names = await page.locator('.repo-link .repo-name').allTextContents();
     expect(names).toEqual(['side-project']);
-    for (const hidden of ['some-fork', 'Installous', 'AgentApply', 'Xeoul.github.io']) {
+    for (const hidden of ['some-fork', 'Installous', 'aegis', 'AgentApply', 'Xeoul.github.io']) {
       expect(names).not.toContain(hidden);
     }
     expect(GITHUB_FIXTURES.repos.length).toBeGreaterThan(names.length);
@@ -482,7 +482,7 @@ test.describe('project links, case studies and the contact card', () => {
     await expect(page.locator('.toast')).toHaveText('Link copied');
     expect(await page.evaluate(() => navigator.clipboard.readText())).toBe('http://127.0.0.1:4173/#projects/nagare');
     // Every project gets one, including those without links of their own.
-    await expect(page.locator('.project-copy-link')).toHaveCount(6);
+    await expect(page.locator('.project-copy-link')).toHaveCount(7);
   });
 
   test('Copy link falls back to the address bar when the clipboard is refused', async ({ page }) => {
