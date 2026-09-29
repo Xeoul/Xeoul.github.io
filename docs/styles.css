@@ -1015,16 +1015,6 @@ header {
   margin: 0 0 20px 0;
 }
 
-/* Two short paragraphs: who, then what (with each project linked). */
-.intro-text:has(+ .intro-text) {
-  margin-bottom: 10px;
-}
-
-.intro-text a {
-  text-decoration-thickness: 1px;
-  text-underline-offset: 3px;
-}
-
 .education-highlight {
   border-top: 1px solid var(--color-border);
   padding-top: 16px;
@@ -1669,9 +1659,9 @@ header {
     margin-top: 4px;
   }
 
-  /* About and the project catalog are taller than a phone screen and
-     scroll, so only the strip above their heading stays open - the wave
-     still shows through the dim layer below as it glides past. */
+  /* About and the project catalog fill a phone screen (the catalog
+     scrolls), so only the strip above their heading stays open - the
+     wave still shows through the dim layer below as it glides past. */
   .about-panel,
   .projects-panel {
     --safe-mask: linear-gradient(to bottom, black 0, black 7%, transparent 11%);

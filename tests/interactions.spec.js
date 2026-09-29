@@ -433,22 +433,6 @@ test.describe('project links, case studies and the contact card', () => {
     expect(errors).toEqual([]);
   });
 
-  test('the About intro links each project it names', async ({ page }) => {
-    const errors = watchErrors(page);
-    await page.goto('/#about');
-    await expectSettled(page, 'about');
-    const links = page.locator('#about .intro-text a');
-    const slugs = await links.evaluateAll((els) => els.map((a) => a.getAttribute('href').replace('#projects/', '')));
-    expect(slugs).toEqual(['aegis', 'installous', 'nagare', 'privacy-blocker']);
-    // Every one names a project that exists.
-    for (const slug of slugs) await expect(page.locator(`details[data-slug="${slug}"]`)).toHaveCount(1);
-    await links.nth(2).click();
-    await expectSettled(page, 'projects');
-    await expect(page).toHaveURL(/#projects\/nagare$/);
-    expect(await openSlugs(page)).toEqual(['nagare']);
-    expect(errors).toEqual([]);
-  });
-
   test('an unknown project still opens the catalog, with nothing expanded', async ({ page }) => {
     const errors = watchErrors(page);
     await page.goto('/#projects/not-a-project');
