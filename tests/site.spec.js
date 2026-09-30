@@ -75,6 +75,23 @@ test('project catalog opens one project at a time and loads its preview', async 
   expect(errors).toEqual([]);
 });
 
+test('school projects sit in their own list, numbered on from the rest', async ({ page, isMobile }) => {
+  await page.goto('/');
+  await navLink(page, isMobile, 'projects').click();
+  const school = page.locator('.projects-grid.school-projects');
+  await expect(page.locator('.project-group-title')).toHaveText('School projects');
+  await expect(school.locator('details.project')).toHaveCount(2);
+  await expect(school.locator('details.project').first()).toHaveAttribute('data-slug', 'wemu');
+  // Not resetting the counter keeps the numbers going (06, 07).
+  await expect(school).toHaveCSS('counter-reset', 'none');
+  // The accordion still spans both lists: opening a school project closes Aegis.
+  const aegis = page.locator('details.project[data-slug="aegis"]');
+  await aegis.locator('summary').click();
+  await expect(aegis).toHaveAttribute('open', '');
+  await school.locator('details.project').first().locator('summary').click();
+  await expect(aegis).not.toHaveAttribute('open', '');
+});
+
 test('GitHub data renders, excluding featured and hidden repos', async ({ page, isMobile }) => {
   await page.goto('/');
   if (!isMobile) {
