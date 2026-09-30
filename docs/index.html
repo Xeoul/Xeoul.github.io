@@ -24,14 +24,15 @@
     <!-- Tints the mobile browser's address bar to match the page. -->
     <meta name="theme-color" content="#fafaf9" media="(prefers-color-scheme: light)">
     <meta name="theme-color" content="#0d0d10" media="(prefers-color-scheme: dark)">
-    <!-- style-src allows 'unsafe-inline': the animation work below sets a
-         handful of styles inline (per-panel stagger indices, and the nav
-         indicator/heatmap cells positioned by script.js reading live
-         layout). script-src stays locked to 'self' with no inline/eval
-         allowance - that's the meaningful XSS boundary; loosening
-         style-src doesn't weaken it, since CSS alone can't execute
-         script. -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self'; connect-src 'self' https://api.github.com; object-src 'none'; base-uri 'self'; form-action 'none';">
+    <!-- Stylesheets only from this site: no <style> blocks, so injected
+         CSS can't be used to restyle or read the page. Inline style
+         attributes are still allowed (style-src-attr), for the stagger
+         indices on the animated elements; styles script.js sets
+         directly aren't restricted by CSP at all. script-src stays
+         locked to 'self' with no inline/eval allowance - the XSS
+         boundary. Browsers too old to know style-src-attr fall back to
+         style-src and just skip the stagger. -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; style-src-attr 'unsafe-inline'; img-src 'self'; connect-src 'self' https://api.github.com; object-src 'none'; base-uri 'self'; form-action 'none';">
     <meta name="color-scheme" content="light dark">
     <title>Vincent Lam - Portfolio</title>
     <link rel="icon" type="image/svg+xml" href="favicon.svg">

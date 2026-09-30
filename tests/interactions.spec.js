@@ -102,7 +102,8 @@ test.describe('navigation', () => {
 
   test('the view stays unscrolled even without overflow: clip support', async ({ page }) => {
     await page.goto('/');
-    await page.addStyleTag({ content: '.view { overflow: hidden !important; }' });
+    // Set directly: the CSP allows no injected <style> blocks.
+    await page.evaluate(() => document.querySelector('.view').style.setProperty('overflow', 'hidden', 'important'));
     await page.evaluate(() => { location.hash = 'contact'; });
     await expectSettled(page, 'contact');
   });
@@ -217,6 +218,10 @@ test.describe('theme, email and storage', () => {
     await page.goto('/');
     await expect(page.locator('body')).toHaveCSS('background-color', 'rgb(13, 13, 16)');
     await expect(page.locator('.theme-toggle')).toHaveAttribute('aria-pressed', 'true');
+    // Following the system: the button keeps up when it changes.
+    await page.emulateMedia({ colorScheme: 'light' });
+    await expect(page.locator('.theme-toggle')).toHaveAttribute('aria-pressed', 'false');
+    await expect(page.locator('.theme-toggle')).toHaveAttribute('aria-label', 'Switch to dark theme');
   });
 
   test('clicking the email copies it and confirms', async ({ page, context, isMobile, browserName }) => {
@@ -296,6 +301,31 @@ test.describe('GitHub data', () => {
       expect(names).not.toContain(hidden);
     }
     expect(GITHUB_FIXTURES.repos.length).toBeGreaterThan(names.length);
+  });
+
+  test('tampered cached GitHub data is never shown', async ({ page, isMobile }) => {
+    test.skip(isMobile, 'the list itself is desktop-only');
+    // The demos elsewhere on xeoul.github.io share this storage, so the
+    // cache is checked like any other input.
+    await page.addInitScript(() => {
+      const put = (path, data) => localStorage.setItem(`github-v2:${path}`, JSON.stringify({ time: Date.now(), data }));
+      put('/users/Xeoul', { public_repos: '<b>9</b>', followers: 4 });
+      put('/users/Xeoul/repos?sort=pushed&per_page=30', {
+        updated: null,
+        repos: [
+          { name: 'evil', url: 'javascript:alert(1)', language: null, stars: 0 },
+          { name: 'phish', url: 'https://github.com.evil.example/x', language: null, stars: 0 },
+          { name: 'real', url: 'https://github.com/Xeoul/real', language: { x: 1 }, stars: 'lots' },
+        ],
+      });
+    });
+    await mockGitHub(page);
+    await page.goto('/#projects');
+    await expect(page.locator('.repo-link')).toHaveCount(1);
+    await expect(page.locator('.repo-link')).toHaveAttribute('href', 'https://github.com/Xeoul/real');
+    await expect(page.locator('.repo-link .repo-meta')).toHaveCount(0);
+    // Stats that aren't plain counts hide, like a failed request.
+    await expect(page.locator('.github-stats').first()).toBeHidden();
   });
 });
 
@@ -433,29 +463,39 @@ test.describe('project links, case studies and the contact card', () => {
     expect(errors).toEqual([]);
   });
 
+  // The motion is slides and fades (see OPENING AND CLOSING A PROJECT in
+  // script.js): the body keeps its full height throughout, and how much
+  // of it shows is how far its fold's bottom edge sits below the summary.
+  // Each check freezes every part of the motion at one moment, so none of
+  // them depend on timing.
+  const FREEZE = `
+    window.motion = () => document.getAnimations().filter((a) => !(a instanceof CSSAnimation) && !(a instanceof CSSTransition));
+    window.freeze = (share) => window.motion().forEach((a) => { a.pause(); a.currentTime = a.effect.getTiming().duration * share; });
+    window.entranceDone = () => !document.getAnimations().some((a) => a instanceof CSSTransition && a.playState === 'running');
+    window.shown = (d) => d.querySelector('.project-fold').getBoundingClientRect().bottom - d.querySelector('summary').getBoundingClientRect().bottom;
+  `;
+
   test('closing a project folds it shut instead of snapping', async ({ page }) => {
     const errors = watchErrors(page);
+    await page.addInitScript(FREEZE);
     await page.goto('/#projects/aegis');
     await expectSettled(page, 'projects');
     const aegis = page.locator('details[data-slug="aegis"]');
-    // Click, then freeze the fold half-way through to look at it: no
-    // dependence on timing.
     const mid = await aegis.evaluate((d) => {
       const body = d.querySelector('.project-body');
-      const full = body.offsetHeight; // layout height, unaffected by the panel's entrance scale
+      const full = body.offsetHeight;
       d.querySelector('summary').click();
-      // The fold, not the row's opening animation (a CSS animation).
-      const fold = body.getAnimations().find((anim) => !(anim instanceof CSSAnimation));
-      if (!fold) return { full, animated: false };
-      fold.pause();
-      fold.currentTime = fold.effect.getTiming().duration / 2;
-      const state = { full, animated: true, open: d.open, closing: 'closing' in d.dataset, height: body.offsetHeight, opacity: Number(getComputedStyle(body).opacity) };
-      fold.play();
+      if (!window.motion().length) return { full, animated: false };
+      window.freeze(0.5);
+      const state = { full, animated: true, open: d.open, closing: 'closing' in d.dataset, shown: window.shown(d), height: body.offsetHeight, opacity: Number(getComputedStyle(body).opacity) };
+      window.motion().forEach((a) => a.play());
       return state;
     });
     expect(mid).toMatchObject({ animated: true, open: true, closing: true });
-    expect(mid.height).toBeGreaterThan(0);
-    expect(mid.height).toBeLessThan(mid.full);
+    expect(mid.shown).toBeGreaterThan(0);
+    expect(mid.shown).toBeLessThan(mid.full);
+    // Only uncovered, never resized.
+    expect(mid.height).toBe(mid.full);
     expect(mid.opacity).toBeLessThan(1);
     // ...then closed, with the address bar already back on the catalog.
     await expect(aegis).not.toHaveAttribute('open', '');
@@ -467,27 +507,39 @@ test.describe('project links, case studies and the contact card', () => {
 
   test('opening a project unfolds it instead of jumping open', async ({ page }) => {
     const errors = watchErrors(page);
+    await page.addInitScript(FREEZE);
     await page.goto('/#projects');
     await expectSettled(page, 'projects');
+    // The rows ease into place as the panel arrives; the edges are only
+    // measured against each other once they've settled.
+    await page.waitForFunction(() => window.entranceDone());
     const nagare = page.locator('details[data-slug="nagare"]');
-    // Click, then freeze the unfold half-way through to look at it.
     const mid = await nagare.evaluate((d) => {
       const body = d.querySelector('.project-body');
+      const below = document.querySelector('details[data-slug="privacy-blocker"]');
       d.querySelector('summary').click();
-      const unfold = body.getAnimations().find((anim) => !(anim instanceof CSSAnimation));
-      if (!unfold) return { animated: false };
-      const duration = unfold.effect.getTiming().duration;
-      unfold.pause();
-      unfold.currentTime = duration / 2;
-      const half = { animated: true, duration, open: d.open, height: body.offsetHeight, opacity: Number(getComputedStyle(body).opacity) };
-      unfold.finish();
+      const motion = window.motion();
+      if (!motion.length) return { animated: false };
+      const duration = Math.min(...motion.map((a) => a.effect.getTiming().duration));
+      window.freeze(0.5);
+      const half = {
+        animated: true,
+        duration,
+        open: d.open,
+        shown: window.shown(d),
+        opacity: Number(getComputedStyle(body).opacity),
+        // The next row rides the fold's bottom edge down.
+        gap: below.getBoundingClientRect().top - d.querySelector('.project-fold').getBoundingClientRect().bottom,
+      };
+      motion.forEach((a) => a.finish());
       return { ...half, full: body.offsetHeight };
     });
     expect(mid).toMatchObject({ animated: true, open: true });
-    // Slower than the fold, so it doesn't read as a snap.
+    // Slow enough that it doesn't read as a snap.
     expect(mid.duration).toBeGreaterThanOrEqual(400);
-    expect(mid.height).toBeGreaterThan(0);
-    expect(mid.height).toBeLessThan(mid.full);
+    expect(mid.shown).toBeGreaterThan(0);
+    expect(mid.shown).toBeLessThan(mid.full);
+    expect(Math.abs(mid.gap)).toBeLessThan(1);
     expect(mid.opacity).toBeGreaterThan(0);
     expect(mid.opacity).toBeLessThan(1);
     await expect(page).toHaveURL(/#projects\/nagare$/);
@@ -495,23 +547,27 @@ test.describe('project links, case studies and the contact card', () => {
   });
 
   test('closing a project while it opens folds it back from where it got to', async ({ page }) => {
+    await page.addInitScript(FREEZE);
     await page.goto('/#projects');
     await expectSettled(page, 'projects');
     const result = await page.evaluate(() => {
       const d = document.querySelector('details[data-slug="aegis"]');
-      const body = d.querySelector('.project-body');
       const summary = d.querySelector('summary');
       summary.click(); // opens, unfolding
-      const unfold = body.getAnimations().find((anim) => !(anim instanceof CSSAnimation));
-      unfold.currentTime = unfold.effect.getTiming().duration * 0.4;
-      const partial = body.offsetHeight;
+      window.freeze(0.4);
+      const partial = window.shown(d);
+      const unfolding = window.motion();
       summary.click(); // changes its mind
-      const fold = body.getAnimations().find((anim) => !(anim instanceof CSSAnimation));
-      const startsAt = fold ? parseFloat(fold.effect.getKeyframes()[0].height) : null;
-      return { partial, startsAt, unfoldCancelled: unfold.playState === 'idle', closing: 'closing' in d.dataset };
+      return {
+        partial,
+        startsAt: window.shown(d),
+        unfoldCancelled: unfolding.every((a) => a.playState === 'idle'),
+        closing: 'closing' in d.dataset,
+      };
     });
     expect(result.unfoldCancelled).toBe(true);
     expect(result.closing).toBe(true);
+    expect(result.partial).toBeGreaterThan(0);
     expect(result.startsAt).toBeCloseTo(result.partial, 0);
     await expect(page.locator('details[data-slug="aegis"]')).not.toHaveAttribute('open', '');
   });
@@ -552,7 +608,9 @@ test.describe('project links, case studies and the contact card', () => {
       const nagare = document.querySelector('details[data-slug="nagare"]');
       const sous = document.querySelector('details[data-slug="sous-chef"]');
       sous.querySelector('summary').click(); // sous opens, nagare folds
-      nagare.querySelector('summary').click(); // ...but nagare is wanted after all
+      // A moment later, with some of sous showing...
+      document.getAnimations().filter((a) => !(a instanceof CSSAnimation) && !(a instanceof CSSTransition)).forEach((a) => { a.currentTime = 100; });
+      nagare.querySelector('summary').click(); // ...nagare is wanted after all
       return {
         nagare: { open: nagare.open, closing: 'closing' in nagare.dataset },
         sous: { open: sous.open, closing: 'closing' in sous.dataset },
@@ -560,8 +618,7 @@ test.describe('project links, case studies and the contact card', () => {
     });
     expect(state).toEqual({ nagare: { open: true, closing: false }, sous: { open: true, closing: true } });
     await expect(page.locator('details[data-slug="sous-chef"]')).not.toHaveAttribute('open', '');
-    await page.waitForTimeout(200);
-    expect(await page.locator('details.project[open]').evaluateAll((els) => els.map((d) => d.dataset.slug))).toEqual(['nagare']);
+    await expect.poll(() => page.locator('details.project[open]').evaluateAll((els) => els.map((d) => d.dataset.slug))).toEqual(['nagare']);
     await expect(page).toHaveURL(/#projects\/nagare$/);
   });
 
@@ -575,13 +632,13 @@ test.describe('project links, case studies and the contact card', () => {
       const nagare = document.querySelector('details[data-slug="nagare"]');
       const sous = document.querySelector('details[data-slug="sous-chef"]');
       sous.querySelector('summary').click(); // nagare starts folding
+      document.getAnimations().filter((a) => !(a instanceof CSSAnimation) && !(a instanceof CSSTransition)).forEach((a) => { a.currentTime = 100; });
       nagare.querySelector('.project-copy-link').click();
       return { nagareClosing: 'closing' in nagare.dataset, sousClosing: 'closing' in sous.dataset };
     });
     expect(state).toEqual({ nagareClosing: false, sousClosing: true });
     await expect(page).toHaveURL(/#projects\/nagare$/);
-    await page.waitForTimeout(500);
-    expect(await page.locator('details.project[open]').evaluateAll((els) => els.map((d) => d.dataset.slug))).toEqual(['nagare']);
+    await expect.poll(() => page.locator('details.project[open]').evaluateAll((els) => els.map((d) => d.dataset.slug))).toEqual(['nagare']);
   });
 
   test('a late clipboard refusal leaves the address bar alone once the row is closing', async ({ page }) => {
@@ -875,7 +932,7 @@ test.describe('layout and motion', () => {
       return n;
     });
     expect(await lit()).toBeGreaterThan(0);
-    const shift = () => page.evaluate(() => document.getElementById('home').style.getPropertyValue('--grid-shift'));
+    const shift = () => page.evaluate(() => document.querySelector('#home > .dot-grid > .dot-grid-dots').style.translate);
     const a = await shift();
     await page.waitForTimeout(500);
     expect(await shift()).not.toBe(a);
@@ -925,7 +982,7 @@ test.describe('layout and motion', () => {
     expect(await page.locator('.wave-canvas[data-old]').count()).toBe(4);
 
     // And it keeps animating on the new canvases, on every panel.
-    const shift = () => page.evaluate(() => document.getElementById('home').style.getPropertyValue('--grid-shift'));
+    const shift = () => page.evaluate(() => document.querySelector('#home > .dot-grid > .dot-grid-dots').style.translate);
     const a = await shift();
     await expect.poll(shift).not.toBe(a);
     await page.goto('/#contact');
@@ -948,7 +1005,7 @@ test.describe('layout and motion', () => {
       await expectSettled(page, id); // in place, crossfaded - see expectSettled
     }
     // The wave is still drawn, just not animated.
-    const shift = () => page.evaluate(() => document.getElementById('home').style.getPropertyValue('--grid-shift'));
+    const shift = () => page.evaluate(() => document.querySelector('#home > .dot-grid > .dot-grid-dots').style.translate);
     const a = await shift();
     await page.waitForTimeout(400);
     expect(await shift()).toBe(a);
