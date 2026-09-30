@@ -1353,8 +1353,8 @@ header {
   transform: translateY(0) rotate(-135deg);
 }
 
-/* Folding shut (see CLOSING A PROJECT in script.js): the chevron and
-   title turn back as the fold starts, not once it ends. */
+/* Folding shut (see OPENING AND CLOSING A PROJECT in script.js): the
+   chevron and title turn back as the fold starts, not once it ends. */
 .project[data-closing] > .project-summary::after {
   transform: translateY(-3px) rotate(45deg);
 }
