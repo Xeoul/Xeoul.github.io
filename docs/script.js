@@ -1147,6 +1147,14 @@ projectDetails.forEach(details => {
         const hash = `#projects/${slug}`;
         const url = `${window.location.origin}${window.location.pathname}${hash}`;
         const fallback = () => {
+            // The clipboard can refuse a moment later, by which time the
+            // visitor may have closed this row or left Projects - then the
+            // address bar isn't this row's to change.
+            const stillHere = details.open && !('closing' in details.dataset) && parseHash().panel === 'projects';
+            if (!stillHere) {
+                showToast('Couldn\'t copy the link');
+                return;
+            }
             history.replaceState(null, '', hash);
             showToast('Copy the link from the address bar');
         };

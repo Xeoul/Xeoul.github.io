@@ -584,6 +584,24 @@ test.describe('project links, case studies and the contact card', () => {
     expect(await page.locator('details.project[open]').evaluateAll((els) => els.map((d) => d.dataset.slug))).toEqual(['nagare']);
   });
 
+  test('a late clipboard refusal leaves the address bar alone once the row is closing', async ({ page }) => {
+    await page.addInitScript(() => {
+      Object.defineProperty(navigator, 'clipboard', {
+        value: { writeText: () => new Promise((_, reject) => setTimeout(() => reject(new Error('denied')), 150)) },
+      });
+    });
+    await page.goto('/#projects/nagare');
+    await expectSettled(page, 'projects');
+    await page.evaluate(() => {
+      document.querySelector('details[data-slug="nagare"] .project-copy-link').click();
+      // Moves on before the refusal arrives.
+      document.querySelector('details[data-slug="sous-chef"] summary').click();
+    });
+    await expect(page.locator('.toast')).toHaveText("Couldn't copy the link");
+    await expect(page).toHaveURL(/#projects\/sous-chef$/);
+    await expect(page.locator('details[data-slug="nagare"]')).not.toHaveAttribute('open', '');
+  });
+
   test('with reduced motion a project closes at once', async ({ page }) => {
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await page.goto('/#projects/aegis');
