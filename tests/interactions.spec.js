@@ -641,6 +641,21 @@ test.describe('project links, case studies and the contact card', () => {
     await expect.poll(() => page.locator('details.project[open]').evaluateAll((els) => els.map((d) => d.dataset.slug))).toEqual(['nagare']);
   });
 
+  test('Copy link on a row that is folding shut brings the address bar back to it', async ({ page, context, browserName }) => {
+    test.skip(browserName !== 'chromium', 'clipboard permissions are Chromium-only here');
+    await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+    await page.goto('/#projects/nagare');
+    await expectSettled(page, 'projects');
+    await page.locator('details[data-slug="sous-chef"] summary').click(); // nagare starts folding
+    await expect(page).toHaveURL(/#projects\/sous-chef$/);
+    await page.evaluate(() => document.getAnimations().filter((a) => !(a instanceof CSSAnimation) && !(a instanceof CSSTransition)).forEach((a) => a.pause()));
+    await page.locator('details[data-slug="nagare"] .project-copy-link').click();
+    await expect(page.locator('.toast')).toHaveText('Link copied');
+    await expect(page).toHaveURL(/#projects\/nagare$/);
+    await page.evaluate(() => document.getAnimations().forEach((a) => a.playState === 'paused' && a.play()));
+    await expect.poll(() => page.locator('details.project[open]').evaluateAll((els) => els.map((d) => d.dataset.slug))).toEqual(['nagare']);
+  });
+
   test('a late clipboard refusal leaves the address bar alone once the row is closing', async ({ page }) => {
     await page.addInitScript(() => {
       Object.defineProperty(navigator, 'clipboard', {

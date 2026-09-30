@@ -1199,9 +1199,14 @@ projectDetails.forEach(details => {
     hidden.textContent = ` to ${title}`;
     button.appendChild(hidden);
     button.addEventListener('click', () => {
-        // Copying the link to a row that's folding shut means it's wanted.
-        reclaimProject(details);
         const hash = `#projects/${slug}`;
+        // Copying the link to a row that's folding shut means it's wanted -
+        // and the address bar, which had moved on to whichever row opened
+        // in its place, comes back to it.
+        if (closingProjects.has(details)) {
+            reclaimProject(details);
+            if (parseHash().panel === 'projects') history.replaceState(null, '', hash);
+        }
         const url = `${window.location.origin}${window.location.pathname}${hash}`;
         const fallback = () => {
             // The clipboard can refuse a moment later, by which time the
