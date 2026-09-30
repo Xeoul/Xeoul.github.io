@@ -1032,19 +1032,29 @@ test(`stress: ${STRESS_STEPS} random actions leave the page consistent`, async (
     async () => {
       const summaries = page.locator('#projects.active details.project summary');
       const n = await summaries.count();
-      if (n) await summaries.nth(rand(n)).click({ timeout: 3000 }).catch(() => {}); // the panel may slide away first
+      if (!n) return;
+      const pick = summaries.nth(rand(n));
+      trail.push(`click ${await pick.evaluate((el) => el.parentElement.dataset.slug)}`);
+      await pick.click({ timeout: 3000 }).catch(() => {}); // the panel may slide away first
     },
     async () => {
       const button = page.locator('#projects.active details.project[open] .project-copy-link');
-      if (await button.count()) await button.click({ timeout: 3000 }).catch(() => {});
+      if (!(await button.count())) return;
+      trail.push(`copy link ${await button.first().evaluate((el) => el.closest('details').dataset.slug)}`);
+      await button.first().click({ timeout: 3000 }).catch(() => {});
     },
     async () => page.evaluate(() => document.dispatchEvent(new Event('visibilitychange'))),
     // Back only within the site: from the first entry (no hash yet) it
     // would leave for the blank page the test browser started on.
     async () => page.evaluate(() => { if (location.hash) history.back(); }),
   ];
+  // What was just done, for the failure message.
+  const trail = [];
+  const ACTION_NAMES = ['nav', 'key', 'theme', 'print', 'resize', 'menu', 'row', 'copy', 'visibility', 'back'];
   for (let step = 0; step < STRESS_STEPS; step++) {
-    await actions[rand(actions.length)]();
+    const which = rand(actions.length);
+    trail.push(`${step}: ${ACTION_NAMES[which]}`);
+    await actions[which]();
     if (step % 10 === 9) {
       await expect(page.locator('dialog.cmdk')).toBeHidden();
       await expectSettled(page);
@@ -1052,9 +1062,11 @@ test(`stress: ${STRESS_STEPS} random actions leave the page consistent`, async (
       // A #projects/<slug> address always shows that project open.
       const linked = await page.evaluate(() => {
         const m = location.hash.match(/^#projects\/(.+)$/);
-        return m && document.querySelector('#projects.active') ? document.querySelector(`details[data-slug="${m[1]}"]`).open : true;
+        const ok = m && document.querySelector('#projects.active') ? document.querySelector(`details[data-slug="${m[1]}"]`).open : true;
+        const rows = [...document.querySelectorAll('details.project')].filter((d) => d.open).map((d) => d.dataset.slug + ('closing' in d.dataset ? ' (folding)' : ''));
+        return { ok, hash: location.hash, open: rows };
       });
-      expect(linked).toBe(true);
+      expect(linked.ok, `after step ${step}: ${JSON.stringify(linked)}\n${trail.slice(-16).join('\n')}`).toBe(true);
       await expect(page.locator('html')).not.toHaveClass(/printing/);
       expect(await page.locator('.wave-canvas').count()).toBe(4);
     }
