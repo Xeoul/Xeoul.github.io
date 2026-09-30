@@ -465,6 +465,57 @@ test.describe('project links, case studies and the contact card', () => {
     expect(errors).toEqual([]);
   });
 
+  test('opening a project unfolds it instead of jumping open', async ({ page }) => {
+    const errors = watchErrors(page);
+    await page.goto('/#projects');
+    await expectSettled(page, 'projects');
+    const nagare = page.locator('details[data-slug="nagare"]');
+    // Click, then freeze the unfold half-way through to look at it.
+    const mid = await nagare.evaluate((d) => {
+      const body = d.querySelector('.project-body');
+      d.querySelector('summary').click();
+      const unfold = body.getAnimations().find((anim) => !(anim instanceof CSSAnimation));
+      if (!unfold) return { animated: false };
+      const duration = unfold.effect.getTiming().duration;
+      unfold.pause();
+      unfold.currentTime = duration / 2;
+      const half = { animated: true, duration, open: d.open, height: body.offsetHeight, opacity: Number(getComputedStyle(body).opacity) };
+      unfold.finish();
+      return { ...half, full: body.offsetHeight };
+    });
+    expect(mid).toMatchObject({ animated: true, open: true });
+    // Slower than the fold, so it doesn't read as a snap.
+    expect(mid.duration).toBeGreaterThanOrEqual(400);
+    expect(mid.height).toBeGreaterThan(0);
+    expect(mid.height).toBeLessThan(mid.full);
+    expect(mid.opacity).toBeGreaterThan(0);
+    expect(mid.opacity).toBeLessThan(1);
+    await expect(page).toHaveURL(/#projects\/nagare$/);
+    expect(errors).toEqual([]);
+  });
+
+  test('closing a project while it opens folds it back from where it got to', async ({ page }) => {
+    await page.goto('/#projects');
+    await expectSettled(page, 'projects');
+    const result = await page.evaluate(() => {
+      const d = document.querySelector('details[data-slug="aegis"]');
+      const body = d.querySelector('.project-body');
+      const summary = d.querySelector('summary');
+      summary.click(); // opens, unfolding
+      const unfold = body.getAnimations().find((anim) => !(anim instanceof CSSAnimation));
+      unfold.currentTime = unfold.effect.getTiming().duration * 0.4;
+      const partial = body.offsetHeight;
+      summary.click(); // changes its mind
+      const fold = body.getAnimations().find((anim) => !(anim instanceof CSSAnimation));
+      const startsAt = fold ? parseFloat(fold.effect.getKeyframes()[0].height) : null;
+      return { partial, startsAt, unfoldCancelled: unfold.playState === 'idle', closing: 'closing' in d.dataset };
+    });
+    expect(result.unfoldCancelled).toBe(true);
+    expect(result.closing).toBe(true);
+    expect(result.startsAt).toBeCloseTo(result.partial, 0);
+    await expect(page.locator('details[data-slug="aegis"]')).not.toHaveAttribute('open', '');
+  });
+
   test('opening another project folds the open one, and a second click cancels a fold', async ({ page }) => {
     await page.goto('/#projects/nagare');
     await expectSettled(page, 'projects');
@@ -492,6 +543,63 @@ test.describe('project links, case studies and the contact card', () => {
     await page.waitForTimeout(500);
     await expect(sous).toHaveAttribute('open', '');
     await expect(page).toHaveURL(/#projects\/sous-chef$/);
+  });
+
+  test('reclaiming a row mid-fold folds away the row that replaced it', async ({ page }) => {
+    await page.goto('/#projects/nagare');
+    await expectSettled(page, 'projects');
+    const state = await page.evaluate(() => {
+      const nagare = document.querySelector('details[data-slug="nagare"]');
+      const sous = document.querySelector('details[data-slug="sous-chef"]');
+      sous.querySelector('summary').click(); // sous opens, nagare folds
+      nagare.querySelector('summary').click(); // ...but nagare is wanted after all
+      return {
+        nagare: { open: nagare.open, closing: 'closing' in nagare.dataset },
+        sous: { open: sous.open, closing: 'closing' in sous.dataset },
+      };
+    });
+    expect(state).toEqual({ nagare: { open: true, closing: false }, sous: { open: true, closing: true } });
+    await expect(page.locator('details[data-slug="sous-chef"]')).not.toHaveAttribute('open', '');
+    await page.waitForTimeout(200);
+    expect(await page.locator('details.project[open]').evaluateAll((els) => els.map((d) => d.dataset.slug))).toEqual(['nagare']);
+    await expect(page).toHaveURL(/#projects\/nagare$/);
+  });
+
+  test('Copy link on a row that is folding shut keeps it open', async ({ page }) => {
+    await page.addInitScript(() => {
+      Object.defineProperty(navigator, 'clipboard', { value: { writeText: () => Promise.reject(new Error('denied')) } });
+    });
+    await page.goto('/#projects/nagare');
+    await expectSettled(page, 'projects');
+    const state = await page.evaluate(() => {
+      const nagare = document.querySelector('details[data-slug="nagare"]');
+      const sous = document.querySelector('details[data-slug="sous-chef"]');
+      sous.querySelector('summary').click(); // nagare starts folding
+      nagare.querySelector('.project-copy-link').click();
+      return { nagareClosing: 'closing' in nagare.dataset, sousClosing: 'closing' in sous.dataset };
+    });
+    expect(state).toEqual({ nagareClosing: false, sousClosing: true });
+    await expect(page).toHaveURL(/#projects\/nagare$/);
+    await page.waitForTimeout(500);
+    expect(await page.locator('details.project[open]').evaluateAll((els) => els.map((d) => d.dataset.slug))).toEqual(['nagare']);
+  });
+
+  test('a late clipboard refusal leaves the address bar alone once the row is closing', async ({ page }) => {
+    await page.addInitScript(() => {
+      Object.defineProperty(navigator, 'clipboard', {
+        value: { writeText: () => new Promise((_, reject) => setTimeout(() => reject(new Error('denied')), 150)) },
+      });
+    });
+    await page.goto('/#projects/nagare');
+    await expectSettled(page, 'projects');
+    await page.evaluate(() => {
+      document.querySelector('details[data-slug="nagare"] .project-copy-link').click();
+      // Moves on before the refusal arrives.
+      document.querySelector('details[data-slug="sous-chef"] summary').click();
+    });
+    await expect(page.locator('.toast')).toHaveText("Couldn't copy the link");
+    await expect(page).toHaveURL(/#projects\/sous-chef$/);
+    await expect(page.locator('details[data-slug="nagare"]')).not.toHaveAttribute('open', '');
   });
 
   test('with reduced motion a project closes at once', async ({ page }) => {
@@ -942,19 +1050,30 @@ test(`stress: ${STRESS_STEPS} random actions leave the page consistent`, async (
     async () => {
       const summaries = page.locator('#projects.active details.project summary');
       const n = await summaries.count();
-      if (n) await summaries.nth(rand(n)).click({ timeout: 3000 }).catch(() => {}); // the panel may slide away first
+      if (!n) return;
+      const index = rand(n);
+      // Read without waiting: the panel may already be sliding away.
+      trail.push(`click ${await page.evaluate((i) => document.querySelectorAll('#projects details.project')[i]?.dataset.slug, index)}`);
+      await summaries.nth(index).click({ timeout: 3000 }).catch(() => {}); // the panel may slide away first
     },
     async () => {
       const button = page.locator('#projects.active details.project[open] .project-copy-link');
-      if (await button.count()) await button.click({ timeout: 3000 }).catch(() => {});
+      if (!(await button.count())) return;
+      trail.push(`copy link ${await page.evaluate(() => document.querySelector('#projects details.project[open]')?.dataset.slug)}`);
+      await button.first().click({ timeout: 3000 }).catch(() => {});
     },
     async () => page.evaluate(() => document.dispatchEvent(new Event('visibilitychange'))),
     // Back only within the site: from the first entry (no hash yet) it
     // would leave for the blank page the test browser started on.
     async () => page.evaluate(() => { if (location.hash) history.back(); }),
   ];
+  // What was just done, for the failure message.
+  const trail = [];
+  const ACTION_NAMES = ['nav', 'key', 'theme', 'print', 'resize', 'menu', 'row', 'copy', 'visibility', 'back'];
   for (let step = 0; step < STRESS_STEPS; step++) {
-    await actions[rand(actions.length)]();
+    const which = rand(actions.length);
+    trail.push(`${step}: ${ACTION_NAMES[which]}`);
+    await actions[which]();
     if (step % 10 === 9) {
       await expect(page.locator('dialog.cmdk')).toBeHidden();
       await expectSettled(page);
@@ -962,9 +1081,11 @@ test(`stress: ${STRESS_STEPS} random actions leave the page consistent`, async (
       // A #projects/<slug> address always shows that project open.
       const linked = await page.evaluate(() => {
         const m = location.hash.match(/^#projects\/(.+)$/);
-        return m && document.querySelector('#projects.active') ? document.querySelector(`details[data-slug="${m[1]}"]`).open : true;
+        const ok = m && document.querySelector('#projects.active') ? document.querySelector(`details[data-slug="${m[1]}"]`).open : true;
+        const rows = [...document.querySelectorAll('details.project')].filter((d) => d.open).map((d) => d.dataset.slug + ('closing' in d.dataset ? ' (folding)' : ''));
+        return { ok, hash: location.hash, open: rows };
       });
-      expect(linked).toBe(true);
+      expect(linked.ok, `after step ${step}: ${JSON.stringify(linked)}\n${trail.slice(-16).join('\n')}`).toBe(true);
       await expect(page.locator('html')).not.toHaveClass(/printing/);
       expect(await page.locator('.wave-canvas').count()).toBe(4);
     }

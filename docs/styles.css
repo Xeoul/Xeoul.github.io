@@ -1305,6 +1305,23 @@ header {
   counter-reset: project-count;
 }
 
+/* School projects - a second, smaller list under the current work,
+   headed like "More on GitHub". It keeps counting from the list above
+   (06, 07) rather than starting again. */
+.project-group-title {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-ink-soft);
+  margin: 22px 0 8px 0;
+}
+
+.projects-grid.school-projects {
+  counter-reset: none;
+}
+
 /* Each project is a <details> row: the summary line (number, name,
    one-line tagline, badge) is always shown, and tapping it opens the
    description, stack and links underneath - so the whole catalog fits
@@ -1353,8 +1370,8 @@ header {
   transform: translateY(0) rotate(-135deg);
 }
 
-/* Folding shut (see CLOSING A PROJECT in script.js): the chevron and
-   title turn back as the fold starts, not once it ends. */
+/* Folding shut (see OPENING AND CLOSING A PROJECT in script.js): the
+   chevron and title turn back as the fold starts, not once it ends. */
 .project[data-closing] > .project-summary::after {
   transform: translateY(-3px) rotate(45deg);
 }
@@ -1573,6 +1590,10 @@ header {
 
   .more-repos-title {
     margin: 0;
+  }
+
+  .project-group-title {
+    margin: 16px 0 6px 0;
   }
 
   .repo-list {

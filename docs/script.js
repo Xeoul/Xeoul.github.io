@@ -1096,8 +1096,7 @@ function parseHash() {
 function openProject(slug) {
     const details = projectDetails.find(d => d.dataset.slug === slug);
     if (!details) return;
-    const folding = closingProjects.get(details);
-    if (folding) folding(false);
+    reclaimProject(details);
     details.open = true;
     // The catalog scrolls on its own on phones. Measured by hand rather
     // than scrollIntoView(), which would also scroll the view sideways
@@ -1120,7 +1119,7 @@ projectDetails.forEach(details => {
     // Runs before the <details> toggles, so .open is still the old state.
     details.querySelector('summary').addEventListener('click', () => {
         if (parseHash().panel !== 'projects') return;
-        // A click on a row that's mid-fold keeps it open (see CLOSING A PROJECT).
+        // A click on a row that's mid-fold keeps it open (see OPENING AND CLOSING A PROJECT).
         const closing = details.open && !('closing' in details.dataset);
         const hash = closing ? '#projects' : `#projects/${slug}`;
         if (window.location.hash !== hash) history.replaceState(null, '', hash);
@@ -1143,9 +1142,19 @@ projectDetails.forEach(details => {
     hidden.textContent = ` to ${title}`;
     button.appendChild(hidden);
     button.addEventListener('click', () => {
+        // Copying the link to a row that's folding shut means it's wanted.
+        reclaimProject(details);
         const hash = `#projects/${slug}`;
         const url = `${window.location.origin}${window.location.pathname}${hash}`;
         const fallback = () => {
+            // The clipboard can refuse a moment later, by which time the
+            // visitor may have closed this row or left Projects - then the
+            // address bar isn't this row's to change.
+            const stillHere = details.open && !('closing' in details.dataset) && parseHash().panel === 'projects';
+            if (!stillHere) {
+                showToast('Couldn\'t copy the link');
+                return;
+            }
             history.replaceState(null, '', hash);
             showToast('Copy the link from the address bar');
         };
@@ -1155,15 +1164,50 @@ projectDetails.forEach(details => {
     links.appendChild(button);
 });
 
-// CLOSING A PROJECT
-// A <details> element hides its contents the instant it closes, which
-// read as the row slamming shut next to its gentle opening animation. So
-// a close - clicking an open row, or opening another row while one is
-// open (the shared name makes them an accordion) - first folds the open
-// body away, then actually closes it. The row being closed keeps
-// data-closing while it folds.
+// OPENING AND CLOSING A PROJECT
+// A <details> element shows or hides its contents the instant it's
+// toggled, so the row would jump open and slam shut. Opening a row by
+// hand instead unfolds its body from nothing to full height while it
+// fades in; closing one - clicking an open row, or opening another while
+// one is open (the shared name makes them an accordion) - folds the body
+// away first, then actually closes it. The row being closed keeps
+// data-closing while it folds. Opening takes a little longer than
+// closing, so the new content has time to be seen arriving.
+const PROJECT_OPEN_MS = 450;
 const PROJECT_CLOSE_MS = 300;
 const closingProjects = new Map();
+const openingProjects = new Map();
+
+// Keeps a row that's folding shut open after all. Whichever row opened in
+// its place folds away first: rejoining the accordion while another row is
+// open would make the browser close this one instead.
+function reclaimProject(details) {
+    const closing = closingProjects.get(details);
+    if (!closing) return;
+    projectDetails
+        .filter(other => other !== details && other.open && other.getAttribute('name') === closing.group)
+        .forEach(foldProject);
+    closing(false);
+}
+
+function unfoldProject(details) {
+    const body = details.querySelector('.project-body');
+    if (!body || reducedMotionQuery.matches) return;
+    const style = getComputedStyle(body);
+    const animation = body.animate([
+        { height: '0px', paddingBottom: '0px', opacity: 0 },
+        { height: `${body.offsetHeight}px`, paddingBottom: style.paddingBottom, opacity: 1 },
+    ], { duration: PROJECT_OPEN_MS, easing: 'cubic-bezier(0.4, 0, 0.2, 1)' });
+    body.style.overflow = 'hidden';
+    openingProjects.set(details, animation);
+    const done = () => {
+        if (openingProjects.get(details) !== animation) return;
+        openingProjects.delete(details);
+        body.style.overflow = '';
+    };
+    animation.onfinish = done;
+    animation.oncancel = done;
+}
 
 function foldProject(details) {
     const body = details.querySelector('.project-body');
@@ -1176,9 +1220,13 @@ function foldProject(details) {
     const name = details.getAttribute('name');
     details.removeAttribute('name');
     details.dataset.closing = '';
+    // Closed mid-unfold: fold back from wherever it got to.
     const style = getComputedStyle(body);
+    const from = { height: `${body.offsetHeight}px`, paddingBottom: style.paddingBottom, opacity: style.opacity };
+    const unfolding = openingProjects.get(details);
+    if (unfolding) unfolding.cancel();
     const animation = body.animate([
-        { height: `${body.offsetHeight}px`, paddingBottom: style.paddingBottom, opacity: 1 },
+        from,
         { height: '0px', paddingBottom: '0px', opacity: 0 },
     ], { duration: PROJECT_CLOSE_MS, easing: 'cubic-bezier(0.4, 0, 0.2, 1)' });
     body.style.overflow = 'hidden';
@@ -1190,17 +1238,17 @@ function foldProject(details) {
         if (close) details.open = false;
         if (name) details.setAttribute('name', name);
     };
+    done.group = name;
     closingProjects.set(details, done);
     animation.onfinish = () => done(true);
 }
 
 projectDetails.forEach(details => {
     details.querySelector('summary').addEventListener('click', (e) => {
-        const closing = closingProjects.get(details);
-        if (closing) {
+        if (closingProjects.has(details)) {
             // Clicked again mid-fold: stay open.
             e.preventDefault();
-            closing(false);
+            reclaimProject(details);
             return;
         }
         if (details.open) {
@@ -1209,16 +1257,25 @@ projectDetails.forEach(details => {
             return;
         }
         const name = details.getAttribute('name');
-        if (!name) return;
-        projectDetails
-            .filter(other => other !== details && other.open && other.getAttribute('name') === name)
-            .forEach(foldProject);
+        if (name) {
+            projectDetails
+                .filter(other => other !== details && other.open && other.getAttribute('name') === name)
+                .forEach(foldProject);
+        }
+        if (reducedMotionQuery.matches) return;
+        // Opened here rather than by the default action, so its full height
+        // can be measured and unfolded to straight away.
+        e.preventDefault();
+        details.open = true;
+        unfoldProject(details);
     });
 });
 
-// Printing opens every project; anything mid-fold finishes closing first.
+// Printing opens every project; anything mid-fold finishes closing
+// first, and anything mid-unfold finishes opening.
 window.addEventListener('beforeprint', () => {
     closingProjects.forEach(done => done(true));
+    openingProjects.forEach(animation => animation.finish());
 }, { capture: true });
 
 // LEAVING PRINT
