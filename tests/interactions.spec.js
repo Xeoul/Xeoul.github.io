@@ -1051,14 +1051,15 @@ test(`stress: ${STRESS_STEPS} random actions leave the page consistent`, async (
       const summaries = page.locator('#projects.active details.project summary');
       const n = await summaries.count();
       if (!n) return;
-      const pick = summaries.nth(rand(n));
-      trail.push(`click ${await pick.evaluate((el) => el.parentElement.dataset.slug)}`);
-      await pick.click({ timeout: 3000 }).catch(() => {}); // the panel may slide away first
+      const index = rand(n);
+      // Read without waiting: the panel may already be sliding away.
+      trail.push(`click ${await page.evaluate((i) => document.querySelectorAll('#projects details.project')[i]?.dataset.slug, index)}`);
+      await summaries.nth(index).click({ timeout: 3000 }).catch(() => {}); // the panel may slide away first
     },
     async () => {
       const button = page.locator('#projects.active details.project[open] .project-copy-link');
       if (!(await button.count())) return;
-      trail.push(`copy link ${await button.first().evaluate((el) => el.closest('details').dataset.slug)}`);
+      trail.push(`copy link ${await page.evaluate(() => document.querySelector('#projects details.project[open]')?.dataset.slug)}`);
       await button.first().click({ timeout: 3000 }).catch(() => {});
     },
     async () => page.evaluate(() => document.dispatchEvent(new Event('visibilitychange'))),
