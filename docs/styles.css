@@ -676,11 +676,12 @@ header {
    Both layers share the per-panel --safe-mask, which keeps dots out
    of each panel's text area.
    The dim grid also drifts slowly up and down, driven by the same
-   clock as the wave (see --grid-shift in script.js's drawWave) at a
-   slice of its speed - so the two feel like one current even though
-   the wave itself travels sideways. It's a CSS custom property
-   rather than a keyframe animation so it starts, stops and respects
-   reduced-motion exactly when the wave's own rAF loop does.
+   clock as the wave (see panelDotGrid in script.js) at a slice of its
+   speed - so the two feel like one current even though the wave itself
+   travels sideways. The script swaps .panel::before for a .dot-grid
+   element to do that, so it starts, stops and respects reduced-motion
+   exactly when the wave's own rAF loop does; without the script the
+   grid just sits still.
    --wave-y / --wave-scale tell the script where that panel's dots
    actually show: default is the bottom strip every panel's
    --safe-mask leaves open, at half size to fit in it; Home on desktop
@@ -714,6 +715,7 @@ header {
 }
 
 .panel::before,
+.dot-grid,
 .wave-canvas {
   position: absolute;
   inset: 0;
@@ -723,12 +725,36 @@ header {
   -webkit-mask-image: var(--safe-mask, none);
 }
 
-.panel::before {
-  content: '';
+.panel::before,
+.dot-grid-dots {
   background-image: radial-gradient(circle, rgba(var(--color-accent-rgb), 1) 1.2px, transparent 1.2px);
   background-size: 26px 26px;
-  background-position: 0 var(--grid-shift, 0);
+}
+
+.panel::before {
+  content: '';
   opacity: 0.18;
+}
+
+.panel.has-dot-grid::before {
+  content: none;
+}
+
+.dot-grid {
+  overflow: hidden;
+  opacity: 0.18;
+}
+
+/* One grid cell taller than the panel, so sliding it up by as much as a
+   cell never uncovers its bottom edge. It starts a whole cell up, which
+   keeps the rows where .panel::before draws them. */
+.dot-grid-dots {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -26px;
+  bottom: -26px;
+  will-change: translate;
 }
 
 .wave-canvas {
@@ -1301,7 +1327,6 @@ header {
 .projects-grid {
   display: flex;
   flex-direction: column;
-  border-top: 1px solid var(--color-border);
   counter-reset: project-count;
 }
 
@@ -1328,7 +1353,7 @@ header {
    on one screen with just one project expanded at a time (the shared
    name="project" makes them an exclusive accordion). */
 .project {
-  border-bottom: 1px solid var(--color-border);
+  position: relative;
   counter-increment: project-count;
   transition: opacity 0.65s var(--ease-fluid) calc(var(--i, 0) * 70ms),
     transform 0.65s var(--ease-fluid) calc(var(--i, 0) * 70ms);
@@ -1342,6 +1367,56 @@ header {
   padding: 13px 0;
   list-style: none;
   cursor: pointer;
+}
+
+/* Row dividers belong to the rows, so they travel with them as rows
+   slide open and shut (see OPENING AND CLOSING A PROJECT in script.js):
+   a line above the first row of each list, under a closed row's summary,
+   and along the bottom edge of an open row's fold - which is the edge
+   that moves as the body is uncovered. None of them take up space, so
+   the layout doesn't change by a pixel as a row finishes closing. */
+.projects-grid > .project:first-child {
+  border-top: 1px solid var(--color-border);
+}
+
+.project:not([open]) > .project-summary,
+.project[open] > .project-body {
+  box-shadow: inset 0 -1px 0 var(--color-border);
+}
+
+.project-fold {
+  position: relative;
+}
+
+.project-fold::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1px;
+  background: var(--color-border);
+}
+
+/* While it moves, the fold clips the body. Only the part of the body
+   that's showing takes clicks - the fold itself reaches up over the
+   rows above while it's slid out of the way. */
+.project-fold.is-moving {
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.project-fold.is-moving > .project-body {
+  pointer-events: auto;
+}
+
+/* Folding shut: out of the flow, so the rows below can slide up over
+   the space it leaves. */
+.project-fold.is-folding {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
 }
 
 .project-summary::-webkit-details-marker {
@@ -1449,7 +1524,8 @@ header {
   background: var(--color-surface);
 }
 
-.project[open] .project-body {
+/* Without the script (which unfolds the body instead) it fades in. */
+.project[open] > .project-body {
   animation: projectOpen 0.3s var(--ease-fluid);
 }
 
@@ -1459,7 +1535,7 @@ header {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .project[open] .project-body {
+  .project[open] > .project-body {
     animation: none;
   }
 }
@@ -2507,6 +2583,7 @@ html.printing *::after {
   .cmdk,
   .toast,
   .wave-canvas,
+  .dot-grid,
   .panel::before,
   .hero-actions,
   .github-stats,

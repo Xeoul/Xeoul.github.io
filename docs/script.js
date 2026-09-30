@@ -11,8 +11,7 @@ if (themeToggle) {
         const next = current === 'dark' ? 'light' : 'dark';
 
         document.documentElement.setAttribute('data-theme', next);
-        themeToggle.setAttribute('aria-pressed', String(next === 'dark'));
-        themeToggle.setAttribute('aria-label', next === 'dark' ? 'Switch to light theme' : 'Switch to dark theme');
+        syncThemeToggle();
 
         try {
             localStorage.setItem('theme', next);
@@ -22,6 +21,17 @@ if (themeToggle) {
         }
     });
 }
+
+// With no saved choice the page follows the system theme, so the button
+// has to say which way it would switch whenever that changes too.
+function syncThemeToggle() {
+    if (!themeToggle) return;
+    const theme = document.documentElement.getAttribute('data-theme')
+        || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    themeToggle.setAttribute('aria-pressed', String(theme === 'dark'));
+    themeToggle.setAttribute('aria-label', theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme');
+}
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', syncThemeToggle);
 
 // CLICK-TO-COPY EMAIL
 // Progressive enhancement over the plain mailto: link - if the Clipboard
@@ -186,6 +196,7 @@ function showPanel(id, updateHash = true, animate = true) {
     panels.forEach(panel => { panel.inert = panel !== next; });
 
     if (PANEL_TITLES[id]) document.title = PANEL_TITLES[id];
+    if (id === 'projects') warmProjectPreviews();
 
     // After a real navigation (not the initial load), move focus to the
     // new panel's heading, so keyboard and screen-reader users land at
@@ -196,6 +207,24 @@ function showPanel(id, updateHash = true, animate = true) {
     if (updateHash && window.location.hash !== `#${id}`) {
         history.pushState(null, '', `#${id}`);
     }
+}
+
+// The project screenshots are lazy-loaded, and a closed row's isn't
+// rendered, so each was only fetched and decoded as its row first
+// opened - a hitch right in the middle of the unfold. Once Projects is
+// shown they're fetched and decoded in the background instead, after
+// the panel has finished sliding in.
+let projectPreviewsWarmed = false;
+function warmProjectPreviews() {
+    if (projectPreviewsWarmed) return;
+    projectPreviewsWarmed = true;
+    const whenIdle = window.requestIdleCallback || ((fn) => setTimeout(fn, 700));
+    whenIdle(() => {
+        document.querySelectorAll('.project-preview').forEach(img => {
+            img.loading = 'eager';
+            if (img.decode) img.decode().catch(() => {});
+        });
+    }, { timeout: 1500 });
 }
 
 // SLIDING NAV INDICATOR (desktop only - .in-menu is hidden below 900px)
@@ -292,10 +321,10 @@ window.addEventListener('popstate', () => showFromHash(true));
 // that off-screen panel into view, shifting every panel sideways -
 // styles.css prevents that with overflow: clip; this undoes it in
 // browsers without clip support.
-const viewForScroll = document.querySelector('.view');
-if (viewForScroll) {
-    viewForScroll.addEventListener('scroll', () => {
-        if (viewForScroll.scrollLeft || viewForScroll.scrollTop) viewForScroll.scrollTo(0, 0);
+const viewEl = document.querySelector('.view');
+if (viewEl) {
+    viewEl.addEventListener('scroll', () => {
+        if (viewEl.scrollLeft || viewEl.scrollTop) viewEl.scrollTo(0, 0);
     });
 }
 
@@ -305,7 +334,6 @@ if (viewForScroll) {
 // back, same as paging through a deck. Only reacts to a swipe that's
 // clearly more horizontal than vertical, so a normal vertical scroll
 // inside an overflowing panel is left alone.
-const viewEl = document.querySelector('.view');
 if (viewEl) {
     let touchStartX = 0;
     let touchStartY = 0;
@@ -380,7 +408,7 @@ const WAVE_GRID = 26;         // must match the dot grid's background-size
 const WAVE_DOT_RADIUS = 1.2;  // and its dot size
 const WAVE_PEAK_ALPHA = 0.85;
 // The dim dot grid drifts vertically at this slice of the wave's own
-// speed (see --grid-shift below), so it reads as the same current the
+// speed (see panelDotGrid below), so it reads as the same current the
 // wave rides on rather than a separate animation that merely happens
 // to agree, even though the wave itself travels sideways.
 const GRID_DRIFT_RATIO = 0.06; // ~8px/s at WAVE_SPEED - 0.1 (14px/s) read as too quick
@@ -440,9 +468,30 @@ function panelWaveCanvas(panel) {
         // Fired when the browser gives a canvas back after dropping it
         // (see RECOVERING THE CANVASES).
         canvas.addEventListener('contextrestored', rebuildWaveCanvases);
-        panel.prepend(canvas);
+        panelDotGrid(panel).after(canvas); // lit dots over the dim ones
     }
     return canvas;
+}
+
+// The dim dot grid, which drifts up and down in step with the wave. It
+// replaces the panel's CSS-only grid (.panel::before) and is moved by
+// sliding its inner layer rather than repositioning a background: a
+// slide is left to the graphics card, where the old way restyled every
+// element in the panel and repainted the whole screen of dots on each
+// tick - work that made the project rows stutter as they opened and
+// closed. The outer layer holds the panel's --safe-mask still while
+// the dots move under it.
+function panelDotGrid(panel) {
+    let grid = panel.querySelector(':scope > .dot-grid');
+    if (!grid) {
+        grid = document.createElement('div');
+        grid.className = 'dot-grid';
+        grid.setAttribute('aria-hidden', 'true');
+        grid.appendChild(document.createElement('div')).className = 'dot-grid-dots';
+        panel.prepend(grid);
+        panel.classList.add('has-dot-grid');
+    }
+    return grid;
 }
 
 // Each panel's size and where its dots are visible (--wave-y/--wave-scale,
@@ -491,8 +540,8 @@ const GLOW_STEP = 8;
 
 // Where a panel currently sits relative to the view - 0 once it's
 // settled, but mid-slide it's partway off one side (see showPanel).
-function panelOffsetX(panel) {
-    return panel.getBoundingClientRect().left - viewEl.getBoundingClientRect().left;
+function panelOffsetX(panel, viewLeft = viewEl.getBoundingClientRect().left) {
+    return panel.getBoundingClientRect().left - viewLeft;
 }
 
 // The accent colour only changes with the theme, so it's read from
@@ -553,8 +602,8 @@ function drawWave(panel, offsetX = panelOffsetX(panel)) {
     ctx.clearRect(0, 0, width, height);
     ctx.fillStyle = `rgb(${rgb})`;
     const half = WAVE_GRID / 2;
-    // The dim CSS grid's rows are shifted by --grid-shift (see AMBIENT
-    // DRIFT in styles.css), so the lit dots drawn here need the same
+    // The dim grid's rows are shifted by gridShift (see panelDotGrid
+    // and AMBIENT DRIFT in styles.css), so the lit dots drawn here need the same
     // row offset each frame or they drift out of register with it,
     // producing a moiré between the two layers instead of one grid.
     const rowPhase = ((half + gridShift) % WAVE_GRID + WAVE_GRID) % WAVE_GRID;
@@ -588,12 +637,9 @@ function drawWave(panel, offsetX = panelOffsetX(panel)) {
         }
     }
     ctx.globalAlpha = 1;
-    // Set on the panel itself, alongside its canvas, rather than once on
-    // the root: a custom property changed on <html> restyles the whole
-    // page every frame, where here it only touches the panels actually
-    // on screen - and keeps the dim grid's rows in step with the rowPhase
-    // the lit dots above were just drawn at.
-    panel.style.setProperty('--grid-shift', `${gridShift}px`);
+    // Keeps the dim grid's rows in step with the rowPhase the lit dots
+    // above were just drawn at (see panelDotGrid).
+    panelDotGrid(panel).firstChild.style.translate = `0 ${gridShift}px`;
 }
 
 // Redraws straight away rather than on the next tick - but only the
@@ -659,7 +705,8 @@ function waveFrame(now) {
     waveLastTime = now;
     // Every position is read up front, before drawWave writes any
     // style, so reading them never forces an extra style/layout pass.
-    const offsets = panels.map(panelOffsetX);
+    const viewLeft = viewEl.getBoundingClientRect().left;
+    const offsets = panels.map(panel => panelOffsetX(panel, viewLeft));
     // Mid-slide, redraw every frame rather than at the usual reduced
     // rate: the wave is positioned from where each panel sat when it
     // was drawn, so a stale frame would leave the two halves out of
@@ -904,7 +951,7 @@ if (cmdk && typeof cmdk.showModal === 'function') {
 // Eases a stat from 0 up to its real value instead of just popping the
 // number in - skipped under reduced-motion, where it just sets the value.
 function animateCount(el, target, duration = 800) {
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || !target) {
+    if (reducedMotionQuery.matches || !target) {
         el.textContent = target;
         return;
     }
@@ -927,7 +974,14 @@ function animateCount(el, target, duration = 800) {
 // runs to hundreds of KB), and a cached result also skips the loading
 // shimmer. Storage can throw in private-browsing/locked-down contexts,
 // in which case this just falls back to fetching every time.
+// The cache is only as trustworthy as everything else on this origin:
+// the demos under xeoul.github.io/<app>/ share it. So what comes back -
+// from the cache or the API - is checked before it's shown (numbers are
+// numbers, links go to github.com), and anything off hides the section
+// like a failed request would.
 const GITHUB_CACHE_MS = 10 * 60 * 1000;
+const isCount = (n) => Number.isInteger(n) && n >= 0;
+const isGitHubUrl = (url) => typeof url === 'string' && url.startsWith('https://github.com/');
 
 function fetchGitHub(path, summarize) {
     // v2: the repos entry now also carries the site's own last push
@@ -965,6 +1019,7 @@ if (githubStatsEls.length) {
     const username = githubStatsEls[0].getAttribute('data-github-user');
     fetchGitHub(`/users/${username}`, ({ public_repos, followers }) => ({ public_repos, followers }))
         .then(data => {
+            if (!isCount(data.public_repos) || !isCount(data.followers)) throw new Error('Unexpected GitHub data');
             githubStatsEls.forEach(githubStats => {
                 const setStat = (selector, count, noun) => {
                     const el = githubStats.querySelector(selector);
@@ -1020,7 +1075,7 @@ if (moreRepos || lastUpdated) {
 
     if (lastUpdated) {
         reposData.then(({ updated }) => {
-            const date = updated && new Date(updated);
+            const date = typeof updated === 'string' && new Date(updated);
             if (!date || Number.isNaN(date.getTime())) return;
             const time = lastUpdated.querySelector('time');
             time.dateTime = updated;
@@ -1031,6 +1086,7 @@ if (moreRepos || lastUpdated) {
 
     if (moreRepos) reposData
         .then(({ repos }) => {
+            repos = repos.filter(repo => typeof repo.name === 'string' && isGitHubUrl(repo.url));
             if (!repos.length) return;
             const list = moreRepos.querySelector('.repo-list');
             repos.forEach(repo => {
@@ -1044,7 +1100,8 @@ if (moreRepos || lastUpdated) {
                 name.className = 'repo-name';
                 name.textContent = repo.name;
                 link.appendChild(name);
-                const meta = [repo.language, repo.stars > 0 ? `★ ${repo.stars}` : null].filter(Boolean).join(' · ');
+                const language = typeof repo.language === 'string' ? repo.language : null;
+                const meta = [language, isCount(repo.stars) && repo.stars > 0 ? `★ ${repo.stars}` : null].filter(Boolean).join(' · ');
                 if (meta) {
                     const metaEl = document.createElement('span');
                     metaEl.className = 'repo-meta';
@@ -1142,9 +1199,14 @@ projectDetails.forEach(details => {
     hidden.textContent = ` to ${title}`;
     button.appendChild(hidden);
     button.addEventListener('click', () => {
-        // Copying the link to a row that's folding shut means it's wanted.
-        reclaimProject(details);
         const hash = `#projects/${slug}`;
+        // Copying the link to a row that's folding shut means it's wanted -
+        // and the address bar, which had moved on to whichever row opened
+        // in its place, comes back to it.
+        if (closingProjects.has(details)) {
+            reclaimProject(details);
+            if (parseHash().panel === 'projects') history.replaceState(null, '', hash);
+        }
         const url = `${window.location.origin}${window.location.pathname}${hash}`;
         const fallback = () => {
             // The clipboard can refuse a moment later, by which time the
@@ -1166,17 +1228,159 @@ projectDetails.forEach(details => {
 
 // OPENING AND CLOSING A PROJECT
 // A <details> element shows or hides its contents the instant it's
-// toggled, so the row would jump open and slam shut. Opening a row by
-// hand instead unfolds its body from nothing to full height while it
-// fades in; closing one - clicking an open row, or opening another while
-// one is open (the shared name makes them an accordion) - folds the body
-// away first, then actually closes it. The row being closed keeps
-// data-closing while it folds. Opening takes a little longer than
-// closing, so the new content has time to be seen arriving.
-const PROJECT_OPEN_MS = 450;
-const PROJECT_CLOSE_MS = 300;
-const closingProjects = new Map();
-const openingProjects = new Map();
+// toggled, so the row would jump open and slam shut. Instead a row
+// unfolds when opened and folds away when closed - clicking an open row,
+// or opening another while one is open (the shared name makes them an
+// accordion). The row being closed keeps data-closing while it folds.
+//
+// The page's layout changes only once, at the start: the rows then slide
+// from where they were to where they now belong, and the body is
+// uncovered from the top down (or covered back up), its bottom edge
+// keeping pace with the row below. Everything that moves is a slide or a
+// fade, which the graphics card can do on its own; growing the body's
+// height instead meant laying out and repainting the whole catalog every
+// frame, which stuttered on slower machines. To make this work:
+// - Each .project-body sits in a .project-fold, which clips it. The fold
+//   is slid up out of the way while the body is slid down by the same
+//   amount, so the body stays put and only the clip's edge moves.
+// - A row folding shut is closed as far as the layout goes - its fold is
+//   taken out of the flow (.is-folding) - and only really closes once
+//   the fold ends.
+// - Row dividers are drawn on the rows themselves (see .project in
+//   styles.css), so they travel with them.
+// - Every change starts every moving part afresh on one shared timeline
+//   from wherever it had got to, so the edges keep lining up however
+//   quickly rows are clicked.
+const PROJECT_MOTION_MS = 420;
+const PROJECT_EASING = 'cubic-bezier(0.4, 0, 0.2, 1)';
+const closingProjects = new Map(); // row -> finishes closing it
+const projectTargets = new Map();  // row -> 1 while unfolding, 0 while folding
+const projectReveals = new Map();  // row -> its fold's two animations
+let projectSlides = [];
+
+projectDetails.forEach(details => {
+    const body = details.querySelector('.project-body');
+    if (!body) return;
+    const fold = document.createElement('div');
+    fold.className = 'project-fold';
+    body.before(fold);
+    fold.appendChild(body);
+});
+
+// How much of a row's body is showing: 0 closed, 1 fully open.
+function projectReveal(details) {
+    if (!details.open) return 0;
+    const reveal = projectReveals.get(details);
+    if (!reveal) return 1;
+    const progress = reveal[0].effect.getComputedTiming().progress;
+    return progress === null ? reveal.to : reveal.from + (reveal.to - reveal.from) * progress;
+}
+
+function stopProjectReveal(details) {
+    const reveal = projectReveals.get(details);
+    if (reveal) reveal.forEach(animation => animation.cancel());
+    projectReveals.delete(details);
+    projectTargets.delete(details);
+    const fold = details.querySelector('.project-fold');
+    if (fold) fold.classList.remove('is-moving');
+}
+
+function revealProject(details, from, to) {
+    const fold = details.querySelector('.project-fold');
+    const body = fold.querySelector('.project-body');
+    const finish = () => {
+        stopProjectReveal(details);
+        if (to === 0) closingProjects.get(details)?.();
+    };
+    const height = fold.offsetHeight;
+    if (from === to || !height) {
+        finish();
+        return;
+    }
+    const timing = { duration: PROJECT_MOTION_MS, easing: PROJECT_EASING };
+    const hidden = (share) => (1 - share) * height;
+    fold.classList.add('is-moving');
+    const reveal = [
+        fold.animate([{ translate: `0 ${-hidden(from)}px` }, { translate: `0 ${-hidden(to)}px` }], timing),
+        body.animate([
+            { translate: `0 ${hidden(from)}px`, opacity: from },
+            { translate: `0 ${hidden(to)}px`, opacity: to },
+        ], timing),
+    ];
+    reveal.from = from;
+    reveal.to = to;
+    projectReveals.set(details, reveal);
+    reveal[0].onfinish = () => {
+        if (projectReveals.get(details) === reveal) finish();
+    };
+}
+
+// Runs change() - which marks rows to fold or unfold - and animates
+// everything from where it was to where it now belongs.
+function moveProjects(change) {
+    const content = projectDetails[0].closest('.panel-content');
+    const moving = [...content.querySelectorAll('.panel-header, .project, .project-group-title, .more-repos')];
+    const before = moving.map(el => el.getBoundingClientRect().top);
+    const shown = new Map(projectDetails.map(d => [d, projectReveal(d)]));
+    projectSlides.forEach(animation => animation.cancel());
+    projectSlides = [];
+    [...projectReveals.keys()].forEach(d => {
+        const to = projectTargets.get(d);
+        stopProjectReveal(d);
+        projectTargets.set(d, to);
+    });
+    change();
+    moving.forEach((el, i) => {
+        const offset = before[i] - el.getBoundingClientRect().top;
+        if (Math.abs(offset) < 0.5) return;
+        projectSlides.push(el.animate(
+            [{ translate: `0 ${offset}px` }, { translate: '0 0' }],
+            { duration: PROJECT_MOTION_MS, easing: PROJECT_EASING },
+        ));
+    });
+    [...projectTargets].forEach(([d, to]) => revealProject(d, shown.get(d), to));
+}
+
+// Marks a row to fold shut. Out of the accordion while it folds, so
+// opening the next row doesn't close this one early.
+function markFold(details) {
+    if (!details.open || projectTargets.get(details) === 0) return;
+    const name = details.getAttribute('name');
+    details.removeAttribute('name');
+    details.dataset.closing = '';
+    details.querySelector('.project-fold').classList.add('is-folding');
+    projectTargets.set(details, 0);
+    const done = () => {
+        closingProjects.delete(details);
+        delete details.dataset.closing;
+        stopProjectReveal(details);
+        details.querySelector('.project-fold').classList.remove('is-folding');
+        details.open = false;
+        if (name) details.setAttribute('name', name);
+    };
+    done.group = name;
+    closingProjects.set(details, done);
+}
+
+// Marks a row to unfold, including one that's part way through folding.
+// Any other open row in its group must be marked to fold first.
+function markUnfold(details) {
+    const closing = closingProjects.get(details);
+    if (closing) {
+        closingProjects.delete(details);
+        delete details.dataset.closing;
+        details.querySelector('.project-fold').classList.remove('is-folding');
+        if (closing.group) details.setAttribute('name', closing.group);
+    }
+    details.open = true;
+    projectTargets.set(details, 1);
+}
+
+function foldOthers(details, group) {
+    projectDetails
+        .filter(other => other !== details && other.open && group && other.getAttribute('name') === group)
+        .forEach(markFold);
+}
 
 // Keeps a row that's folding shut open after all. Whichever row opened in
 // its place folds away first: rejoining the accordion while another row is
@@ -1184,63 +1388,10 @@ const openingProjects = new Map();
 function reclaimProject(details) {
     const closing = closingProjects.get(details);
     if (!closing) return;
-    projectDetails
-        .filter(other => other !== details && other.open && other.getAttribute('name') === closing.group)
-        .forEach(foldProject);
-    closing(false);
-}
-
-function unfoldProject(details) {
-    const body = details.querySelector('.project-body');
-    if (!body || reducedMotionQuery.matches) return;
-    const style = getComputedStyle(body);
-    const animation = body.animate([
-        { height: '0px', paddingBottom: '0px', opacity: 0 },
-        { height: `${body.offsetHeight}px`, paddingBottom: style.paddingBottom, opacity: 1 },
-    ], { duration: PROJECT_OPEN_MS, easing: 'cubic-bezier(0.4, 0, 0.2, 1)' });
-    body.style.overflow = 'hidden';
-    openingProjects.set(details, animation);
-    const done = () => {
-        if (openingProjects.get(details) !== animation) return;
-        openingProjects.delete(details);
-        body.style.overflow = '';
-    };
-    animation.onfinish = done;
-    animation.oncancel = done;
-}
-
-function foldProject(details) {
-    const body = details.querySelector('.project-body');
-    if (!body || reducedMotionQuery.matches) {
-        details.open = false;
-        return;
-    }
-    // Out of the accordion while it folds, so opening the next row doesn't
-    // close this one early.
-    const name = details.getAttribute('name');
-    details.removeAttribute('name');
-    details.dataset.closing = '';
-    // Closed mid-unfold: fold back from wherever it got to.
-    const style = getComputedStyle(body);
-    const from = { height: `${body.offsetHeight}px`, paddingBottom: style.paddingBottom, opacity: style.opacity };
-    const unfolding = openingProjects.get(details);
-    if (unfolding) unfolding.cancel();
-    const animation = body.animate([
-        from,
-        { height: '0px', paddingBottom: '0px', opacity: 0 },
-    ], { duration: PROJECT_CLOSE_MS, easing: 'cubic-bezier(0.4, 0, 0.2, 1)' });
-    body.style.overflow = 'hidden';
-    const done = (close) => {
-        closingProjects.delete(details);
-        delete details.dataset.closing;
-        body.style.overflow = '';
-        animation.cancel();
-        if (close) details.open = false;
-        if (name) details.setAttribute('name', name);
-    };
-    done.group = name;
-    closingProjects.set(details, done);
-    animation.onfinish = () => done(true);
+    moveProjects(() => {
+        foldOthers(details, closing.group);
+        markUnfold(details);
+    });
 }
 
 projectDetails.forEach(details => {
@@ -1251,31 +1402,37 @@ projectDetails.forEach(details => {
             reclaimProject(details);
             return;
         }
-        if (details.open) {
-            e.preventDefault();
-            foldProject(details);
+        if (reducedMotionQuery.matches) {
+            // Shown and hidden at once; the browser's own toggle, with any
+            // other open row in the group closed by the accordion.
             return;
         }
-        const name = details.getAttribute('name');
-        if (name) {
-            projectDetails
-                .filter(other => other !== details && other.open && other.getAttribute('name') === name)
-                .forEach(foldProject);
-        }
-        if (reducedMotionQuery.matches) return;
-        // Opened here rather than by the default action, so its full height
-        // can be measured and unfolded to straight away.
         e.preventDefault();
-        details.open = true;
-        unfoldProject(details);
+        if (details.open) {
+            moveProjects(() => markFold(details));
+        } else {
+            moveProjects(() => {
+                foldOthers(details, details.getAttribute('name'));
+                markUnfold(details);
+            });
+        }
+    });
+    // Closed some other way mid-move (a link to another project, which
+    // the accordion answers by closing this one at once): drop the rest.
+    details.addEventListener('toggle', () => {
+        if (details.open) return;
+        stopProjectReveal(details);
+        closingProjects.get(details)?.();
     });
 });
 
 // Printing opens every project; anything mid-fold finishes closing
-// first, and anything mid-unfold finishes opening.
+// first, and anything moving jumps to where it was headed.
 window.addEventListener('beforeprint', () => {
-    closingProjects.forEach(done => done(true));
-    openingProjects.forEach(animation => animation.finish());
+    closingProjects.forEach(done => done());
+    [...projectReveals.keys()].forEach(stopProjectReveal);
+    projectSlides.forEach(animation => animation.cancel());
+    projectSlides = [];
 }, { capture: true });
 
 // LEAVING PRINT
@@ -1342,7 +1499,7 @@ if (ghHeatmap) {
             for (let i = 0; i < totalDays; i++) {
                 const d = new Date(gridStart.getTime() + i * msPerDay);
                 const key = d.toISOString().slice(0, 10);
-                const count = counts[key] || 0;
+                const count = isCount(counts[key]) ? counts[key] : 0;
                 let level = 0;
                 if (count >= 5) level = 4;
                 else if (count >= 3) level = 3;
@@ -1384,12 +1541,5 @@ document.addEventListener('DOMContentLoaded', () => {
         el.addEventListener('animationend', () => el.classList.remove('init-pending'), { once: true });
     });
 
-    if (themeToggle) {
-        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-        const isDark = document.documentElement.getAttribute('data-theme')
-            ? document.documentElement.getAttribute('data-theme') === 'dark'
-            : prefersDark;
-        themeToggle.setAttribute('aria-pressed', String(isDark));
-        themeToggle.setAttribute('aria-label', isDark ? 'Switch to light theme' : 'Switch to dark theme');
-    }
+    syncThemeToggle();
 });
