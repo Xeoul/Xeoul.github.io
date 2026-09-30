@@ -3,11 +3,11 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
-    <meta name="description" content="How Installous works: a private stock research app with live market data, a transparent five-factor score and a Claude-powered analyst that looks things up with live tools.">
+    <meta name="description" content="How Installous works: a stock research app with live market data, a transparent five-factor score, a Claude-powered analyst that looks things up with live tools, and a rules-only AI Fund that trades paper money against the S&amp;P 500.">
     <meta property="og:type" content="article">
     <meta property="og:url" content="https://xeoul.github.io/projects/installous/">
     <meta property="og:title" content="Installous case study - Vincent Lam">
-    <meta property="og:description" content="How Installous works: a private stock research app with live market data, a transparent five-factor score and a Claude-powered analyst that looks things up with live tools.">
+    <meta property="og:description" content="How Installous works: a stock research app with live market data, a transparent five-factor score, a Claude-powered analyst that looks things up with live tools, and a rules-only AI Fund that trades paper money against the S&amp;P 500.">
     <meta property="og:image" content="https://xeoul.github.io/images/projects/installous.webp">
     <meta property="og:image:width" content="800">
     <meta property="og:image:height" content="500">
@@ -104,7 +104,7 @@
                         <dl class="case-meta">
                             <div>
                                 <dt>Stack</dt>
-                                <dd>TypeScript, Next.js, React, Tailwind CSS, Recharts, Claude API, Zod, Yahoo Finance</dd>
+                                <dd>TypeScript, Next.js, React, Tailwind CSS, Recharts, Claude API, Zod, Yahoo Finance, GitHub Actions</dd>
                             </div>
                             <div>
                                 <dt>Links</dt>
@@ -127,10 +127,11 @@
                         <h2 id="features">What it does</h2>
                         <ul>
                             <li><strong>Dashboard:</strong> portfolio value, today's change, total gain or loss, a watchlist with one-day sparklines, and the day's top-ranked stocks.</li>
-                            <li><strong>Top Picks:</strong> ranks about 40 large-cap US stocks plus your watchlist by the Installous score, sortable by any factor and filterable by sector.</li>
+                            <li><strong>Top Picks:</strong> ranks about 50 large-cap US stocks plus your watchlist by the Installous score, sortable by any factor and filterable by sector.</li>
                             <li><strong>Stock pages:</strong> a Robinhood-style chart with a live intraday view (a dotted previous-close line, green or red for up or down, and a price that follows your cursor), ranges from one week to five years, the factor breakdown, key metrics, news, and a one-click AI investment thesis.</li>
                             <li><strong>AI Advisor:</strong> a chat with an analyst that calls live tools and gives buy, hold or avoid views tailored to your risk tolerance, time horizon and goals.</li>
                             <li><strong>Portfolio:</strong> positions with average cost, live value, gain or loss, and weight.</li>
+                            <li><strong><a href="https://xeoul.github.io/Installous/fund/" target="_blank" rel="noopener noreferrer">AI Fund</a>:</strong> a $100,000 paper-money portfolio that picks stocks by itself from the Installous score, started September 29, 2026. It shows its holdings, a chart of its value against the S&amp;P 500, and a trade log that gives the reason for every buy and sell.</li>
                         </ul>
                     </section>
 
@@ -148,6 +149,10 @@
                         <p>The advisor doesn't answer from memory. It has tools for stock analysis, price history, ticker search, your portfolio, the top picks, news and adding to your watchlist, plus web search (up to five searches per answer), and each tool's input is checked with a Zod schema before it runs. Its instructions treat the score as one input and ask it to explain where its judgment differs. The chat shows each tool call as it happens, so you can see what it looked at.</p>
                         <h3>Caching by how fast data changes</h3>
                         <p>A small in-memory cache sits in front of Yahoo Finance, with a lifetime per kind of data: quotes and intraday prices for 1 minute, fundamentals for 10, longer price history for 15, news for 30, and ticker search for 60. Page loads and the advisor's tool calls share it, so asking about a stock you're looking at doesn't fetch it all again.</p>
+                        <h3>An AI Fund that follows its own rules</h3>
+                        <p>The fund answers a simple question: would you beat the market by just buying what the score likes? So it runs on rules alone, with no human picks and no model making judgment calls. Every 7 days it holds the top 10 stocks at equal 10% weights. It keeps a stock while it stays in the top 15 and scores at least 45 (Hold), which stops it from trading on small changes in rank, and it only trims or tops up a position once it drifts more than 2 points from its target. Every fill pays a 0.05% simulated trading cost, so the results aren't flattered.</p>
+                        <p>The fund's logic is a set of pure functions with no network or file access, which made it easy to step through weeks of made-up data before letting it run: a stock falls below Hold and gets sold, an overweight winner gets trimmed, a quiet week makes no trades, and cash never goes negative. A GitHub Action runs it every 30 minutes during market hours and saves its state (cash, positions, trade log and daily values) to a separate data branch. That makes the fund's whole history a public, auditable record, and it costs nothing to run: no broker account and no API keys.</p>
+                        <p>It's benchmarked against the same $100,000 put into SPY, the S&amp;P 500 fund, on the same day, because beating the index, not just making money, is the bar that matters.</p>
                         <h3>Useful without the AI</h3>
                         <p>Everything except the advisor works without an Anthropic API key: the dashboard, picks, charts and portfolio run on market data alone.</p>
                     </section>
@@ -155,6 +160,7 @@
                     <section class="case-section" aria-labelledby="limits">
                         <h2 id="limits">Current limits</h2>
                         <p>The full app is single-user and runs locally. The live demo is a static build of the same code: market data is a snapshot of about 50 large caps that a GitHub Action refreshes every 30 minutes while markets are open, your portfolio and watchlist stay in your browser, and the AI advisor runs with your own Anthropic API key. Top Picks ranks that fixed list plus your watchlist, not the whole market.</p>
+                        <p>The AI Fund trades simulated money at the latest snapshot price, so real fills would differ a little. Its returns and the S&amp;P 500's both leave out dividends, and a track record measured in weeks says little about whether the rules actually work.</p>
                     </section>
 
                     <nav class="case-pager" aria-label="More case studies">
