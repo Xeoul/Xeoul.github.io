@@ -1,23 +1,19 @@
 // Shared setup for the Playwright tests.
 
-// The site calls the public GitHub API for stats, repos and activity.
+// The site calls the public GitHub API for its repo list.
 // It's answered locally so tests are fast, deterministic and never
 // spend the API's unauthenticated rate limit.
 const today = new Date().toISOString();
 const GITHUB_FIXTURES = {
-  user: { public_repos: 9, followers: 4 },
   repos: [
     { name: 'Xeoul.github.io', fork: false, archived: false, html_url: 'https://github.com/Xeoul/Xeoul.github.io', language: 'CSS', stargazers_count: 1, pushed_at: '2026-09-27T18:53:40Z' },
-    { name: 'Installous', fork: false, archived: false, html_url: 'https://github.com/Xeoul/Installous', language: 'TypeScript', stargazers_count: 0 },
-    { name: 'aegis', fork: false, archived: false, html_url: 'https://github.com/Xeoul/aegis', language: 'Python', stargazers_count: 0 },
-    { name: 'AgentApply', fork: false, archived: false, html_url: 'https://github.com/Xeoul/AgentApply', language: 'Python', stargazers_count: 0 },
-    { name: 'some-fork', fork: true, archived: false, html_url: 'https://github.com/Xeoul/some-fork', language: 'Go', stargazers_count: 0 },
-    { name: 'side-project', fork: false, archived: false, html_url: 'https://github.com/Xeoul/side-project', language: 'Java', stargazers_count: 3 },
-  ],
-  // Three events today (activity level 3) and one yesterday (level 1).
-  events: [
-    { created_at: today }, { created_at: today }, { created_at: today },
-    { created_at: new Date(Date.now() - 86400000).toISOString() },
+    { name: 'Installous', fork: false, archived: false, html_url: 'https://github.com/Xeoul/Installous', language: 'TypeScript', stargazers_count: 0, pushed_at: today },
+    { name: 'aegis', fork: false, archived: false, html_url: 'https://github.com/Xeoul/aegis', language: 'Python', stargazers_count: 0, pushed_at: today },
+    { name: 'AgentApply', fork: false, archived: false, html_url: 'https://github.com/Xeoul/AgentApply', language: 'Python', stargazers_count: 0, pushed_at: today },
+    { name: 'some-fork', fork: true, archived: false, html_url: 'https://github.com/Xeoul/some-fork', language: 'Go', stargazers_count: 0, pushed_at: today },
+    { name: 'side-project', fork: false, archived: false, html_url: 'https://github.com/Xeoul/side-project', language: 'Java', stargazers_count: 3, pushed_at: today },
+    // Not pushed to in over a year, so left off the list.
+    { name: 'old-stuff', fork: false, archived: false, html_url: 'https://github.com/Xeoul/old-stuff', language: 'C++', stargazers_count: 1, pushed_at: '2021-03-10T02:59:40Z' },
   ],
 };
 
@@ -30,10 +26,7 @@ async function mockGitHub(page, { status = 200 } = {}) {
     if (status !== 200) {
       return route.fulfill({ status, contentType: 'application/json', body: JSON.stringify({ message: 'API rate limit exceeded' }) });
     }
-    const url = route.request().url();
-    const body = url.includes('/events') ? GITHUB_FIXTURES.events
-      : url.includes('/repos') ? GITHUB_FIXTURES.repos
-        : GITHUB_FIXTURES.user;
+    const body = route.request().url().includes('/repos') ? GITHUB_FIXTURES.repos : { message: 'Not Found' };
     return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(body) });
   });
   return calls;

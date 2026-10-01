@@ -256,23 +256,23 @@ test.describe('theme, email and storage', () => {
 // ---------------------------------------------------------------- GitHub data
 
 test.describe('GitHub data', () => {
-  test('stats, heatmap, repo list and last-updated render from the API', async ({ page, isMobile }) => {
+  test('repo list and last-updated render from one API request', async ({ page, isMobile }) => {
     const calls = await mockGitHub(page);
     await page.goto('/');
-    await navLink(page, isMobile, 'about').click();
-    const cells = page.locator('.gh-heatmap .gh-heat-cell:not(.skeleton)');
-    await expect(cells.first()).toBeAttached();
-    expect(await cells.count()).toBeGreaterThanOrEqual(90);
-    await expect(page.locator('.gh-heatmap .gh-heat-cell[data-level="3"]')).toHaveCount(1);
-    await expect(page.locator('.gh-heatmap .gh-heat-cell[data-level="1"]')).toHaveCount(1);
     await navLink(page, isMobile, 'contact').click();
     await expect(page.locator('.last-updated time')).toHaveText('Sep 27, 2026');
-    expect(calls.count).toBe(3);
+    expect(calls.count).toBe(1);
 
     // A reload inside the cache window makes no new requests.
     await page.reload();
     await expect(page.locator('.last-updated')).toBeVisible();
-    expect(calls.count).toBe(3);
+    expect(calls.count).toBe(1);
+  });
+
+  test('no GitHub stats or activity heatmap on the page', async ({ page }) => {
+    await mockGitHub(page);
+    await page.goto('/');
+    await expect(page.locator('.github-stats, .gh-stat, .github-activity, .gh-heatmap')).toHaveCount(0);
   });
 
   for (const status of [403, 500]) {
@@ -280,9 +280,6 @@ test.describe('GitHub data', () => {
       await mockGitHub(page, { status });
       const errors = watchErrors(page, { ignore: [/Failed to load resource/] });
       await page.goto('/');
-      await expect(page.locator('.github-stats').first()).toBeHidden();
-      await navLink(page, isMobile, 'about').click();
-      await expect(page.locator('.github-activity')).toBeHidden();
       await navLink(page, isMobile, 'projects').click();
       await expect(page.locator('.more-repos')).toBeHidden();
       await navLink(page, isMobile, 'contact').click();
@@ -291,13 +288,13 @@ test.describe('GitHub data', () => {
     });
   }
 
-  test('a fork, archived repo, featured project or excluded repo is never listed', async ({ page, isMobile }) => {
+  test('a fork, archived repo, featured project, excluded or stale repo is never listed', async ({ page, isMobile }) => {
     test.skip(isMobile, 'the list itself is desktop-only');
     await mockGitHub(page);
     await page.goto('/#projects');
     const names = await page.locator('.repo-link .repo-name').allTextContents();
     expect(names).toEqual(['side-project']);
-    for (const hidden of ['some-fork', 'Installous', 'aegis', 'AgentApply', 'Xeoul.github.io']) {
+    for (const hidden of ['some-fork', 'Installous', 'aegis', 'AgentApply', 'Xeoul.github.io', 'old-stuff']) {
       expect(names).not.toContain(hidden);
     }
     expect(GITHUB_FIXTURES.repos.length).toBeGreaterThan(names.length);
@@ -308,8 +305,7 @@ test.describe('GitHub data', () => {
     // The demos elsewhere on xeoul.github.io share this storage, so the
     // cache is checked like any other input.
     await page.addInitScript(() => {
-      const put = (path, data) => localStorage.setItem(`github-v2:${path}`, JSON.stringify({ time: Date.now(), data }));
-      put('/users/Xeoul', { public_repos: '<b>9</b>', followers: 4 });
+      const put = (path, data) => localStorage.setItem(`github-v3:${path}`, JSON.stringify({ time: Date.now(), data }));
       put('/users/Xeoul/repos?sort=pushed&per_page=30', {
         updated: null,
         repos: [
@@ -324,8 +320,6 @@ test.describe('GitHub data', () => {
     await expect(page.locator('.repo-link')).toHaveCount(1);
     await expect(page.locator('.repo-link')).toHaveAttribute('href', 'https://github.com/Xeoul/real');
     await expect(page.locator('.repo-link .repo-meta')).toHaveCount(0);
-    // Stats that aren't plain counts hide, like a failed request.
-    await expect(page.locator('.github-stats').first()).toBeHidden();
   });
 });
 
@@ -893,7 +887,7 @@ test.describe('layout and motion', () => {
         const overflow = await page.evaluate((id) => {
           const panel = document.getElementById(id);
           const wide = [...panel.querySelectorAll('*')]
-            .filter((el) => !el.closest('.gh-heatmap') && el.getBoundingClientRect().right > panel.getBoundingClientRect().right + 1 && el.getBoundingClientRect().width > 0)
+            .filter((el) => el.getBoundingClientRect().right > panel.getBoundingClientRect().right + 1 && el.getBoundingClientRect().width > 0)
             .map((el) => el.className || el.tagName);
           return { page: document.documentElement.scrollWidth > window.innerWidth, panel: panel.scrollWidth > panel.clientWidth + 1, wide: wide.slice(0, 3) };
         }, id);

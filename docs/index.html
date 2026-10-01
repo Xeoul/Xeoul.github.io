@@ -91,21 +91,6 @@
                 <svg aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M20,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V6C22,4.89 21.1,4 20,4M20,8L12,13L4,8V6L12,11L20,6V8Z"/></svg>
                 Contact
             </a>
-
-            <!-- Live GitHub stats, embedded directly in the nav rather than
-                 given their own card - one flat surface instead of two.
-                 Desktop only; on mobile the same data appears inline in
-                 the Contact panel's GitHub row instead (there's no nav
-                 bar to embed it in there). Fails closed: hides on fetch
-                 error, see script.js. -->
-            <div class="github-stats" data-github-user="Xeoul">
-                <span class="gh-stat gh-stat-repos">
-                    <span class="gh-stat-value skeleton">00</span><span class="gh-stat-label">repos</span>
-                </span>
-                <span class="gh-stat gh-stat-followers">
-                    <span class="gh-stat-value skeleton">00</span><span class="gh-stat-label">followers</span>
-                </span>
-            </div>
         </nav>
 
         <button class="theme-toggle" aria-label="Switch to dark theme" aria-pressed="false">
@@ -292,20 +277,6 @@
                                     <span class="skill-tag">pytest</span>
                                     <span class="skill-tag">Playwright</span>
                                 </div>
-                            </div>
-                        </div>
-
-                        <div class="github-activity">
-                            <h3>GitHub Activity</h3>
-                            <div class="gh-heatmap" data-github-user="Xeoul" role="img" aria-label="GitHub activity heatmap for the last 90 days"></div>
-                            <div class="gh-heatmap-legend">
-                                <span>Less</span>
-                                <span class="gh-heat-cell" data-level="0"></span>
-                                <span class="gh-heat-cell" data-level="1"></span>
-                                <span class="gh-heat-cell" data-level="2"></span>
-                                <span class="gh-heat-cell" data-level="3"></span>
-                                <span class="gh-heat-cell" data-level="4"></span>
-                                <span>More</span>
                             </div>
                         </div>
                     </div>
@@ -559,19 +530,7 @@
                             </svg>
                         </div>
                         <span class="contact-label">GitHub</span>
-                        <span class="contact-value">
-                            github.com/Xeoul
-                            <!-- Desktop shows these stats inline in the nav instead -
-                                 see the .github-stats block in <header>. -->
-                            <span class="github-stats contact-stats" data-github-user="Xeoul">
-                                <span class="gh-stat gh-stat-repos">
-                                    <span class="gh-stat-value skeleton">00</span><span class="gh-stat-label">repos</span>
-                                </span>
-                                <span class="gh-stat gh-stat-followers">
-                                    <span class="gh-stat-value skeleton">00</span><span class="gh-stat-label">followers</span>
-                                </span>
-                            </span>
-                        </span>
+                        <span class="contact-value">github.com/Xeoul</span>
                     </a>
 
                     <a href="Vincent_Lam_Resume.pdf" class="contact-card resume-card" download>
