@@ -32,8 +32,12 @@ jobs:
 
       - run: npm ci
 
+      # Only the headless shell the tests run in, and no --with-deps: the
+      # runner image already has every library Chromium needs, and that
+      # flag's apt download of extra fonts has stalled on a slow mirror
+      # past the job's timeout.
       - name: Install Chromium
-        run: npx playwright install --with-deps chromium
+        run: npx playwright install --only-shell chromium
 
       - run: npm test
 
