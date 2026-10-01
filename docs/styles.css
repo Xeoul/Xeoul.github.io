@@ -118,8 +118,7 @@ body {
    only needs to cover the plain surfaces that don't. */
 header,
 .tab-bar,
-.education-highlight,
-.skill-category {
+.about-block {
   transition: background-color 0.35s ease, border-color 0.35s ease;
 }
 
@@ -1031,12 +1030,14 @@ header {
   max-width: 860px;
 }
 
-.education-highlight {
+/* The timeline and the skills: two matching blocks, each under a
+   hairline and a small mono label, so the columns start level. */
+.about-block {
   border-top: 1px solid var(--color-border);
   padding-top: 12px;
 }
 
-.education-highlight h3 {
+.about-block h3 {
   font-family: var(--font-mono);
   font-size: 11px;
   font-weight: 500;
@@ -1132,50 +1133,28 @@ header {
   text-underline-offset: 3px;
 }
 
-.skills-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-}
-
-.skill-category {
-  padding: 8px 0;
-  border-bottom: 1px solid var(--color-border);
+/* SKILLS
+   One line of plain text per group under its label - read like the
+   timeline beside it (small mono line, then the content), not as a
+   wall of separate tags. */
+.skills-list {
   display: grid;
-  grid-template-columns: 110px 1fr;
   gap: 12px;
-  align-items: baseline;
-}
-
-.skill-category:first-child {
-  border-top: 1px solid var(--color-border);
-}
-
-.skill-category h4 {
-  font-family: var(--font-mono);
-  color: var(--color-ink-soft);
-  font-size: 11px;
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
   margin: 0;
 }
 
-.skill-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px 12px;
+.skill-category dt {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--color-ink-soft);
 }
 
-.skill-tag {
+.skill-category dd {
+  margin: 1px 0 0;
+  font-size: 14px;
+  line-height: 1.45;
   color: var(--color-ink);
-  font-size: 13px;
-  font-weight: 400;
-  transition: color 0.2s ease;
-}
-
-.skill-tag:hover {
-  color: var(--color-accent);
 }
 
 /* ============================================================
@@ -1825,9 +1804,6 @@ header {
     margin-bottom: 18px;
   }
 
-  .skill-category {
-    padding: 7px 0;
-  }
 }
 
 /* Mobile has the tab bar eating another ~50px off the bottom of the
@@ -1842,24 +1818,12 @@ header {
     gap: 10px;
   }
 
-  .education-highlight {
+  .about-block {
     padding-top: 10px;
   }
 
-  .skill-category {
-    padding: 5px 0;
-    grid-template-columns: 96px 1fr;
-    gap: 10px;
-  }
-
-  /* Most rows wrap to a second line at phone width - a touch smaller
-     keeps short phones from spilling past the screen. */
-  .skill-tags {
-    gap: 2px 9px;
-  }
-
-  .skill-tag {
-    font-size: 12px;
+  .skills-list {
+    gap: 8px;
   }
 }
 

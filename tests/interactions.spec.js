@@ -681,7 +681,7 @@ test.describe('project links, case studies and the contact card', () => {
     await page.goto('/#about');
     await expectSettled(page, 'about');
     const items = page.locator('#about .timeline-item');
-    await expect(items).toHaveCount(5);
+    await expect(items).toHaveCount(4);
     await expect(items.first()).toHaveClass(/is-current/);
     await expect(items.first().locator('.timeline-date')).toHaveText(/Present/);
     await expect(page.locator('#about .timeline-item.is-education .timeline-role')).toHaveText('B.S. Computer Science');
