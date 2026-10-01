@@ -160,10 +160,9 @@ a {
 
 /* ============================================================
    HEADER / NAV BAR
-   Flat, hairline-bordered, opaque - no frosted glass. Nav links
-   sit inline in the bar on desktop; on mobile the same <nav>
-   becomes an off-canvas drawer, with the live GitHub stats
-   embedded as its last row/item either way.
+   Flat, hairline-bordered, opaque - no frosted glass. Name and
+   nav links on the left (the links move to the bottom tab bar on
+   phones), theme, command menu and GitHub on the right.
    ============================================================ */
 header {
   display: flex;
@@ -204,7 +203,6 @@ header {
   text-decoration: none;
   border-radius: 50%;
   transition: color 0.2s ease, background-color 0.2s ease;
-  margin-left: auto;
   flex-shrink: 0;
 }
 
@@ -243,8 +241,11 @@ header {
    is visible is pure CSS driven off [data-theme] or, absent an
    explicit override, prefers-color-scheme, so the correct icon is
    right on first paint, no JS needed for that. */
+/* First of the right-hand group (theme, command menu, GitHub), so it's
+   the one that pushes the group to the edge. */
 .theme-toggle {
   position: relative;
+  margin-left: auto;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1295,9 +1296,11 @@ header {
   color: var(--color-ink-soft);
 }
 
-/* Chevron, drawn from two borders so it follows the text colour. */
+/* Chevron, drawn from two borders so it follows the text colour. Kept
+   in the last column whether or not the row has a badge. */
 .project-summary::after {
   content: '';
+  grid-column: -2;
   width: 6px;
   height: 6px;
   border-right: 1.5px solid var(--color-ink-soft);
@@ -1640,16 +1643,6 @@ header {
   line-height: 1;
 }
 
-.contact-label {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--color-ink-soft);
-  width: 90px;
-  flex-shrink: 0;
-}
-
 .contact-value {
   font-size: 14px;
   font-weight: 500;
@@ -1814,10 +1807,6 @@ header {
     font-size: 13px;
     margin-bottom: 8px;
   }
-
-  .contact-label {
-    display: none;
-  }
 }
 
 /* Keeps the status line to one line on the narrowest phones. */
@@ -1946,16 +1935,10 @@ header {
   font: inherit;
 }
 
-/* Keyboard shortcut, so desktop only - it takes over the GitHub icon's
-   job of pushing the right-hand group to the edge. */
+/* Keyboard shortcut, so desktop only. */
 @media screen and (min-width: 900px) {
   .cmdk-trigger {
     display: inline-flex;
-    margin-left: auto;
-  }
-
-  .cmdk-trigger ~ .github-icon {
-    margin-left: 0;
   }
 }
 

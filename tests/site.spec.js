@@ -108,6 +108,14 @@ test('GitHub data renders, excluding featured and hidden repos', async ({ page, 
   await expect(page.locator('.last-updated time')).toHaveAttribute('datetime', '2026-09-27T18:53:40Z');
 });
 
+test('contact rows show only icon and value but still name themselves to screen readers', async ({ page }) => {
+  await page.goto('/#contact');
+  const linkedin = page.getByRole('link', { name: /^LinkedIn vincentlam812/ });
+  await expect(linkedin).toBeVisible();
+  await expect(linkedin.locator('.contact-label')).toHaveCSS('position', 'absolute');
+  expect((await linkedin.locator('.contact-label').boundingBox()).width).toBeLessThanOrEqual(1);
+});
+
 test('printing expands every project and restores them afterwards', async ({ page }) => {
   await page.goto('/#projects');
   const openStates = () => page.locator('details.project').evaluateAll((els) => els.map((d) => d.open));
