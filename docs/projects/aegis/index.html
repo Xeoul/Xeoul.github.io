@@ -149,7 +149,7 @@
                     <section class="case-section" aria-labelledby="build">
                         <h2 id="build">How it's built</h2>
                         <p>A FastAPI service on SQLite through SQLAlchemy 2, with Pydantic v2 models and an APScheduler job that sweeps for expired grants and stale approvals every minute. Requests are parsed by Claude with structured outputs, so every reply validates against the policy schema; without an API key, a keyword parser takes over. Decisions come from Cedar, the policy language behind AWS Verified Permissions, with policies checked against a schema at startup. Sign-in is by JWT: Aegis can issue its own tokens for local use, or verify tokens from an external identity provider (Keycloak, Okta, Entra ID, Auth0) against its published keys.</p>
-                        <p>A pytest suite covers the policy rules, the approval workflow, authentication, the audit chain and the AWS broker (against a mocked AWS), including tests that hijack the parser to prove the policy still holds. CI also runs Ruff, mypy, Bandit, pip-audit and CodeQL.</p>
+                        <p>A pytest suite of 111 tests (92% coverage) covers the policy rules, the approval workflow, authentication, the audit chain and the AWS broker (against a mocked AWS), including tests that hijack the parser to prove the policy still holds. CI also runs Ruff, mypy, Bandit, pip-audit and CodeQL.</p>
                     </section>
 
                     <section class="case-section" aria-labelledby="decisions">
