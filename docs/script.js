@@ -953,40 +953,12 @@ if (cmdk && typeof cmdk.showModal === 'function') {
     });
 }
 
-// LIVE GITHUB PROFILE STATS (public repo count, followers). Pulled from
-// the public GitHub Users API - profile-level rather than tied to any
-// one repo, so it keeps working regardless of which individual repos
-// are public or private. Shown inline in the desktop nav and, since
-// there's no nav bar to embed it in there, inline in the Contact
-// panel's GitHub row on mobile - both share this one fetch. Fails
-// closed: on any error or rate-limit response, each instance hides
-// itself instead of showing stale placeholder dashes.
-// Eases a stat from 0 up to its real value instead of just popping the
-// number in - skipped under reduced-motion, where it just sets the value.
-function animateCount(el, target, duration = 800) {
-    if (reducedMotionQuery.matches || !target) {
-        el.textContent = target;
-        return;
-    }
-    const start = performance.now();
-    function tick(now) {
-        const progress = Math.min((now - start) / duration, 1);
-        const eased = 1 - Math.pow(1 - progress, 3);
-        el.textContent = Math.round(target * eased);
-        if (progress < 1) requestAnimationFrame(tick);
-    }
-    requestAnimationFrame(tick);
-}
-
-// Both GitHub requests below go through here. Unauthenticated calls to
-// the API are capped at 60 an hour per visitor, and every page load used
-// to spend two - a few reloads or tab revisits could run a visitor out,
-// after which both sections hide themselves (see the .catch()es). So the
-// part of each response actually used is kept for a few minutes: only
-// that summary is stored, not the raw response (the events list alone
-// runs to hundreds of KB), and a cached result also skips the loading
-// shimmer. Storage can throw in private-browsing/locked-down contexts,
-// in which case this just falls back to fetching every time.
+// The one GitHub request below goes through here. Unauthenticated calls
+// to the API are capped at 60 an hour per visitor, so the part of the
+// response actually used is kept for a few minutes rather than fetched on
+// every page load: only that summary is stored, not the raw response.
+// Storage can throw in private-browsing/locked-down contexts, in which
+// case this just falls back to fetching every time.
 // The cache is only as trustworthy as everything else on this origin:
 // the demos under xeoul.github.io/<app>/ share it. So what comes back -
 // from the cache or the API - is checked before it's shown (numbers are
@@ -997,10 +969,10 @@ const isCount = (n) => Number.isInteger(n) && n >= 0;
 const isGitHubUrl = (url) => typeof url === 'string' && url.startsWith('https://github.com/');
 
 function fetchGitHub(path, summarize) {
-    // v2: the repos entry now also carries the site's own last push
-    // (see MORE ON GITHUB), so summaries cached in the old shape are
-    // ignored rather than misread.
-    const key = `github-v2:${path}`;
+    // v3: the repos summary now leaves out repos gone quiet (see MORE
+    // ON GITHUB), so summaries cached in an older shape are ignored
+    // rather than shown unfiltered.
+    const key = `github-v3:${path}`;
     try {
         const cached = JSON.parse(localStorage.getItem(key));
         if (cached && Date.now() - cached.time < GITHUB_CACHE_MS) {
@@ -1027,35 +999,11 @@ function fetchGitHub(path, summarize) {
         });
 }
 
-const githubStatsEls = document.querySelectorAll('.github-stats[data-github-user]');
-if (githubStatsEls.length) {
-    const username = githubStatsEls[0].getAttribute('data-github-user');
-    fetchGitHub(`/users/${username}`, ({ public_repos, followers }) => ({ public_repos, followers }))
-        .then(data => {
-            if (!isCount(data.public_repos) || !isCount(data.followers)) throw new Error('Unexpected GitHub data');
-            githubStatsEls.forEach(githubStats => {
-                const setStat = (selector, count, noun) => {
-                    const el = githubStats.querySelector(selector);
-                    if (!el) return;
-                    const valueEl = el.querySelector('.gh-stat-value');
-                    valueEl.classList.remove('skeleton');
-                    animateCount(valueEl, count);
-                    el.querySelector('.gh-stat-label').textContent = count === 1 ? ` ${noun}` : ` ${noun}s`;
-                };
-                setStat('.gh-stat-repos', data.public_repos, 'repo');
-                setStat('.gh-stat-followers', data.followers, 'follower');
-            });
-        })
-        .catch(() => {
-            githubStatsEls.forEach(githubStats => {
-                githubStats.style.display = 'none';
-            });
-        });
-}
-
 // MORE ON GITHUB: the most recently updated public repos under
 // Projects, so new work shows up without editing the page. Forks,
-// archived repos and this site's own repo are left out. On a phone CSS
+// archived repos, this site's own repo and anything not pushed to in
+// the last year are left out - an old repo says less about current
+// work than an empty list does. On a phone CSS
 // shows only the heading, which links to the full list (see
 // .repo-list in styles.css).
 // Fails closed like the rest: the section stays hidden on error or if
@@ -1064,6 +1012,7 @@ if (githubStatsEls.length) {
 // to, which the Contact footer shows as "Updated <date>" - so that line
 // costs no request of its own.
 const REPO_LIMIT = 6;
+const REPO_STALE_MS = 365 * 24 * 60 * 60 * 1000;
 const moreRepos = document.querySelector('.more-repos[data-github-user]');
 const lastUpdated = document.querySelector('.last-updated');
 if (moreRepos || lastUpdated) {
@@ -1080,7 +1029,8 @@ if (moreRepos || lastUpdated) {
             updated: site ? site.pushed_at : null,
             repos: repos
                 .filter(r => !r.fork && !r.archived && r.name.toLowerCase() !== siteRepo
-                    && r.name.toLowerCase() !== username.toLowerCase() && !featured.has(r.name.toLowerCase()))
+                    && r.name.toLowerCase() !== username.toLowerCase() && !featured.has(r.name.toLowerCase())
+                    && Date.now() - new Date(r.pushed_at) < REPO_STALE_MS)
                 .slice(0, REPO_LIMIT)
                 .map(r => ({ name: r.name, url: r.html_url, language: r.language, stars: r.stargazers_count })),
         };
@@ -1468,75 +1418,6 @@ window.addEventListener('afterprint', () => {
         moveNavIndicatorToActive(true);
     }));
 });
-
-// GITHUB ACTIVITY HEATMAP: built from GitHub's own public Events API
-// (first-party, same trust level as the profile stats above) rather than a
-// third-party rendering service - the tradeoff is that endpoint only
-// retains roughly the last 90 days of public events, so this covers ~90
-// days, not the full year GitHub's own contribution graph shows, and
-// counts public events (pushes, PRs, issues, stars, etc.), not GitHub's
-// internal "contributions" definition. Fails closed like the stats above.
-const ghHeatmap = document.querySelector('.gh-heatmap[data-github-user]');
-if (ghHeatmap) {
-    const username = ghHeatmap.getAttribute('data-github-user');
-
-    const msPerDay = 24 * 60 * 60 * 1000;
-    const today = new Date();
-    today.setUTCHours(0, 0, 0, 0);
-    const rangeStart = new Date(today.getTime() - 89 * msPerDay);
-    const gridStart = new Date(rangeStart);
-    gridStart.setUTCDate(gridStart.getUTCDate() - gridStart.getUTCDay()); // back up to Sunday
-    const totalDays = Math.round((today - gridStart) / msPerDay) + 1;
-
-    // Shimmer placeholder grid while the fetch is in flight, so the
-    // section doesn't sit empty during the request.
-    const skeletonFragment = document.createDocumentFragment();
-    for (let i = 0; i < totalDays; i++) {
-        const cell = document.createElement('span');
-        cell.className = 'gh-heat-cell skeleton';
-        skeletonFragment.appendChild(cell);
-    }
-    ghHeatmap.appendChild(skeletonFragment);
-
-    fetchGitHub(`/users/${username}/events/public?per_page=100`, events => {
-        const counts = {};
-        events.forEach(ev => {
-            const day = ev.created_at.slice(0, 10); // YYYY-MM-DD, UTC
-            counts[day] = (counts[day] || 0) + 1;
-        });
-        return counts;
-    })
-        .then(counts => {
-            const fragment = document.createDocumentFragment();
-
-            for (let i = 0; i < totalDays; i++) {
-                const d = new Date(gridStart.getTime() + i * msPerDay);
-                const key = d.toISOString().slice(0, 10);
-                const count = isCount(counts[key]) ? counts[key] : 0;
-                let level = 0;
-                if (count >= 5) level = 4;
-                else if (count >= 3) level = 3;
-                else if (count >= 2) level = 2;
-                else if (count >= 1) level = 1;
-
-                const cell = document.createElement('span');
-                cell.className = 'gh-heat-cell cell-in';
-                cell.setAttribute('data-level', level);
-                cell.title = `${key}: ${count} event${count === 1 ? '' : 's'}`;
-                // Capped so the tail of a ~90-cell grid doesn't drag the
-                // reveal out - past the cap cells just animate together.
-                cell.style.animationDelay = `${Math.min(i * 6, 400)}ms`;
-                fragment.appendChild(cell);
-            }
-
-            ghHeatmap.innerHTML = '';
-            ghHeatmap.appendChild(fragment);
-        })
-        .catch(() => {
-            const wrapper = ghHeatmap.closest('.github-activity');
-            if (wrapper) wrapper.style.display = 'none';
-        });
-}
 
 // INITIALIZE ON PAGE LOAD
 document.addEventListener('DOMContentLoaded', () => {

@@ -15,7 +15,6 @@
   --color-accent-tint: rgba(79, 70, 229, 0.08);
   --color-border: #e3e2dd;
   --color-border-strong: #cfcec8;
-  --color-skeleton-highlight: #e9e7e1;
   --color-status: #16a34a;
   --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-mono: ui-monospace, 'SFMono-Regular', 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
@@ -53,7 +52,6 @@
     --color-accent-tint: rgba(129, 140, 248, 0.14);
     --color-border: #232328;
     --color-border-strong: #5f5f64;
-    --color-skeleton-highlight: #2b2b31;
     --color-status: #4ade80;
   }
 }
@@ -69,7 +67,6 @@
   --color-accent-tint: rgba(129, 140, 248, 0.14);
   --color-border: #232328;
   --color-border-strong: #5f5f64;
-  --color-skeleton-highlight: #2b2b31;
   --color-status: #4ade80;
 }
 
@@ -395,29 +392,6 @@ header {
   .nav-indicator {
     transition: none;
   }
-}
-
-/* Live GitHub stats - inline in the desktop nav (below), or inline in
-   the Contact panel's GitHub row on mobile (.contact-stats overrides
-   layout there; see the responsive rules further down). */
-.github-stats {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  font-family: var(--font-mono);
-  font-size: 12px;
-  color: var(--color-ink-soft);
-}
-
-.gh-stat {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.gh-stat-value {
-  color: var(--color-ink);
-  font-weight: 500;
 }
 
 /* ============================================================
@@ -1203,115 +1177,6 @@ header {
   color: var(--color-accent);
 }
 
-/* GITHUB ACTIVITY HEATMAP */
-/* Sits under the skills, in the About grid's right-hand column. */
-.github-activity {
-  margin-top: 16px;
-  border: 1px solid var(--color-border);
-  padding: 12px 16px;
-  /* Combines the reveal entrance (opacity/transform, delayed per its
-     --i stagger index) with the dark-mode fade (background/border) in
-     one declaration - two separate rules both setting the shorthand
-     `transition` property would have the later one win outright
-     instead of merging, silently dropping whichever came first, and
-     the delay has to be spelled out per-property here too or this
-     rule's implicit "no delay" would override .reveal's stagger. */
-  transition: opacity 0.65s var(--ease-fluid) calc(var(--i, 0) * 70ms),
-    transform 0.65s var(--ease-fluid) calc(var(--i, 0) * 70ms),
-    background-color 0.35s ease, border-color 0.35s ease;
-}
-
-.github-activity h3 {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--color-ink-soft);
-  margin: 0 0 10px 0;
-}
-
-.gh-heatmap {
-  display: grid;
-  grid-auto-flow: column;
-  grid-template-rows: repeat(7, 1fr);
-  gap: 3px;
-  overflow-x: auto;
-  padding-bottom: 4px;
-}
-
-.gh-heat-cell {
-  width: 9px;
-  height: 9px;
-  background: var(--color-surface);
-}
-
-.gh-heat-cell[data-level="1"] { background: rgba(var(--color-accent-rgb), 0.3); }
-.gh-heat-cell[data-level="2"] { background: rgba(var(--color-accent-rgb), 0.5); }
-.gh-heat-cell[data-level="3"] { background: rgba(var(--color-accent-rgb), 0.75); }
-.gh-heat-cell[data-level="4"] { background: var(--color-accent); }
-
-/* Real cells (replacing the skeleton once the fetch resolves) fade
-   and scale in with a small per-cell delay, set inline by script.js
-   and capped so a ~90-cell grid doesn't take forever to finish. */
-@keyframes cellIn {
-  from { opacity: 0; transform: scale(0.4); }
-  to { opacity: 1; transform: scale(1); }
-}
-
-.gh-heat-cell.cell-in {
-  animation: cellIn 0.4s var(--ease-fluid) backwards;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .gh-heat-cell.cell-in {
-    animation: none;
-  }
-}
-
-.gh-heatmap-legend {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  margin-top: 10px;
-  font-family: var(--font-mono);
-  font-size: 11px;
-  color: var(--color-ink-soft);
-}
-
-.gh-heatmap-legend .gh-heat-cell {
-  width: 8px;
-  height: 8px;
-}
-
-/* SHIMMER LOADING STATE */
-@keyframes shimmer {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
-}
-
-.skeleton {
-  color: transparent !important;
-  background: linear-gradient(100deg, var(--color-surface) 30%, var(--color-skeleton-highlight) 50%, var(--color-surface) 70%);
-  background-size: 200% 100%;
-  animation: shimmer 1.5s ease-in-out infinite;
-  border-radius: 3px;
-  display: inline-block;
-  min-width: 1.4em;
-}
-
-@keyframes heatPulse {
-  0%, 100% { opacity: 0.4; }
-  50% { opacity: 0.85; }
-}
-
-.gh-heat-cell.skeleton {
-  background: var(--color-surface) !important;
-  animation: heatPulse 1.5s ease-in-out infinite;
-  min-width: 0;
-  border-radius: 0;
-}
-
 /* ============================================================
    PROJECTS PANEL
    An editorial list of rows rather than a card grid - each row
@@ -1800,7 +1665,7 @@ header {
 
 /* ============================================================
    DESKTOP NAV (≥900px): the tab bar disappears and the inline bar
-   in the header takes over, with the GitHub stats trailing it.
+   in the header takes over.
    ============================================================ */
 @media screen and (min-width: 900px) {
   .tab-bar {
@@ -1823,18 +1688,6 @@ header {
   .in-menu a svg {
     display: none;
   }
-
-  .github-stats {
-    margin-left: 20px;
-    padding-left: 20px;
-    border-left: 1px solid var(--color-border);
-  }
-
-  /* The Contact panel's own copy of the stats is mobile-only - desktop
-     already shows them inline in the nav above. */
-  .contact-stats {
-    display: none;
-  }
 }
 
 /* ============================================================
@@ -1848,12 +1701,6 @@ header {
 
   .view {
     bottom: var(--tab-bar-height);
-  }
-
-  .contact-stats {
-    display: flex;
-    flex-wrap: wrap;
-    margin-top: 4px;
   }
 
   /* About and the project catalog fill a phone screen (the catalog
@@ -1992,10 +1839,6 @@ header {
   .skill-category {
     padding: 7px 0;
   }
-
-  .github-activity {
-    padding: 12px 16px;
-  }
 }
 
 /* Mobile has the tab bar eating another ~50px off the bottom of the
@@ -2028,18 +1871,6 @@ header {
 
   .skill-tag {
     font-size: 12px;
-  }
-
-  .github-activity {
-    padding: 10px 14px;
-  }
-
-  .github-activity h3 {
-    margin-bottom: 8px;
-  }
-
-  .gh-heatmap-legend {
-    margin-top: 6px;
   }
 }
 
@@ -2586,8 +2417,6 @@ html.printing *::after {
   .dot-grid,
   .panel::before,
   .hero-actions,
-  .github-stats,
-  .github-activity,
   .copied-text {
     display: none !important;
   }

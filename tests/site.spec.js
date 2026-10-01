@@ -94,15 +94,13 @@ test('school projects sit in their own list, numbered on from the rest', async (
 
 test('GitHub data renders, excluding featured and hidden repos', async ({ page, isMobile }) => {
   await page.goto('/');
-  if (!isMobile) {
-    await expect(page.locator('header .gh-stat-repos .gh-stat-value')).toHaveText('9');
-  }
   await navLink(page, isMobile, 'projects').click();
   const moreRepos = page.locator('.more-repos');
   await expect(moreRepos).toBeVisible();
   if (!isMobile) {
     // Installous and Aegis are featured above, AgentApply is excluded, forks and the
-    // site's own repo are skipped - which leaves just side-project.
+    // site's own repo and old-stuff (no push in a year) are skipped - which
+    // leaves just side-project.
     await expect(page.locator('.repo-link .repo-name')).toHaveText(['side-project']);
   }
   await navLink(page, isMobile, 'contact').click();
