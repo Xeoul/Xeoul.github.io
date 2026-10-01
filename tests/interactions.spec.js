@@ -957,6 +957,29 @@ test.describe('layout and motion', () => {
   // canvas's pixels while the page was out of sight, and the wave stayed
   // gone until switching panel repainted it. Each way back into view now
   // swaps in fresh canvases and draws them at once.
+  test('a burst of resizes is handled once a frame, keeping canvases that still fit', async ({ page }) => {
+    const errors = watchErrors(page);
+    await page.goto('/');
+    await expectSettled(page, 'home');
+    const result = await page.evaluate(async () => {
+      // Counts every canvas resize (each one reallocates and clears it).
+      let resized = 0;
+      const width = Object.getOwnPropertyDescriptor(HTMLCanvasElement.prototype, 'width');
+      Object.defineProperty(HTMLCanvasElement.prototype, 'width', {
+        configurable: true,
+        get() { return width.get.call(this); },
+        set(v) { resized++; width.set.call(this, v); },
+      });
+      for (let i = 0; i < 10; i++) window.dispatchEvent(new Event('resize'));
+      await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+      Object.defineProperty(HTMLCanvasElement.prototype, 'width', width);
+      return { resized };
+    });
+    // Same size as before, so no canvas was thrown away and redrawn from scratch.
+    expect(result.resized).toBe(0);
+    expect(errors).toEqual([]);
+  });
+
   test('the wave is redrawn on fresh canvases whenever the page comes back', async ({ page }) => {
     const errors = watchErrors(page);
     await page.goto('/');

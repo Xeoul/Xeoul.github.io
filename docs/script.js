@@ -261,9 +261,8 @@ if (inMenu) {
 }
 
 // The indicator's pixel position only makes sense while .in-menu is
-// actually laid out (≥900px) - recomputing on resize keeps it correct
-// across that breakpoint and any label-width reflow.
-window.addEventListener('resize', () => moveNavIndicatorToActive(true));
+// actually laid out (≥900px) - it's recomputed on resize (see RESIZING
+// below) to stay correct across that breakpoint and any label-width reflow.
 
 navLinks.forEach(link => {
     link.addEventListener('click', (e) => {
@@ -498,6 +497,8 @@ function panelDotGrid(panel) {
 // set in styles.css alongside that panel's --safe-mask) only change on
 // resize, so they're cached - and the canvas resized - rather than
 // re-read every frame.
+// The canvas is only resized when its size actually changes, since
+// resizing a canvas reallocates it and throws its pixels away.
 function panelWaveGeometry(panel) {
     let g = waveGeometry.get(panel);
     if (!g) {
@@ -514,8 +515,10 @@ function panelWaveGeometry(panel) {
             scale: parseFloat(style.getPropertyValue('--wave-scale')) || 1,
             glow: parseFloat(style.getPropertyValue('--wave-glow')) || 0,
         };
-        canvas.width = Math.round(g.width * dpr);
-        canvas.height = Math.round(g.height * dpr);
+        const width = Math.round(g.width * dpr);
+        const height = Math.round(g.height * dpr);
+        if (canvas.width !== width) canvas.width = width;
+        if (canvas.height !== height) canvas.height = height;
         waveGeometry.set(panel, g);
     }
     return g;
@@ -733,9 +736,19 @@ function syncWaveMotion() {
     }
 }
 
+// RESIZING
+// Some browsers fire resize many times a frame while a window is dragged,
+// and phones fire it as the address bar slides in and out, so the work is
+// done at most once a frame: re-measuring the waves and the nav indicator.
+let resizeFrame = null;
 window.addEventListener('resize', () => {
-    waveGeometry.clear();
-    drawAllWaves();
+    if (resizeFrame !== null) return;
+    resizeFrame = requestAnimationFrame(() => {
+        resizeFrame = null;
+        waveGeometry.clear();
+        drawAllWaves();
+        moveNavIndicatorToActive(true);
+    });
 });
 reducedMotionQuery.addEventListener('change', syncWaveMotion);
 
