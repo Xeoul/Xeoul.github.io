@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+    <meta name="description" content="How the Aegis live demo runs a FastAPI security service and the Cedar policy engine entirely in the browser with Pyodide and WebAssembly, and how CI proves its decisions match the server's.">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://xeoul.github.io/writing/cedar-in-the-browser/">
+    <meta property="og:title" content="Running a security service and its policy engine in the browser - Vincent Lam">
+    <meta property="og:description" content="How the Aegis live demo runs a FastAPI security service and the Cedar policy engine entirely in the browser with Pyodide and WebAssembly, and how CI proves its decisions match the server's.">
+    <meta property="og:image" content="https://xeoul.github.io/images/projects/aegis.webp">
+    <meta property="og:image:width" content="800">
+    <meta property="og:image:height" content="500">
+    <meta property="og:image:alt" content="Aegis demo: an SRE's request for admin on the production Kubernetes cluster, allowed by policy, cut from 6 hours to 2, and waiting for a second approver">
+    <meta property="og:site_name" content="Vincent Lam">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="author" content="Vincent Lam">
+    <link rel="canonical" href="https://xeoul.github.io/writing/cedar-in-the-browser/">
+    <meta name="theme-color" content="#fafaf9" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#0d0d10" media="(prefers-color-scheme: dark)">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; style-src-attr 'unsafe-inline'; img-src 'self'; connect-src 'self' https://api.github.com; object-src 'none'; base-uri 'self'; form-action 'none';">
+    <meta name="color-scheme" content="light dark">
+    <title>Running a security service and its policy engine in the browser - Vincent Lam</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="preload" href="/fonts/Inter-Variable.woff2" as="font" type="font/woff2" crossorigin>
+    <script src="/theme-init.js"></script>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+    <a class="skip-link" href="#main">Skip to content</a>
+
+    <header>
+        <a href="/#home" class="header-title nav-link">
+            <h1>@Xeoul</h1>
+        </a>
+        <nav class="in-menu" aria-label="Primary">
+            <span class="nav-indicator" aria-hidden="true"></span>
+            <a href="/#home" class="nav-link">
+                <svg aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M10,20V14H14V20H19V12H22L12,3L2,12H5V20H10Z"/></svg>
+                Home
+            </a>
+            <a href="/#about" class="nav-link">
+                <svg aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12,4A4,4 0 0,1 16,8A4,4 0 0,1 12,12A4,4 0 0,1 8,8A4,4 0 0,1 12,4M12,14C16.42,14 20,15.79 20,18V20H4V18C4,15.79 7.58,14 12,14Z"/></svg>
+                About
+            </a>
+            <a href="/#projects" class="nav-link active" aria-current="page">
+                <svg aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M10,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V8C22,6.89 21.1,6 20,6H12L10,4Z"/></svg>
+                Projects
+            </a>
+            <a href="/#contact" class="nav-link">
+                <svg aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M20,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V6C22,4.89 21.1,4 20,4M20,8L12,13L4,8V6L12,11L20,6V8Z"/></svg>
+                Contact
+            </a>
+        </nav>
+
+        <button class="theme-toggle" aria-label="Switch to dark theme" aria-pressed="false">
+            <svg aria-hidden="true" focusable="false" class="icon-sun" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                <circle cx="12" cy="12" r="4.5"/>
+                <path d="M12 2.5v2.5M12 19v2.5M4.6 4.6l1.8 1.8M17.6 17.6l1.8 1.8M2.5 12h2.5M19 12h2.5M4.6 19.4l1.8-1.8M17.6 6.4l1.8-1.8"/>
+            </svg>
+            <svg aria-hidden="true" focusable="false" class="icon-moon" width="19" height="19" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M20.7 14.9A8.6 8.6 0 0 1 9.1 3.3a8.6 8.6 0 1 0 11.6 11.6Z"/>
+            </svg>
+        </button>
+
+        <a href="https://github.com/Xeoul" target="_blank" rel="noopener noreferrer" class="github-icon" aria-label="GitHub profile">
+            <svg aria-hidden="true" focusable="false" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.30.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+            </svg>
+        </a>
+    </header>
+
+    <nav class="tab-bar" aria-label="Primary">
+        <a href="/#home" class="nav-link tab-link">
+            <svg aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M10,20V14H14V20H19V12H22L12,3L2,12H5V20H10Z"/></svg>
+            <span>Home</span>
+        </a>
+        <a href="/#about" class="nav-link tab-link">
+            <svg aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12,4A4,4 0 0,1 16,8A4,4 0 0,1 12,12A4,4 0 0,1 8,8A4,4 0 0,1 12,4M12,14C16.42,14 20,15.79 20,18V20H4V18C4,15.79 7.58,14 12,14Z"/></svg>
+            <span>About</span>
+        </a>
+        <a href="/#projects" class="nav-link tab-link active" aria-current="page">
+            <svg aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M10,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V8C22,6.89 21.1,6 20,6H12L10,4Z"/></svg>
+            <span>Projects</span>
+        </a>
+        <a href="/#contact" class="nav-link tab-link">
+            <svg aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M20,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V6C22,4.89 21.1,4 20,4M20,8L12,13L4,8V6L12,11L20,6V8Z"/></svg>
+            <span>Contact</span>
+        </a>
+    </nav>
+
+    <main class="view" id="main">
+        <section id="case" class="panel case-panel active">
+            <div class="case-scroll">
+                <article class="case-study writing">
+                    <a class="case-back" href="/projects/aegis/"><span aria-hidden="true">&larr;</span> Aegis case study</a>
+
+                    <div class="case-intro">
+                        <p class="case-kicker">Writing &middot; <time datetime="2026-10">October 2026</time></p>
+                        <h1 class="section-title case-title" tabindex="-1">Running a security service and its policy engine in the browser</h1>
+                        <p class="case-lede">The Aegis live demo has no backend. The real FastAPI app and the real Cedar policy engine run in your tab as WebAssembly. Here's how, what had to change, and how CI keeps the browser's decisions identical to the server's.</p>
+                    </div>
+
+                    <section class="case-section" aria-labelledby="why">
+                        <h2 id="why">Why not just host it?</h2>
+                        <p><a href="/projects/aegis/">Aegis</a> is a just-in-time access service: you ask for access in plain English, Cedar policies decide, risky access waits for a second person, and grants expire on their own. It's a backend project, and backend projects are hard to show. A hosted demo costs money, sleeps on free tiers, and is one more internet-facing service holding (fake) security data. Every visitor also shares it, so one person's experiments become the next person's starting point.</p>
+                        <p>Running it in the browser removes all of that. There's nothing to pay for or keep awake, nothing for a stranger to attack, and every visitor gets a private sandbox that resets on reload. The catch: it has to be <em>the real code</em>. A JavaScript imitation of the policy engine would demo something I didn't build.</p>
+                    </section>
+
+                    <section class="case-section" aria-labelledby="shape">
+                        <h2 id="shape">The shape of it</h2>
+                        <p><a href="https://pyodide.org/" target="_blank" rel="noopener noreferrer">Pyodide</a> is CPython compiled to WebAssembly. The page loads it, installs FastAPI, Pydantic and SQLAlchemy (pure-Python wheels, or Pyodide's own builds), writes the unmodified <code>app/</code> package into Pyodide's virtual file system, and imports it. SQLite works as-is, in memory.</p>
+                        <p>There's no network in between, so a small bridge turns each API call into an ASGI call. It builds the <code>scope</code> dictionary a web server would, feeds the body through <code>receive</code>, and collects the response from <code>send</code>:</p>
+<pre tabindex="0"><code>async def call(method, path, token=None, body=None):
+    scope = {"type": "http", "method": method, "path": path,
+             "headers": [(b"authorization", f"Bearer {token}".encode())], ...}
+    await app(scope, receive, send)   # the real FastAPI app
+    return json.dumps({"status": status, "body": payload})</code></pre>
+                        <p>Everything above that line is untouched: routing, dependency injection, Pydantic validation, authentication, the audit chain. The page signs in for a token and calls endpoints exactly like any other client, and the "API calls made" panel at the bottom of the demo lists every one.</p>
+                    </section>
+
+                    <section class="case-section" aria-labelledby="swaps">
+                        <h2 id="swaps">What a browser can't do</h2>
+                        <p>Four things needed a stand-in, and each one is small and explicit in <a href="https://github.com/Xeoul/aegis/blob/main/demo/bridge.py" target="_blank" rel="noopener noreferrer"><code>demo/bridge.py</code></a>:</p>
+                        <ul>
+                            <li><strong>Threads.</strong> FastAPI runs plain <code>def</code> endpoints in a thread pool. The browser has no threads, so <code>anyio.to_thread.run_sync</code> is patched to call the function inline.</li>
+                            <li><strong>The scheduler.</strong> APScheduler needs threads too. The page calls the scheduler's own sweep function on a timer instead, and a demo clock lets you skip an hour ahead to watch grants expire.</li>
+                            <li><strong>The LLM.</strong> A public page can't hold an API key, so the demo uses Aegis's built-in keyword parser. The parser's output is untrusted either way; the policy engine makes the decision.</li>
+                            <li><strong>The policy engine.</strong> This was the interesting one.</li>
+                        </ul>
+                    </section>
+
+                    <section class="case-section" aria-labelledby="cedar">
+                        <h2 id="cedar">Cedar, twice</h2>
+                        <p>On the server, Aegis uses <code>cedarpy</code>: Cedar's Rust core compiled as a CPython extension. Native extensions don't load in Pyodide unless someone builds them for it, and nobody has built this one. But Cedar ships an official WebAssembly build, <code>@cedar-policy/cedar-wasm</code>, from the same Rust code.</p>
+                        <p>So the page loads that, exposes it as a single JavaScript function, and the bridge installs a small Python module named <code>cedarpy</code> that implements the four functions Aegis's evaluator calls, forwarding each one as JSON:</p>
+<pre tabindex="0"><code>// demo.js
+globalThis.aegisCedar = (fn, arg) =&gt; JSON.stringify(cedar[fn](JSON.parse(arg)));
+
+# bridge.py: a stand-in for the native module
+def is_authorized(request, policies, entities, schema=None):
+    answer = json.loads(js.aegisCedar("isAuthorized", json.dumps({...})))
+    ...</code></pre>
+                        <p>The evaluator doesn't know the difference. The policies, the schema and the decisions are the real ones. The build pins cedar-wasm by version and checks the download against the npm registry's SHA-512 integrity hash, and the page's Content Security Policy allows WebAssembly (<code>'wasm-unsafe-eval'</code>) without allowing <code>eval</code>.</p>
+                    </section>
+
+                    <section class="case-section" aria-labelledby="parity">
+                        <h2 id="parity">Proving the two agree</h2>
+                        <p>"Same engine" is a claim, so CI checks it. On every push, a smoke test builds the static site, boots it under Node with Pyodide and cedar-wasm exactly as the page does, and walks the main flows: an allowed request, denials with the expected guardrails named, MFA step-up, an approval, prompt-injection flagging, SCIM deprovisioning, and audit tampering being caught.</p>
+                        <p>It also runs Aegis's policy test suite, a file of requests and the outcome each must get, which the server's CI runs against <code>cedarpy</code>. Under WebAssembly it has to pass too.</p>
+                        <p>It caught a real difference. Cedar returns the policies behind a decision as a set, and the native and WebAssembly builds iterate that set in different orders. Nothing was wrong with the decisions, but the reasons shown to the user came out in a different order, and an exact-match assertion failed. The fix was in Aegis, not the test: the evaluator now sorts reasons by where each policy appears in the policy file, so both builds explain a decision the same way.</p>
+                    </section>
+
+                    <section class="case-section" aria-labelledby="costs">
+                        <h2 id="costs">What it costs</h2>
+                        <ul>
+                            <li><strong>About 20 MB on first load</strong> (Python, the packages and Cedar), then cached. It boots in roughly 10 to 20 seconds the first time.</li>
+                            <li><strong>No persistence.</strong> Each tab is its own database and starts over on reload, which is the point for a demo.</li>
+                            <li><strong>Some features need a server to be honest about.</strong> The live AWS credential broker and the Claude parser only run server-side, and the demo says so instead of faking them.</li>
+                        </ul>
+                    </section>
+
+                    <section class="case-section" aria-labelledby="takeaways">
+                        <h2 id="takeaways">What I'd reuse</h2>
+                        <p>An ASGI app is just an async function, so any FastAPI or Starlette service can run this way with a bridge of a few dozen lines. The work goes into the edges, such as threads, schedulers, native extensions and secrets, and keeping each workaround small and named makes it easy to explain. Most importantly, if you swap a component, have CI prove the swap is faithful. A demo that quietly disagrees with production is worse than no demo.</p>
+                        <p><a href="https://xeoul.github.io/aegis/" target="_blank" rel="noopener noreferrer">Try the live demo</a>, read the <a href="/projects/aegis/">case study</a>, or browse the <a href="https://github.com/Xeoul/aegis/tree/main/demo" target="_blank" rel="noopener noreferrer">demo source</a>.</p>
+                    </section>
+                </article>
+            </div>
+        </section>
+    </main>
+
+    <script src="/script.js" defer></script>
+</body>
+</html>

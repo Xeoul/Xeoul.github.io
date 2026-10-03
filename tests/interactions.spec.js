@@ -772,13 +772,31 @@ test.describe('project links, case studies and the contact card', () => {
     expect(errors).toEqual([]);
   });
 
+  test('the write-up loads cleanly, links back, and its code samples scroll instead of widening the page', async ({ page }) => {
+    const errors = watchErrors(page);
+    await page.goto('/writing/cedar-in-the-browser/');
+    await expect(page.locator('.case-section h2').first()).toBeVisible();
+    expect(await page.locator('.case-section pre').count()).toBeGreaterThan(0);
+    const overflow = await page.evaluate(() => ({
+      page: document.documentElement.scrollWidth > window.innerWidth,
+      article: document.querySelector('.case-scroll').scrollWidth > document.querySelector('.case-scroll').clientWidth,
+    }));
+    expect(overflow).toEqual({ page: false, article: false });
+    await page.locator('.case-back').click();
+    await expect(page).toHaveURL(/\/projects\/aegis\/$/);
+    await expect(page.locator('a[href="/writing/cedar-in-the-browser/"]')).toHaveCount(1);
+    expect(errors).toEqual([]);
+  });
+
   for (const slug of CASE_STUDIES) {
     test(`the ${slug} case study loads cleanly, scrolls and links on`, async ({ page }) => {
       const errors = watchErrors(page);
       await page.goto(`/projects/${slug}/`);
       await expect(page.locator('.case-section h2').first()).toBeVisible();
-      await expect(page.locator('.case-preview')).toHaveJSProperty('complete', true);
-      expect(await page.locator('.case-preview').evaluate((img) => img.naturalWidth)).toBeGreaterThan(0);
+      // The lead image; a case study can have more further down (lazy-loaded).
+      const preview = page.locator('.case-preview').first();
+      await expect(preview).toHaveJSProperty('complete', true);
+      expect(await preview.evaluate((img) => img.naturalWidth)).toBeGreaterThan(0);
       // The article scrolls inside the still panel, all the way to the pager.
       const scroller = page.locator('.case-scroll');
       expect(await scroller.evaluate((el) => el.scrollHeight > el.clientHeight)).toBe(true);
@@ -1067,6 +1085,15 @@ test.describe('accessibility scan', () => {
         expect(summary).toEqual([]);
       });
     }
+  }
+
+  for (const scheme of ['light', 'dark']) {
+    test(`the write-up has no accessibility violations (${scheme})`, async ({ page }) => {
+      await page.emulateMedia({ colorScheme: scheme, reducedMotion: 'reduce' });
+      await page.goto('/writing/cedar-in-the-browser/');
+      const results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze();
+      expect(results.violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(' ')).slice(0, 3).join(', ')}`)).toEqual([]);
+    });
   }
 
   for (const scheme of ['light', 'dark']) {

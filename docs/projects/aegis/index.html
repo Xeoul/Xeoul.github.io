@@ -104,7 +104,7 @@
                         <dl class="case-meta">
                             <div>
                                 <dt>Stack</dt>
-                                <dd>Python, FastAPI, Cedar, SQLAlchemy, SQLite, Pydantic, Claude API, PyJWT, AWS STS, APScheduler, Pyodide</dd>
+                                <dd>Python, FastAPI, Cedar, SQLAlchemy, SQLite, Pydantic, Claude API, PyJWT, OIDC (Keycloak), SCIM 2.0, AWS STS, APScheduler, Pyodide</dd>
                             </div>
                             <div>
                                 <dt>Links</dt>
@@ -116,12 +116,15 @@
                         </dl>
                     </div>
 
-                    <img class="case-preview" src="/images/projects/aegis.webp" width="800" height="500" decoding="async" alt="Aegis demo: an SRE's request for admin on the production Kubernetes cluster, allowed by policy, cut from 6 hours to 2, and waiting for a second approver">
+                    <picture>
+                        <source srcset="/images/projects/aegis.webp" media="(prefers-reduced-motion: reduce)">
+                        <img class="case-preview" src="/images/projects/aegis-demo.webp" width="960" height="600" decoding="async" alt="A tour of the Aegis live demo: a plain-English request for admin on the production cluster, an MFA step-up, the manager's approval, an intern denied with reasons, a prompt-injection attempt flagged, deleted audit entries caught by a signed checkpoint, a leaver offboarded over SCIM, and a what-if policy question">
+                    </picture>
 
                     <aside class="case-demo" aria-labelledby="case-demo-title">
                         <div>
                             <p class="case-demo-label" id="case-demo-title">Try it live</p>
-                            <p>Sign in as one of ten fictional people, ask for access in plain English, approve someone else's request, then tamper with the audit trail and watch the check catch it. It all runs in your browser, with nothing to install.</p>
+                            <p>Sign in as one of ten fictional people, ask for access in plain English, step up with a one-time code, approve someone else's request, offboard someone from the identity provider, then tamper with the audit trail and watch the checks catch it. It all runs in your browser, with nothing to install.</p>
                         </div>
                         <a class="case-demo-link" href="https://xeoul.github.io/aegis/" target="_blank" rel="noopener noreferrer">Open the live demo <span aria-hidden="true">&nearr;</span></a>
                     </aside>
@@ -137,40 +140,47 @@
                             <li><strong>Plain-English requests:</strong> "Need admin on prod-k8s-cluster for 6 hours to roll back a bad deploy" becomes a structured policy: resource, action, reason and duration.</li>
                             <li><strong>A policy decision with reasons:</strong> Cedar policies check the requester's role and department against the resource and return ALLOW or DENY, naming every rule that blocked the request.</li>
                             <li><strong>Time limits by sensitivity:</strong> grants are capped at 72 hours for public resources, 24 for internal, 8 for confidential and 2 for restricted.</li>
+                            <li><strong>MFA step-up for the riskiest actions:</strong> restricted access, break-glass and approving anyone's access need a second factor from the last 15 minutes. Without one, Aegis asks you to step up (RFC 9470) instead of refusing, using the identity provider's MFA or a built-in authenticator.</li>
                             <li><strong>A second person for risky access:</strong> restricted resources, and anything that deletes or administers, wait up to 24 hours for an eligible approver.</li>
                             <li><strong>Break-glass:</strong> emergency access skips the wait but still has to pass the policy, is capped at 1 hour, and stays in the approvers' queue until someone reviews it.</li>
                             <li><strong>Automatic revocation:</strong> grants end when they expire, when revoked early, or when the person leaves, moves department or changes role.</li>
+                            <li><strong>Provisioning from the identity provider:</strong> Okta or Entra ID create, update and deactivate people over SCIM 2.0, so offboarding someone there revokes their access in Aegis at once.</li>
+                            <li><strong>Recertification:</strong> an auditor can ask the people who approve access to re-confirm every active grant; anything not confirmed by the deadline is revoked.</li>
                             <li><strong>Short-lived AWS credentials:</strong> an approved grant can be exchanged for STS credentials limited to that one action on that one resource, which expire with the grant.</li>
-                            <li><strong>A tamper-evident audit trail</strong> of every request, decision, approval and revocation, with an endpoint that checks it hasn't been edited.</li>
+                            <li><strong>A tamper-evident audit trail</strong> of every request, decision, approval and revocation, with an endpoint that checks it hasn't been edited, shortened or rewritten.</li>
+                            <li><strong>Policy you can test:</strong> a suite of policy test cases runs in CI, and a what-if simulator answers questions like "what if Alice moved to Finance?" without changing anything.</li>
                             <li><strong>Detection and review:</strong> rules flag prompt-injection attempts, privilege-escalation attempts and break-glass use, and an access review report gives auditors per-person recommendations and control checks.</li>
                         </ul>
                     </section>
 
                     <section class="case-section" aria-labelledby="build">
                         <h2 id="build">How it's built</h2>
-                        <p>A FastAPI service on SQLite through SQLAlchemy 2, with Pydantic v2 models and an APScheduler job that sweeps for expired grants and stale approvals every minute. Requests are parsed by Claude with structured outputs, so every reply validates against the policy schema; without an API key, a keyword parser takes over. Decisions come from Cedar, the policy language behind AWS Verified Permissions, with policies checked against a schema at startup. Sign-in is by JWT: Aegis can issue its own tokens for local use, or verify tokens from an external identity provider (Keycloak, Okta, Entra ID, Auth0) against its published keys.</p>
-                        <p>A pytest suite of 111 tests (92% coverage) covers the policy rules, the approval workflow, authentication, the audit chain and the AWS broker (against a mocked AWS), including tests that hijack the parser to prove the policy still holds. CI also runs Ruff, mypy, Bandit, pip-audit and CodeQL.</p>
+                        <p>A FastAPI service on SQLite through SQLAlchemy 2, with Pydantic v2 models and an APScheduler job that sweeps for expired grants and stale approvals every minute. Requests are parsed by Claude with structured outputs, so every reply validates against the policy schema; without an API key, a keyword parser takes over. Decisions come from Cedar, the policy language behind AWS Verified Permissions, with policies checked against a schema at startup. Sign-in is by JWT: Aegis can issue its own tokens for local use, or verify tokens from an external identity provider (Keycloak, Okta, Entra ID, Auth0) against its published keys, with the dashboard signing in through the authorization code flow and PKCE.</p>
+                        <p>A pytest suite of 186 tests (93% coverage) covers the policy rules, the approval workflow, MFA, SCIM, authentication, the audit chain and the AWS broker (against a mocked AWS), including tests that hijack the parser to prove the policy still holds. CI also runs Ruff, mypy, Bandit, pip-audit and CodeQL, and signs in to the dashboard through a real Keycloak server, with a password and a one-time code, on every push.</p>
                     </section>
 
                     <section class="case-section" aria-labelledby="decisions">
                         <h2 id="decisions">Key decisions</h2>
                         <h3>The model reads, the policy decides</h3>
                         <p>Claude only extracts what was asked for; its instructions say not to judge, soften or refuse, because a separate engine makes the decision. Structured outputs guarantee the reply fits the schema, a resource that isn't in the catalog becomes "unknown" and is denied, and the request text is treated as untrusted data, so instructions hidden in it can't change the rules. The decision itself comes from Cedar policies that can be read, validated and tested.</p>
+                        <h3>Step up, don't just deny</h3>
+                        <p>A stolen session token shouldn't be enough to reach production. Requests for restricted resources, break-glass and approvals need a second factor from the last 15 minutes, checked from the identity provider's <code>amr</code> and <code>auth_time</code> claims. The check is a Cedar rule like any other, but when it's the only thing in the way, Aegis answers with a step-up challenge rather than a denial, and a request that would be denied anyway is simply denied, so the prompt never hints that it would have succeeded.</p>
                         <h3>Separation of duties</h3>
                         <p>Nobody approves their own request. An approver must be the requester's manager, a manager in the department that owns the resource, or a security engineer. Identity admins and auditors can't approve, so provisioning, approving and auditing stay with different people, and being an admin grants no access to resources at all. The policy is checked again when the approver acts, in case the requester's role changed in the meantime.</p>
                         <h3>An audit trail that shows tampering</h3>
                         <p>Each audit entry stores the previous entry's hash and an HMAC-SHA256 of itself and that hash, keyed with a secret kept outside the database. Editing, deleting or reordering a row breaks the chain from that point, someone with only database access can't rebuild it, and a unique constraint on the previous hash stops two writers from forking it.</p>
+                        <p>A chain alone misses one thing: delete the newest entries and what's left still verifies. So Aegis also signs checkpoints with a separate Ed25519 key, "the log had this many entries, ending in this hash", and keeps them outside the database. Truncating the log, or even rewriting it with the HMAC key, no longer goes unnoticed.</p>
                         <h3>Identity comes only from the token</h3>
                         <p>Who is asking is never taken from the request body. Tokens are matched to people by their email claim, deactivated accounts are refused, and tokens from an external provider must be RS256 or ES256 with a valid issuer, audience and expiry.</p>
                         <h3>Credentials that can be taken back</h3>
                         <p>AWS STS credentials can't be recalled once issued. Each session is named after its grant, so revoking early adds a deny rule for that one session name to the role, which blocks credentials already handed out; once they would have expired anyway, the rule is cleaned up.</p>
                         <h3>A live demo with no server</h3>
-                        <p>The demo runs the real service in your browser: Pyodide (Python compiled to WebAssembly) loads the Aegis source, and a small bridge hands each request straight to the FastAPI app. Cedar's own WebAssembly build makes the decisions, so they match the server's, and CI checks that they do. It swaps in the keyword parser, since a public page can't hold an API key, runs the scheduler's sweep from the page, and adds a clock you can skip forward to watch grants expire.</p>
+                        <p>The demo runs the real service in your browser: Pyodide (Python compiled to WebAssembly) loads the Aegis source, and a small bridge hands each request straight to the FastAPI app. Cedar's own WebAssembly build makes the decisions, so they match the server's, and CI checks that they do, by running the policy test suite against both. I wrote up <a href="/writing/cedar-in-the-browser/">how the in-browser demo works</a>. It swaps in the keyword parser, since a public page can't hold an API key, runs the scheduler's sweep from the page, and adds a clock you can skip forward to watch grants expire.</p>
                     </section>
 
                     <section class="case-section" aria-labelledby="limits">
                         <h2 id="limits">Current limits</h2>
-                        <p>It runs on SQLite, so it's a single-node service. Its built-in token issuer lets anyone sign in as anyone and is meant for local use only; a real deployment points it at an identity provider and sets its own audit key. The live demo uses the keyword parser rather than Claude, and starts over whenever the page reloads.</p>
+                        <p>It runs on SQLite, so it's a single-node service, and its rate limits are per process. Its built-in token issuer lets anyone sign in as anyone and is meant for local use only; a real deployment points it at an identity provider and sets its own keys. Audit entries written since the last signed checkpoint can still be deleted unnoticed, which is why they're also streamed to a SIEM. The live demo uses the keyword parser rather than Claude, and starts over whenever the page reloads.</p>
                     </section>
 
                     <nav class="case-pager" aria-label="More case studies">
