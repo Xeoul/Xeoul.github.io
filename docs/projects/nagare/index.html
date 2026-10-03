@@ -3,11 +3,11 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
-    <meta name="description" content="How Nagare works: a Japanese reader that runs entirely in the browser, with furigana, tap-to-look-up words, JLPT levels and on-device translation.">
+    <meta name="description" content="How Nagare works: a Japanese reader that runs entirely in the browser, with furigana, tap-to-look-up words, JLPT levels, spaced-repetition review, read-aloud and on-device translation.">
     <meta property="og:type" content="article">
     <meta property="og:url" content="https://xeoul.github.io/projects/nagare/">
     <meta property="og:title" content="Nagare case study - Vincent Lam">
-    <meta property="og:description" content="How Nagare works: a Japanese reader that runs entirely in the browser, with furigana, tap-to-look-up words, JLPT levels and on-device translation.">
+    <meta property="og:description" content="How Nagare works: a Japanese reader that runs entirely in the browser, with furigana, tap-to-look-up words, JLPT levels, spaced-repetition review, read-aloud and on-device translation.">
     <meta property="og:image" content="https://xeoul.github.io/images/projects/nagare.webp">
     <meta property="og:image:width" content="800">
     <meta property="og:image:height" content="500">
@@ -104,7 +104,7 @@
                         <dl class="case-meta">
                             <div>
                                 <dt>Stack</dt>
-                                <dd>TypeScript, Next.js, React, kuromoji.js, JMdict, transformers.js, IndexedDB</dd>
+                                <dd>TypeScript, Next.js, React, kuromoji.js, JMdict, transformers.js, Web Speech API, IndexedDB</dd>
                             </div>
                             <div>
                                 <dt>Links</dt>
@@ -130,7 +130,9 @@
                             <li><strong>Furigana</strong> you can switch on or off, and it remembers your choice.</li>
                             <li><strong>Tap any word</strong> for its reading, meaning, part of speech and JLPT level, and add it to your word list.</li>
                             <li><strong>Translate a sentence</strong> with a model that runs on your device.</li>
-                            <li><strong>A sentence feed</strong> filtered by level (N5, N4, N3+), with a link to read the full story and a list of sentences you've saved.</li>
+                            <li><strong>A swipeable sentence feed</strong> filtered by level (N5, N4, N3+), with a link to read the full story and a list of sentences you've saved. Every few swipes, a quiz card asks what a word means, taken from a feed sentence or your word list.</li>
+                            <li><strong>Review</strong> saved words as spaced-repetition flashcards: answer Again, Hard, Good or Easy and see when each word comes back. A card on the Saved page shows how many are due.</li>
+                            <li><strong>Listen</strong> to any sentence or word read aloud by the device's built-in Japanese voice.</li>
                             <li><strong>Continue reading</strong> from where you left off.</li>
                         </ul>
                     </section>
@@ -138,7 +140,7 @@
                     <section class="case-section" aria-labelledby="build">
                         <h2 id="build">How it's built</h2>
                         <p>Next.js and TypeScript, exported as a static site, so everything runs in the browser with no backend and no account. kuromoji.js splits text into words on the page. Lookups use a dictionary of about 22,000 common words built from JMdict, tagged with JLPT levels from an MIT-licensed word list; both files are generated ahead of time by Node scripts.</p>
-                        <p>EPUBs are unzipped with JSZip, following the book's spine to get the text in order. The library, reading progress, word list and saved sentences live in IndexedDB. A GitHub Actions workflow builds the site and publishes it to GitHub Pages.</p>
+                        <p>EPUBs are unzipped with JSZip, following the book's spine to get the text in order. The library, reading progress, word list and saved sentences live in IndexedDB. Read-aloud uses the browser's built-in Web Speech API with the device's Japanese voice, so there are no audio files to ship. A GitHub Actions workflow builds the site and publishes it to GitHub Pages.</p>
                     </section>
 
                     <section class="case-section" aria-labelledby="decisions">
@@ -155,9 +157,9 @@
 
                     <section class="case-section" aria-labelledby="next">
                         <h2 id="next">What's next</h2>
-                        <p>This is phase 0 of the plan. Next up:</p>
+                        <p>Next up:</p>
                         <ol>
-                            <li><strong>Vocabulary review:</strong> spaced repetition for saved words, with key vocabulary pulled out of each text when it's imported.</li>
+                            <li><strong>Vocabulary from each text:</strong> pull out the key words when a text is imported, ready to review.</li>
                             <li><strong>Kanji and grammar:</strong> decks for both, fill-in-the-blank practice, and an N5 to N1 progress view.</li>
                             <li><strong>Manga:</strong> import comic archives and use OCR, so tapping a speech bubble works like tapping text.</li>
                             <li><strong>Accounts and sync</strong> across devices.</li>
