@@ -40,7 +40,7 @@ test('every panel is reachable from the navigation', async ({ page, isMobile }) 
 });
 
 test('every local file the pages reference exists', async ({ page, request }) => {
-  const pages = ['/', '/404.html', ...['aegis', 'installous', 'nagare', 'privacy-blocker', 'sous-chef'].map((slug) => `/projects/${slug}/`)];
+  const pages = ['/', '/404.html', '/writing/cedar-in-the-browser/', ...['aegis', 'installous', 'nagare', 'privacy-blocker', 'sous-chef'].map((slug) => `/projects/${slug}/`)];
   for (const pagePath of pages) {
     await page.goto(pagePath);
     // Scripts, styles, images, and every same-site link (case studies,

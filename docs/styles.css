@@ -2263,6 +2263,21 @@ html.printing *::after {
   color: var(--color-ink);
 }
 
+/* Code samples in write-ups scroll sideways instead of widening the page. */
+.case-section pre {
+  margin: 16px 0;
+  padding: 14px 16px;
+  overflow-x: auto;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  font-size: 13.5px;
+  line-height: 1.55;
+}
+
+.case-section pre code {
+  font-size: inherit;
+}
+
 .case-pager {
   display: grid;
   grid-template-columns: 1fr 1fr;
