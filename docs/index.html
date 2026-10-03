@@ -211,7 +211,7 @@
                         <dl class="skills-list">
                             <div class="skill-category">
                                 <dt>Identity &amp; access</dt>
-                                <dd>Zero&nbsp;standing&nbsp;privilege, ABAC&nbsp;/&nbsp;RBAC, OIDC&nbsp;/&nbsp;JWT, AWS&nbsp;IAM&nbsp;&amp;&nbsp;STS, Cedar</dd>
+                                <dd>Zero&nbsp;standing&nbsp;privilege, ABAC&nbsp;/&nbsp;RBAC, OIDC, SCIM, MFA, AWS&nbsp;STS, Cedar</dd>
                             </div>
                             <div class="skill-category">
                                 <dt>AI &amp; agents</dt>
@@ -248,14 +248,15 @@
                         </summary>
                         <div class="project-body">
                             <img class="project-preview" src="images/projects/aegis.webp" width="800" height="500" loading="lazy" decoding="async" alt="Aegis demo: an SRE's request for admin on the production Kubernetes cluster, allowed by policy, cut from 6 hours to 2, and waiting for a second approver">
-                            <p class="project-description">A just-in-time access platform with zero standing privilege. People ask in plain English, Claude turns the request into structured fields, and Cedar policies decide on real user and resource attributes, so the model never makes the call. Risky access waits for a second approver, approved grants become short-lived AWS STS credentials, and detection rules, an HMAC hash-chained audit trail and a SIEM export cover the rest. 111 tests at 92% coverage.</p>
+                            <p class="project-description">A just-in-time access platform with zero standing privilege. People ask in plain English, Claude turns the request into structured fields, and Cedar policies decide on real user and resource attributes, so the model never makes the call. Restricted access needs MFA step-up and a second approver, the identity provider drives joiners, movers and leavers over SCIM 2.0, and approved grants become short-lived AWS STS credentials. Recertification campaigns and an audit trail with signed checkpoints cover the rest. 186 tests at 93% coverage, including a Keycloak sign-in in CI.</p>
                             <div class="tech-tags">
                                 <span class="tech-tag">Python</span>
                                 <span class="tech-tag">FastAPI</span>
                                 <span class="tech-tag">Cedar</span>
+                                <span class="tech-tag">OIDC</span>
+                                <span class="tech-tag">SCIM 2.0</span>
                                 <span class="tech-tag">AWS STS</span>
                                 <span class="tech-tag">Claude API</span>
-                                <span class="tech-tag">Pyodide</span>
                             </div>
                             <div class="project-links">
                                 <a href="projects/aegis/">Case study <span aria-hidden="true">&rarr;</span></a>
@@ -274,7 +275,7 @@
                         </summary>
                         <div class="project-body">
                             <img class="project-preview" src="images/projects/installous.webp" width="800" height="500" loading="lazy" decoding="async" alt="Installous stock page for Apple: price chart with the previous-close line, and the five-factor Installous score">
-                            <p class="project-description">A personal investing assistant with live market data, a five-factor stock score (value, quality, growth, momentum and analyst sentiment), Robinhood-style charts, a Claude-powered advisor that calls live tools for quotes, fundamentals and news, and a rules-only AI Fund that trades paper money against the S&amp;P 500.</p>
+                            <p class="project-description">A personal investing assistant with live market data, a five-factor stock score (value, quality, growth, momentum and analyst sentiment), Robinhood-style charts, a Claude-powered advisor that calls live tools for quotes, fundamentals and news, and a rules-only AI Fund that trades paper money against the S&amp;P 500, with a five-year backtest of its rules.</p>
                             <div class="tech-tags">
                                 <span class="tech-tag">TypeScript</span>
                                 <span class="tech-tag">Next.js</span>
@@ -299,13 +300,14 @@
                         </summary>
                         <div class="project-body">
                             <img class="project-preview" src="images/projects/nagare.webp" width="800" height="500" loading="lazy" decoding="async" alt="Nagare reading a starter story with furigana, with the word 公園 tapped to show its reading, JLPT level and meaning">
-                            <p class="project-description">Import a .txt or .epub, toggle furigana, and tap any word for its reading, meaning and JLPT level. Text is tokenized in the browser with kuromoji.js against a JMdict-derived dictionary of 22k common words, with saved words kept in IndexedDB.</p>
+                            <p class="project-description">Import a .txt or .epub, toggle furigana, and tap any word for its reading, meaning and JLPT level. Saved words come back as spaced-repetition flashcards and as quiz cards in a swipeable sentence feed, and any sentence can be read aloud. Text is tokenized in the browser with kuromoji.js against a JMdict-derived dictionary of 22k common words, with progress kept in IndexedDB.</p>
                             <div class="tech-tags">
                                 <span class="tech-tag">TypeScript</span>
                                 <span class="tech-tag">Next.js</span>
                                 <span class="tech-tag">kuromoji.js</span>
                                 <span class="tech-tag">IndexedDB</span>
                                 <span class="tech-tag">JMdict</span>
+                                <span class="tech-tag">Web Speech API</span>
                             </div>
                             <div class="project-links">
                                 <a href="projects/nagare/">Case study <span aria-hidden="true">&rarr;</span></a>
