@@ -184,7 +184,8 @@ header {
   color: inherit;
 }
 
-.header-title h1 {
+/* The site name is a link home, not a heading - each page has its own h1. */
+.header-name {
   font-family: var(--font-mono);
   font-size: 14px;
   font-weight: 500;
@@ -2111,6 +2112,7 @@ html.printing *::after {
 
 .case-title {
   font-size: clamp(30px, 5vw, 44px);
+  line-height: 1.15;
 }
 
 .case-lede {
