@@ -104,7 +104,7 @@
                         <dl class="case-meta">
                             <div>
                                 <dt>Stack</dt>
-                                <dd>JavaScript, HTML/CSS, Claude artifacts, localStorage</dd>
+                                <dd>JavaScript, HTML/CSS, Claude artifacts, localStorage, Playwright</dd>
                             </div>
                             <div>
                                 <dt>Links</dt>
@@ -138,6 +138,8 @@
                         <h2 id="build">How it's built</h2>
                         <p>A single self-contained HTML page of plain JavaScript, with no build step and no dependencies. It was built as a Claude artifact: run inside Claude, recipes and the week's plan sync through the artifact's database, and recipe import uses AI parsing plus web search and fetch. Anywhere else, including the live demo, it saves to localStorage and works the same apart from the AI import.</p>
                         <p>A GitHub Actions workflow publishes the demo to GitHub Pages, with a small script that adds a few sample recipes the first time it opens with nothing saved.</p>
+                        <h3>The full version</h3>
+                        <p>The live demo is the first public version. The <a href="https://github.com/Xeoul/sous-chef/tree/main/artifact" target="_blank" rel="noopener noreferrer">full Claude artifact</a> goes further: a day-by-day week planner, a shopping list sorted by aisle that skips what's in your pantry, adds the things you buy every week and rounds whole items up to what you'd actually buy, a full-screen cook-along with timers, tags, ratings and photos, sharing, printing and backups, and AI helpers that plan a week for you, suggest what you can make from what you have, swap ingredients, and estimate nutrition and cost. Four Playwright suites drive it in a real browser with the artifact's database and AI mocked, 235 checks in all, including one that fails if the sync fix below is removed.</p>
                     </section>
 
                     <section class="case-section" aria-labelledby="decisions">
@@ -154,7 +156,7 @@
 
                     <section class="case-section" aria-labelledby="limits">
                         <h2 id="limits">Current limits</h2>
-                        <p>AI import only works inside Claude, where the page can call a model and search the web; the standalone demo supports recipes you type in. Outside Claude, your recipes live in one browser.</p>
+                        <p>AI import only works inside Claude, where the page can call a model and search the web; the standalone demo supports recipes you type in. Outside Claude, your recipes live in one browser. The full version's planner, aisles, cook-along and AI helpers aren't in the public demo yet.</p>
                     </section>
 
                     <nav class="case-pager" aria-label="More case studies">
