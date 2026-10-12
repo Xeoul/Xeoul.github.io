@@ -58,6 +58,19 @@ test('every local file the pages reference exists', async ({ page, request }) =>
   }
 });
 
+test('every page has one h1 and a link-preview image that sharing sites can show', async ({ page, request }) => {
+  const pages = ['/', '/writing/cedar-in-the-browser/', ...['aegis', 'installous', 'nagare', 'privacy-blocker', 'sous-chef'].map((slug) => `/projects/${slug}/`)];
+  for (const path of pages) {
+    await page.goto(path);
+    await expect(page.locator('h1'), path).toHaveCount(1);
+    const image = await page.locator('meta[property="og:image"]').getAttribute('content');
+    // LinkedIn and others don't reliably show WebP previews.
+    expect(image, path).toMatch(/^https:\/\/xeoul\.github\.io\/.+\.(png|jpe?g)(\?v=\d+)?$/);
+    const local = new URL(image).pathname;
+    expect((await request.get(local)).status(), `${path} -> ${local}`).toBe(200);
+  }
+});
+
 test('project catalog opens one project at a time and loads its preview', async ({ page, isMobile }) => {
   const errors = watchErrors(page);
   await page.goto('/');
