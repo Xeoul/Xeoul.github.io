@@ -3,11 +3,11 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
-    <meta name="description" content="How Installous works: a stock research app with live market data, a transparent five-factor score, a Claude-powered analyst that looks things up with live tools, and a rules-only AI Fund that trades paper money against the S&amp;P 500.">
+    <meta name="description" content="How Installous works: a stock research app with live market data, a transparent five-factor score, a Claude-powered analyst that looks things up with live tools, a rules-only AI Fund and an options lab that trade paper money against the S&amp;P 500.">
     <meta property="og:type" content="article">
     <meta property="og:url" content="https://xeoul.github.io/projects/installous/">
     <meta property="og:title" content="Installous case study - Vincent Lam">
-    <meta property="og:description" content="How Installous works: a stock research app with live market data, a transparent five-factor score, a Claude-powered analyst that looks things up with live tools, and a rules-only AI Fund that trades paper money against the S&amp;P 500.">
+    <meta property="og:description" content="How Installous works: a stock research app with live market data, a transparent five-factor score, a Claude-powered analyst that looks things up with live tools, a rules-only AI Fund and an options lab that trade paper money against the S&amp;P 500.">
     <meta property="og:image" content="https://xeoul.github.io/images/og/installous.png">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
@@ -104,7 +104,7 @@
                         <dl class="case-meta">
                             <div>
                                 <dt>Stack</dt>
-                                <dd>TypeScript, Next.js, React, Tailwind CSS, Recharts, Claude API, Zod, Vitest, Yahoo Finance, GitHub Actions</dd>
+                                <dd>TypeScript, Next.js, React, Tailwind CSS, Recharts, Claude API, Zod, Vitest, Yahoo Finance (REST and WebSocket), GitHub Actions</dd>
                             </div>
                             <div>
                                 <dt>Links</dt>
@@ -128,10 +128,11 @@
                         <ul>
                             <li><strong>Dashboard:</strong> portfolio value, today's change, total gain or loss, a watchlist with one-day sparklines, and the day's top-ranked stocks.</li>
                             <li><strong>Top Picks:</strong> ranks about 50 large-cap US stocks plus your watchlist by the Installous score, sortable by any factor and filterable by sector.</li>
-                            <li><strong>Stock pages:</strong> a Robinhood-style chart with a live intraday view (a dotted previous-close line, green or red for up or down, and a price that follows your cursor), ranges from one week to five years, the factor breakdown, key metrics, news, and a one-click AI investment thesis.</li>
+                            <li><strong>Stock pages:</strong> a Robinhood-style chart with a live intraday view (a dotted previous-close line, green or red for up or down, and a price that rolls digit by digit as you follow it with your cursor), a price that ticks every second while the market is open, ranges from one week to five years, the factor breakdown, key metrics, news, and a one-click AI investment thesis.</li>
                             <li><strong>AI Advisor:</strong> a chat with an analyst that calls live tools and gives buy, hold or avoid views tailored to your risk tolerance, time horizon and goals.</li>
                             <li><strong>Portfolio:</strong> positions with average cost, live value, gain or loss, and weight.</li>
                             <li><strong><a href="https://xeoul.github.io/Installous/fund/" target="_blank" rel="noopener noreferrer">AI Fund</a>:</strong> a $100,000 paper-money portfolio that picks stocks by itself from the Installous score, started September 29, 2026. It shows its holdings, its track record against the S&amp;P 500, a five-year backtest of its rules, and a trade log that gives the reason for every buy and sell.</li>
+                            <li><strong><a href="https://xeoul.github.io/Installous/options/" target="_blank" rel="noopener noreferrer">Options Lab</a>:</strong> a paper bot that sells one same-day SPY iron condor every market day and doubles its size after each loss (the martingale), started October 12, 2026, above a simulator that replays the same idea over 20 years of S&amp;P 500 and VIX history, with a fixed size and the martingale side by side.</li>
                             <li><strong>Compare:</strong> up to four stocks side by side, with performance from the same starting day and their scores and fundamentals in one table.</li>
                             <li><strong>Earnings &amp; dividends:</strong> the next earnings date and estimates, the last four quarters' beats and misses, and yearly dividend history on every stock page.</li>
                             <li><strong>Alerts and install:</strong> a GitHub issue assigned to the owner (which GitHub emails) whenever the fund trades, plus a weekly digest; and it installs to a phone's home screen like an app.</li>
@@ -140,7 +141,7 @@
 
                     <section class="case-section" aria-labelledby="build">
                         <h2 id="build">How it's built</h2>
-                        <p>Next.js with the App Router and TypeScript, styled with Tailwind CSS, with charts drawn by Recharts. Server-side API routes (stock, history, sparklines, picks, news, search, portfolio, watchlist, profile and chat) sit between the browser and the data. Market data comes from Yahoo Finance through yahoo-finance2 and needs no API key; the advisor uses the Anthropic SDK and streams its answer back.</p>
+                        <p>Next.js with the App Router and TypeScript, styled with Tailwind CSS, with charts drawn by Recharts. Server-side API routes (stock, history, sparklines, picks, news, search, portfolio, watchlist, profile and chat) sit between the browser and the data. Market data comes from Yahoo Finance through yahoo-finance2 and needs no API key; the advisor uses the Anthropic SDK and streams its answer back. Live prices come from Yahoo's free streaming feed: the browser opens one shared WebSocket, decodes its protobuf messages itself, subscribes only to the tickers on screen, and reconnects with backoff, so it works in the static demo too.</p>
                         <p>Your watchlist, holdings and profile are saved to a local JSON file in a git-ignored folder, so positions never get committed.</p>
                     </section>
 
@@ -160,6 +161,12 @@
                         <p>A backtest replays the fund's rules over the last five years so there's something to judge them by before the live record matures. Free data only has today's company fundamentals, and scoring 2021 with 2026's numbers would quietly use the future, so the backtest ranks stocks by momentum alone, the part of the score that can be rebuilt from past prices. Each day's decisions use only prices up to the day before, and a test checks this: it fails if the backtest is changed to peek at the same day's price.</p>
                         <p>The first result looked too good: about +274% against +80% for the S&amp;P 500. So the page also shows a control, the same 50 stocks bought equally and held. That control returned about +152%, which means roughly half the gap came from the stock list itself (today's large caps, picked with hindsight), not from the rules. The rules still came out ahead overall but trailed buy-and-hold in 2023 and 2025, and the page says all of this next to the chart. (Figures from October 2026; the backtest re-runs with the live data.)</p>
                         <img class="case-preview" src="/images/projects/installous-fund.webp" width="800" height="500" loading="lazy" decoding="async" alt="Installous AI Fund backtest: five years of the momentum rules against the same 50 stocks held and the S&amp;P 500, with total return, yearly return, worst drop and volatility, and returns by year">
+                        <h3>A strategy test that shows how it fails</h3>
+                        <p>The martingale is a classic betting system: double the bet after every loss, so one win wins back everything. Selling iron condors looks made for it, because they win most days. The Options Lab puts that to a test instead of a pitch. With the defaults (same-day condors at 10 delta since 2006), the martingale finished about level with a fixed size, +117% against +117%, while its worst drop was deeper (7.1% against 5.0%) and its worst single trade almost four times bigger. A table beside the results shows why: after 7 losses in a row, the losses so far plus the next bet add up to more than the whole $25,000 account, and the page marks the dates each setting would have gone bust. (Figures from October 2026.)</p>
+                        <p>Historical option prices aren't free, so the simulator prices every option with Black-Scholes from that day's VIX, and same-day trades open with yesterday's VIX so they can't see the day they're betting on; tests check the pricing, strikes, settlement, sizing and that look-ahead rule. The live bot trades real (delayed) SPY quotes instead: strikes nearest 10 delta from the market's expected move, $2 wings, filled at the mid less a cent of slippage, and settled only on the official close. It only opens a trade while Yahoo reports the regular session open, so on a half day it can't "open" after the result is already known.</p>
+                        <img class="case-preview" src="/images/projects/installous-options.webp" width="800" height="500" loading="lazy" decoding="async" alt="Installous Options Lab: 20 years of same-day SPY iron condors with a fixed size and with martingale sizing, ending at about the same value, with the martingale's deeper worst drop and larger worst trade">
+                        <h3>Keeping the scheduled jobs moving</h3>
+                        <p>The AI Fund and the condor bot both run in one scheduled GitHub Actions workflow. In October a Pages deploy sat waiting indefinitely, and because every run shared one queue, everything behind it was cancelled: the fund and the demo data stopped updating for six days. The workflow now gives the deploy its own queue, where a newer deploy replaces an older one, with a 15-minute timeout, while the step that updates the fund's state still runs strictly one at a time. Two later passes fixed about fifteen smaller bugs, from prices quoted in pence showing 100 times too high to tickers like BRK/B turning into a different company, with tests covering the fixes, for about 80 tests in all.</p>
                         <h3>Useful without the AI</h3>
                         <p>Everything except the advisor works without an Anthropic API key: the dashboard, picks, charts and portfolio run on market data alone.</p>
                     </section>
@@ -168,6 +175,7 @@
                         <h2 id="limits">Current limits</h2>
                         <p>The full app is single-user and runs locally. The live demo is a static build of the same code: market data is a snapshot of about 50 large caps that a GitHub Action refreshes every 30 minutes while markets are open, your portfolio and watchlist stay in your browser, and the AI advisor runs with your own Anthropic API key. Top Picks ranks that fixed list plus your watchlist, not the whole market.</p>
                         <p>The AI Fund trades simulated money at the latest snapshot price, so real fills would differ a little. Its returns and the S&amp;P 500's both leave out dividends, and a track record measured in weeks says little about whether the rules actually work. The backtest can't test the fundamental factors and still carries some hindsight from its stock list, so it shows how the rules behave rather than predicting returns.</p>
+                        <p>The Options Lab's simulated prices ignore skew (crash protection usually costs more than Black-Scholes says), so its results are estimates, and the live bot fills at delayed mid prices. It's a learning tool for a strategy, not a recommendation to trade it.</p>
                     </section>
 
                     <nav class="case-pager" aria-label="More case studies">
