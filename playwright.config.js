@@ -14,6 +14,10 @@ module.exports = defineConfig({
   use: {
     baseURL: `http://127.0.0.1:${PORT}`,
     trace: 'retain-on-failure',
+    // The service worker would serve repeat visits from its cache, so
+    // tests stay independent of each other; the one that checks it
+    // turns it back on (see tests/app.spec.js).
+    serviceWorkers: 'block',
   },
   projects: [
     { name: 'desktop', use: { ...devices['Desktop Chrome'], viewport: { width: 1280, height: 800 } } },

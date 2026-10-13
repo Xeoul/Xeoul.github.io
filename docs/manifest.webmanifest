@@ -1,0 +1,20 @@
+{
+  "name": "Vincent Lam",
+  "short_name": "Vincent Lam",
+  "description": "Software engineer focused on identity and access management, AI agents and LLM security.",
+  "id": "/",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#0d0d10",
+  "theme_color": "#0d0d10",
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Projects", "url": "/#projects" },
+    { "name": "Contact", "url": "/#contact" }
+  ]
+}
