@@ -1,12 +1,15 @@
 {
   "name": "xeoul-github-io",
   "private": true,
-  "description": "Smoke tests for the portfolio site in docs/ (served by GitHub Pages).",
+  "description": "The portfolio site in docs/ (served by GitHub Pages), built from src/, and its tests.",
   "scripts": {
+    "build": "node scripts/build.mjs",
+    "check": "node scripts/build.mjs --check",
     "test": "playwright test"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.13.0",
-    "@playwright/test": "1.56.1"
+    "@playwright/test": "1.56.1",
+    "esbuild": "0.25.11"
   }
 }

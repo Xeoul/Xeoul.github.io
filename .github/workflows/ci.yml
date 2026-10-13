@@ -32,6 +32,11 @@ jobs:
 
       - run: npm ci
 
+      # docs/ holds minified copies of src/ (see scripts/build.mjs); fail
+      # fast if a change edited one without rebuilding the other.
+      - name: Check the build is current
+        run: npm run check
+
       # Only the headless shell the tests run in, and no --with-deps: the
       # runner image already has every library Chromium needs, and that
       # flag's apt download of extra fonts has stalled on a slow mirror
