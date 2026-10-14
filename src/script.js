@@ -750,6 +750,25 @@ window.addEventListener('resize', () => {
         moveNavIndicatorToActive(true);
     });
 });
+// A panel can also change size with no resize event at all: opened from
+// the home screen, iOS settles the app's final height (around the status
+// bar and home indicator) after the page has loaded, without telling the
+// window. The canvas kept its first size and the browser stretched it to
+// fit, pulling the lit dots out of line with the dim grid. Watching the
+// panels themselves catches every size change, whatever caused it.
+if ('ResizeObserver' in window) {
+    let observedFrame = null;
+    const panelSizes = new ResizeObserver((entries) => {
+        entries.forEach((entry) => waveGeometry.delete(entry.target));
+        if (observedFrame !== null) return;
+        observedFrame = requestAnimationFrame(() => {
+            observedFrame = null;
+            drawAllWaves();
+            moveNavIndicatorToActive(true);
+        });
+    });
+    panels.forEach((panel) => panelSizes.observe(panel));
+}
 reducedMotionQuery.addEventListener('change', syncWaveMotion);
 
 // RECOVERING THE CANVASES
