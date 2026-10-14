@@ -1,4 +1,39 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <rect width="32" height="32" rx="8" fill="#1d1d1f"/>
-  <text x="16" y="22" text-anchor="middle" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif" font-size="16" font-weight="600" fill="#ffffff">V</text>
+<rect width="32" height="32" rx="8" fill="#0d0d10"/>
+<circle cx="4.50" cy="4.50" r="0.90" fill="#818cf8" fill-opacity="0.2"/>
+<circle cx="4.50" cy="9.10" r="0.90" fill="#818cf8" fill-opacity="0.2"/>
+<circle cx="4.50" cy="13.70" r="1.98" fill="#a5b4fc" fill-opacity="0.84"/>
+<circle cx="4.50" cy="18.30" r="1.98" fill="#a5b4fc" fill-opacity="0.84"/>
+<circle cx="4.50" cy="22.90" r="0.90" fill="#818cf8" fill-opacity="0.2"/>
+<circle cx="4.50" cy="27.50" r="0.90" fill="#818cf8" fill-opacity="0.2"/>
+<circle cx="9.10" cy="4.50" r="1.17" fill="#a5b4fc" fill-opacity="0.44"/>
+<circle cx="9.10" cy="9.10" r="2.20" fill="#a5b4fc" fill-opacity="0.95"/>
+<circle cx="9.10" cy="13.70" r="1.71" fill="#a5b4fc" fill-opacity="0.70"/>
+<circle cx="9.10" cy="18.30" r="0.90" fill="#818cf8" fill-opacity="0.2"/>
+<circle cx="9.10" cy="22.90" r="0.90" fill="#818cf8" fill-opacity="0.2"/>
+<circle cx="9.10" cy="27.50" r="0.90" fill="#818cf8" fill-opacity="0.2"/>
+<circle cx="13.70" cy="4.50" r="0.90" fill="#818cf8" fill-opacity="0.2"/>
+<circle cx="13.70" cy="9.10" r="1.71" fill="#a5b4fc" fill-opacity="0.70"/>
+<circle cx="13.70" cy="13.70" r="2.20" fill="#a5b4fc" fill-opacity="0.95"/>
+<circle cx="13.70" cy="18.30" r="1.17" fill="#a5b4fc" fill-opacity="0.44"/>
+<circle cx="13.70" cy="22.90" r="0.90" fill="#818cf8" fill-opacity="0.2"/>
+<circle cx="13.70" cy="27.50" r="0.90" fill="#818cf8" fill-opacity="0.2"/>
+<circle cx="18.30" cy="4.50" r="0.90" fill="#818cf8" fill-opacity="0.2"/>
+<circle cx="18.30" cy="9.10" r="0.90" fill="#818cf8" fill-opacity="0.2"/>
+<circle cx="18.30" cy="13.70" r="1.17" fill="#a5b4fc" fill-opacity="0.44"/>
+<circle cx="18.30" cy="18.30" r="2.20" fill="#a5b4fc" fill-opacity="0.95"/>
+<circle cx="18.30" cy="22.90" r="1.71" fill="#a5b4fc" fill-opacity="0.70"/>
+<circle cx="18.30" cy="27.50" r="0.90" fill="#818cf8" fill-opacity="0.2"/>
+<circle cx="22.90" cy="4.50" r="0.90" fill="#818cf8" fill-opacity="0.2"/>
+<circle cx="22.90" cy="9.10" r="0.90" fill="#818cf8" fill-opacity="0.2"/>
+<circle cx="22.90" cy="13.70" r="0.90" fill="#818cf8" fill-opacity="0.2"/>
+<circle cx="22.90" cy="18.30" r="1.71" fill="#a5b4fc" fill-opacity="0.70"/>
+<circle cx="22.90" cy="22.90" r="2.20" fill="#a5b4fc" fill-opacity="0.95"/>
+<circle cx="22.90" cy="27.50" r="1.17" fill="#a5b4fc" fill-opacity="0.44"/>
+<circle cx="27.50" cy="4.50" r="0.90" fill="#818cf8" fill-opacity="0.2"/>
+<circle cx="27.50" cy="9.10" r="0.90" fill="#818cf8" fill-opacity="0.2"/>
+<circle cx="27.50" cy="13.70" r="1.98" fill="#a5b4fc" fill-opacity="0.84"/>
+<circle cx="27.50" cy="18.30" r="1.98" fill="#a5b4fc" fill-opacity="0.84"/>
+<circle cx="27.50" cy="22.90" r="0.90" fill="#818cf8" fill-opacity="0.2"/>
+<circle cx="27.50" cy="27.50" r="0.90" fill="#818cf8" fill-opacity="0.2"/>
 </svg>
