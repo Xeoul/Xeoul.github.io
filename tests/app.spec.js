@@ -70,3 +70,15 @@ test.describe('service worker', () => {
     await context.close();
   });
 });
+
+test('the lit dots stay in line with the grid when the screen settles without a resize event', async ({ page }) => {
+  // Opened from an iPhone home screen, the app's height changes after
+  // load without the window firing resize; the canvas must follow it.
+  await page.goto('/');
+  await page.waitForTimeout(300);
+  await page.evaluate(() => { document.querySelector('.view').style.bottom = '0px'; });
+  await expect.poll(() => page.evaluate(() => {
+    const canvas = document.querySelector('#home .wave-canvas');
+    return Math.abs(canvas.height / devicePixelRatio - canvas.clientHeight) <= 1;
+  })).toBe(true);
+});
