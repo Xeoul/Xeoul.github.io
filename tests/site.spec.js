@@ -88,6 +88,21 @@ test('project catalog opens one project at a time and loads its preview', async 
   expect(errors).toEqual([]);
 });
 
+test('closed projects take no space, so the list ends where its last row does', async ({ page, isMobile }) => {
+  await page.goto('/');
+  await navLink(page, isMobile, 'projects').click();
+  const installous = page.locator('details.project[data-repo="Installous"]');
+  await installous.locator('summary').click();
+  await expect(installous).toHaveAttribute('open', '');
+  // Safari counted a closed row's hidden body as room to scroll, leaving
+  // empty space under the list; closed bodies must have no box at all.
+  await expect.poll(() => page.locator('details.project:not([open]) > .project-fold').evaluateAll(
+    (folds) => folds.filter((fold) => fold.getClientRects().length).length)).toBe(0);
+  await installous.locator('summary').click();
+  await expect(installous).not.toHaveAttribute('open', '');
+  await expect.poll(() => installous.locator('.project-fold').evaluate((fold) => fold.getClientRects().length)).toBe(0);
+});
+
 test('school projects sit in their own list, numbered on from the rest', async ({ page, isMobile }) => {
   await page.goto('/');
   await navLink(page, isMobile, 'projects').click();
