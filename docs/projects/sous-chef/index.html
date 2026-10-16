@@ -3,11 +3,11 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-    <meta name="description" content="How Sous Chef works: a single-page meal planner that scales recipes, merges them into one shopping list and converts between US and metric units.">
+    <meta name="description" content="How Sous Chef works: a single-page meal planner that scales recipes, merges them into one shopping list sorted by aisle, converts between US and metric units, and walks you through cooking.">
     <meta property="og:type" content="article">
     <meta property="og:url" content="https://xeoul.github.io/projects/sous-chef/">
     <meta property="og:title" content="Sous Chef case study - Vincent Lam">
-    <meta property="og:description" content="How Sous Chef works: a single-page meal planner that scales recipes, merges them into one shopping list and converts between US and metric units.">
+    <meta property="og:description" content="How Sous Chef works: a single-page meal planner that scales recipes, merges them into one shopping list sorted by aisle, converts between US and metric units, and walks you through cooking.">
     <meta property="og:image" content="https://xeoul.github.io/images/og/sous-chef.png">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
@@ -122,7 +122,7 @@
                         </dl>
                     </div>
 
-                    <img class="case-preview" src="/images/projects/sous-chef.webp" width="800" height="500" decoding="async" alt="Sous Chef's combined shopping list for the week, with one item checked off">
+                    <img class="case-preview" src="/images/projects/sous-chef.webp" width="800" height="500" decoding="async" alt="Sous Chef on a desktop: the combined shopping list sorted into produce, pantry, meat and dairy sections, with butter checked off">
 
                     <section class="case-section" aria-labelledby="problem">
                         <h2 id="problem">The problem</h2>
@@ -132,20 +132,20 @@
                     <section class="case-section" aria-labelledby="features">
                         <h2 id="features">What it does</h2>
                         <ul>
-                            <li><strong>Plan the week:</strong> tap recipes to plan them and set how many servings of each you're cooking.</li>
-                            <li><strong>One shopping list:</strong> ingredients scaled to your servings and merged across recipes, shown combined or grouped by recipe, and checked off as you shop.</li>
+                            <li><strong>Plan the week:</strong> tap recipes to plan them, set how many servings of each you're cooking, and pick a day for each on the week strip.</li>
+                            <li><strong>One shopping list:</strong> ingredients scaled to your servings and merged across recipes, sorted by aisle, shown combined or grouped by recipe, and checked off as you shop. It skips what's already in your pantry, adds the things you buy every week, and rounds whole items up to what you'd actually buy.</li>
                             <li><strong>US or metric</strong> units, switched with one tap.</li>
-                            <li><strong>Cook view:</strong> each planned recipe's scaled ingredients and step-by-step directions.</li>
-                            <li><strong>AI recipe import:</strong> search the web, paste a link or paste an ingredient list, and the recipe is sorted into fields for you.</li>
+                            <li><strong>Cook:</strong> each planned recipe's scaled ingredients beside its step-by-step directions, and a full-screen cook-along with timers.</li>
+                            <li><strong>Recipes your way:</strong> tags, ratings and favorites, plus sharing, printing, and backing up or restoring your recipes.</li>
+                            <li><strong>AI helpers:</strong> import a recipe from a web search, a link or a pasted ingredient list, plan a week for you, suggest what you can make from what you have, swap ingredients, and estimate nutrition and cost.</li>
+                            <li><strong>Phone or desktop:</strong> an app-style single column on a phone; on a desktop, one header bar and a sidebar of controls beside the list on every tab, with less-used actions tucked into ⋯ menus.</li>
                         </ul>
                     </section>
 
                     <section class="case-section" aria-labelledby="build">
                         <h2 id="build">How it's built</h2>
-                        <p>A single self-contained HTML page of plain JavaScript, with no build step and no dependencies. It was built as a Claude artifact: run inside Claude, recipes and the week's plan sync through the artifact's database, and recipe import uses AI parsing plus web search and fetch. Anywhere else, including the live demo, it saves to localStorage and works the same apart from the AI import.</p>
-                        <p>A GitHub Actions workflow publishes the demo to GitHub Pages, with a small script that adds a few sample recipes the first time it opens with nothing saved.</p>
-                        <h3>The full version</h3>
-                        <p>The live demo is the first public version. The <a href="https://github.com/Xeoul/sous-chef/tree/main/artifact" target="_blank" rel="noopener noreferrer">full Claude artifact</a> goes further: a day-by-day week planner, a shopping list sorted by aisle that skips what's in your pantry, adds the things you buy every week and rounds whole items up to what you'd actually buy, a full-screen cook-along with timers, tags, ratings and photos, sharing, printing and backups, and AI helpers that plan a week for you, suggest what you can make from what you have, swap ingredients, and estimate nutrition and cost. Four Playwright suites drive it in a real browser with the artifact's database and AI mocked, 235 checks in all, including one that fails if the sync fix below is removed.</p>
+                        <p>A single self-contained HTML page of plain JavaScript, with no dependencies. It's built as a Claude artifact: run inside Claude, recipes and the week's plan sync through the artifact's database, and the AI helpers use a model plus web search and fetch. Anywhere else, including the live demo, it saves to localStorage and everything but the AI works the same.</p>
+                        <p>The live demo is built from the same artifact source by a short Python script, which wraps it in a page with the site's icons and a small script that adds a few sample recipes the first time it opens with nothing saved; a GitHub Actions workflow publishes it to GitHub Pages. Four Playwright suites drive the app in a real browser with the artifact's database and AI mocked, 273 checks in all, including phone and desktop layouts and one that fails if the sync fix below is removed.</p>
                     </section>
 
                     <section class="case-section" aria-labelledby="decisions">
@@ -156,13 +156,15 @@
                         <p>Every weight is converted to grams and every volume to millilitres, then back into the most readable unit for the chosen system: under 15 ml shows as teaspoons, under 59 ml as tablespoons, then cups, quarts and gallons, and ounces become pounds at 16. So 48 teaspoons across three recipes shows up as 1 cup.</p>
                         <h3>Update the list, don't rebuild it</h3>
                         <p>Rebuilding the whole list on every tap replayed each row's entrance animation whenever you checked something off or changed a serving count. A keyed update patches the rows that are already there and only creates new ones, so only new items animate in.</p>
+                        <h3>Check-offs that belong to a recipe</h3>
+                        <p>Check-offs used to be stored by ingredient name and unit, so when two planned recipes both used garlic, ticking it in one ticked it in the other. Now each recipe's share of an item has its own check-off, and the combined row is ticked once every recipe's share is, and ticks or unticks them all. Lists saved before the change still show as ticked and split into per-recipe ticks the first time one changes, so nobody's list was lost. A regression test covers exactly that case and fails on the old code.</p>
                         <h3>No lost check-offs while syncing</h3>
                         <p>Changes to the week are saved to the database after a short 350 ms pause. Until a change has been sent and acknowledged, any copy the database sends back is older than what's on screen, so it's held until the save settles. Otherwise it could briefly undo newer check-offs, and the next one would be built on that stale copy.</p>
                     </section>
 
                     <section class="case-section" aria-labelledby="limits">
                         <h2 id="limits">Current limits</h2>
-                        <p>AI import only works inside Claude, where the page can call a model and search the web; the standalone demo supports recipes you type in. Outside Claude, your recipes live in one browser. The full version's planner, aisles, cook-along and AI helpers aren't in the public demo yet.</p>
+                        <p>The AI helpers only work inside Claude, where the page can call a model and search the web. In the demo you type recipes in, nutrition and cost aren't estimated, and "Plan for me" picks from your own recipes without AI. Outside Claude, your recipes live in one browser.</p>
                     </section>
 
                     <nav class="case-pager" aria-label="More case studies">

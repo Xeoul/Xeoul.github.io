@@ -3,11 +3,11 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-    <meta name="description" content="How Nagare works: a Japanese reader that runs entirely in the browser, with furigana, tap-to-look-up words, JLPT levels, spaced-repetition review, read-aloud and on-device translation.">
+    <meta name="description" content="How Nagare works: a Japanese reader that runs entirely in the browser, with a paged e-reader, furigana, tap-to-look-up words, JLPT levels, a library from N5 readers to full novels, spaced-repetition review, read-aloud and on-device translation.">
     <meta property="og:type" content="article">
     <meta property="og:url" content="https://xeoul.github.io/projects/nagare/">
     <meta property="og:title" content="Nagare case study - Vincent Lam">
-    <meta property="og:description" content="How Nagare works: a Japanese reader that runs entirely in the browser, with furigana, tap-to-look-up words, JLPT levels, spaced-repetition review, read-aloud and on-device translation.">
+    <meta property="og:description" content="How Nagare works: a Japanese reader that runs entirely in the browser, with a paged e-reader, furigana, tap-to-look-up words, JLPT levels, a library from N5 readers to full novels, spaced-repetition review, read-aloud and on-device translation.">
     <meta property="og:image" content="https://xeoul.github.io/images/og/nagare.png">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
@@ -110,7 +110,7 @@
                         <dl class="case-meta">
                             <div>
                                 <dt>Stack</dt>
-                                <dd>TypeScript, Next.js, React, kuromoji.js, JMdict, transformers.js, Web Speech API, IndexedDB</dd>
+                                <dd>TypeScript, Next.js, React, kuromoji.js, JMdict, transformers.js, pdf.js, Web Speech API, IndexedDB</dd>
                             </div>
                             <div>
                                 <dt>Links</dt>
@@ -122,7 +122,7 @@
                         </dl>
                     </div>
 
-                    <img class="case-preview" src="/images/projects/nagare.webp" width="800" height="500" decoding="async" alt="Nagare reading a starter story with furigana, with the word 公園 tapped to show its reading, JLPT level and meaning">
+                    <img class="case-preview" src="/images/projects/nagare.webp" width="800" height="500" decoding="async" alt="Nagare's paged reader on page 2 of 坊っちゃん with furigana, and the word 親指 tapped to show its reading, N2 level and meaning">
 
                     <section class="case-section" aria-labelledby="problem">
                         <h2 id="problem">The problem</h2>
@@ -132,21 +132,25 @@
                     <section class="case-section" aria-labelledby="features">
                         <h2 id="features">What it does</h2>
                         <ul>
-                            <li><strong>Import</strong> a .txt or .epub file, or start from the built-in shelf: starter readings, Wikibooks graded readers, and Aozora Bunko classics, each tagged with a level.</li>
+                            <li><strong>A library from N5 to N1:</strong> original graded readings written for Nagare at every level, Wikibooks graded readers, a shelf linking all 141 free Tadoku graded readers, and about 30 Aozora Bunko classics, from short stories to full novels like 坊っちゃん and こころ, each tagged with a level.</li>
+                            <li><strong>Search Aozora Bunko:</strong> about 10,500 public-domain works, searchable by title or author in kanji or kana, fetched when you open one.</li>
+                            <li><strong>Import</strong> a .txt, .epub or .pdf file; long books are split into chapters.</li>
+                            <li><strong>A paged reader</strong> like an e-reader: turn pages by tapping the edges, swiping or with the arrow keys, in horizontal or vertical text, with the page number and minutes left in the chapter. An "Aa" panel sets the text size, spacing and page color, or switches to scrolling.</li>
                             <li><strong>Furigana</strong> you can switch on or off, and it remembers your choice.</li>
                             <li><strong>Tap any word</strong> for its reading, meaning, part of speech and JLPT level, and add it to your word list.</li>
                             <li><strong>Translate a sentence</strong> with a model that runs on your device.</li>
                             <li><strong>A swipeable sentence feed</strong> filtered by level (N5, N4, N3+), with a link to read the full story and a list of sentences you've saved. Every few swipes, a quiz card asks what a word means, taken from a feed sentence or your word list.</li>
                             <li><strong>Review</strong> saved words as spaced-repetition flashcards: answer Again, Hard, Good or Easy and see when each word comes back. A card on the Saved page shows how many are due.</li>
                             <li><strong>Listen</strong> to any sentence or word read aloud by the device's built-in Japanese voice.</li>
-                            <li><strong>Continue reading</strong> from where you left off.</li>
+                            <li><strong>Continue reading</strong> from where you left off, down to the chapter and page.</li>
+                            <li><strong>A desktop layout</strong> with a sidebar, wide shelves and a lookup panel beside the text; phones keep the app-style layout.</li>
                         </ul>
                     </section>
 
                     <section class="case-section" aria-labelledby="build">
                         <h2 id="build">How it's built</h2>
                         <p>Next.js and TypeScript, exported as a static site, so everything runs in the browser with no backend and no account. kuromoji.js splits text into words on the page. Lookups use a dictionary of about 22,000 common words built from JMdict, tagged with JLPT levels from an MIT-licensed word list; both files are generated ahead of time by Node scripts.</p>
-                        <p>EPUBs are unzipped with JSZip, following the book's spine to get the text in order. The library, reading progress, word list and saved sentences live in IndexedDB. Read-aloud uses the browser's built-in Web Speech API with the device's Japanese voice, so there are no audio files to ship. A GitHub Actions workflow builds the site and publishes it to GitHub Pages.</p>
+                        <p>EPUBs are unzipped with JSZip, following the book's spine to get the chapters in order. PDFs are read with pdf.js, which only loads when a PDF is imported. The library, reading progress, word list and saved sentences live in IndexedDB. Read-aloud uses the browser's built-in Web Speech API with the device's Japanese voice, so there are no audio files to ship. A GitHub Actions workflow builds the site and publishes it to GitHub Pages.</p>
                     </section>
 
                     <section class="case-section" aria-labelledby="decisions">
@@ -157,8 +161,12 @@
                         <p>Readings come from the tokenizer rather than the source text, and matching kana at the end of a word is split off, so in 食べる only 食 gets た and べる stays plain.</p>
                         <h3>Leveling the classics honestly</h3>
                         <p>Aozora Bunko has no JLPT grading, so a script reads each work, looks up every content word's JLPT level, and assigns the lowest level that covers 80% of the words it could classify. It also reports how much of the text falls outside every JLPT list (names, archaic forms, rare compounds), because that makes a text harder too. Native literature almost never reads as N5 or N4, so the classics start at N3.</p>
+                        <h3>Novels one chapter at a time</h3>
+                        <p>A novel can run to 300,000 characters, far too much to split into words and draw as one page. Aozora Bunko marks its headings, so those become chapter breaks, and the reader only ever processes the chapter you're on. Text without headings, like an imported .txt, is split into parts of about 10,000 characters at paragraph breaks. Progress is saved as the chapter plus how far into it you are, so reopening a book lands in the right place.</p>
+                        <h3>Text out of a PDF, without the furigana</h3>
+                        <p>Free graded readers like Tadoku's come as PDFs, and their license allows linking to them but not redistributing them, so Nagare bundles only a list of titles and links, and you import the PDF yourself. A PDF stores positioned runs of text rather than prose, so the importer rebuilds it: it drops furigana by font size (anything under three-quarters of the body text), splits two-page print spreads left then right, joins spaced-out characters, and skips page numbers, English notes and the how-to-read and credits pages.</p>
                         <h3>Translation in a Web Worker</h3>
-                        <p>Sentence translation uses the opus-mt-ja-en model through transformers.js. In testing, the model's WebAssembly call could sometimes block for a very long time, and a timeout on the same thread can't interrupt that, so it runs in a worker that can be shut down after 20 seconds.</p>
+                        <p>Sentence translation uses the opus-mt-ja-en model through transformers.js. In testing, the model's WebAssembly call could sometimes block for a very long time, and a timeout on the same thread can't interrupt that, so it runs in a worker that can be shut down after 20 seconds. The model is about 110 MB, so a request made while it's still downloading gets up to 10 minutes instead; an audit found the short timeout was killing the worker mid-download and starting the download over.</p>
                     </section>
 
                     <section class="case-section" aria-labelledby="next">
