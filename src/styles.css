@@ -1261,6 +1261,15 @@ header {
   position: relative;
 }
 
+/* A closed row's body takes no space at all. The browser hides it, but
+   Safari still counted it as room to scroll, so every closed project
+   left an empty stretch at the bottom of the list on an iPhone. A row
+   folding shut stays [open] until its fold ends (see markFold), so this
+   never cuts the animation short. */
+.project:not([open]) > .project-fold {
+  display: none;
+}
+
 .project-fold::after {
   content: '';
   position: absolute;
