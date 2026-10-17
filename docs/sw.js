@@ -12,9 +12,9 @@
 // VERSION, STYLES and SCRIPT are written by `npm run build` (see
 // scripts/build.mjs), so each build gets a fresh cache and the old one
 // is cleared out.
-const VERSION = 'da7b5b5654';
-const STYLES = '/styles.css?v=ec6d43a2bc';
-const SCRIPT = '/script.js?v=4f4983e1a3';
+const VERSION = 'dad549d1c5';
+const STYLES = '/styles.css?v=e9bcc2141a';
+const SCRIPT = '/script.js?v=c9707175af';
 const CACHE = `portfolio-${VERSION}`;
 
 // Pages and files to have on hand from the first visit, so the whole
@@ -27,6 +27,7 @@ const PRECACHE = [
     '/projects/privacy-blocker/',
     '/projects/sous-chef/',
     '/writing/cedar-in-the-browser/',
+    '/writing/ai-agent-on-my-nas/',
     STYLES,
     SCRIPT,
     '/theme-init.js',

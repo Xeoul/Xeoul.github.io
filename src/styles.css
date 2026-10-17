@@ -1482,6 +1482,55 @@ header {
   cursor: pointer;
 }
 
+/* Writing - the longer write-ups, one row each under the projects,
+   with the same divider lines as the rows above. */
+.writing-list ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--color-border);
+}
+
+.writing-link {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 11px 0;
+  border-bottom: 1px solid var(--color-border);
+  color: var(--color-ink);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.writing-link:hover {
+  color: var(--color-accent);
+}
+
+.writing-title {
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.writing-meta {
+  flex-shrink: 0;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--color-ink-soft);
+}
+
+@media screen and (max-width: 640px) {
+  .writing-link {
+    flex-direction: column;
+    gap: 2px;
+    padding: 9px 0;
+  }
+
+  .writing-title {
+    font-size: 13px;
+  }
+}
+
 /* More on GitHub - a compact row of links under the featured
    projects, kept deliberately lighter than the cards above it. */
 .more-repos {

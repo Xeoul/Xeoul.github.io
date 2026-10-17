@@ -7,6 +7,8 @@ const { GITHUB_FIXTURES, mockGitHub, watchErrors, navLink, panelOffsets, expectS
 
 const PANELS = ['home', 'about', 'projects', 'contact'];
 const CASE_STUDIES = ['aegis', 'installous', 'nagare', 'privacy-blocker', 'sous-chef'];
+// Each write-up, and where its back link goes.
+const WRITE_UPS = [['cedar-in-the-browser', /\/projects\/aegis\/$/], ['ai-agent-on-my-nas', /\/#projects$/]];
 
 // ---------------------------------------------------------------- print
 
@@ -772,9 +774,9 @@ test.describe('project links, case studies and the contact card', () => {
     expect(errors).toEqual([]);
   });
 
-  test('the write-up loads cleanly, links back, and its code samples scroll instead of widening the page', async ({ page }) => {
+  for (const [slug, back] of WRITE_UPS) test(`the ${slug} write-up loads cleanly, links back, and its code samples scroll instead of widening the page`, async ({ page }) => {
     const errors = watchErrors(page);
-    await page.goto('/writing/cedar-in-the-browser/');
+    await page.goto(`/writing/${slug}/`);
     await expect(page.locator('.case-section h2').first()).toBeVisible();
     expect(await page.locator('.case-section pre').count()).toBeGreaterThan(0);
     const overflow = await page.evaluate(() => ({
@@ -783,8 +785,8 @@ test.describe('project links, case studies and the contact card', () => {
     }));
     expect(overflow).toEqual({ page: false, article: false });
     await page.locator('.case-back').click();
-    await expect(page).toHaveURL(/\/projects\/aegis\/$/);
-    await expect(page.locator('a[href="/writing/cedar-in-the-browser/"]')).toHaveCount(1);
+    await expect(page).toHaveURL(back);
+    await expect(page.locator(`a[href="/writing/${slug}/"]`).first()).toBeVisible();
     expect(errors).toEqual([]);
   });
 
@@ -1087,10 +1089,10 @@ test.describe('accessibility scan', () => {
     }
   }
 
-  for (const scheme of ['light', 'dark']) {
-    test(`the write-up has no accessibility violations (${scheme})`, async ({ page }) => {
+  for (const [slug] of WRITE_UPS) for (const scheme of ['light', 'dark']) {
+    test(`the ${slug} write-up has no accessibility violations (${scheme})`, async ({ page }) => {
       await page.emulateMedia({ colorScheme: scheme, reducedMotion: 'reduce' });
-      await page.goto('/writing/cedar-in-the-browser/');
+      await page.goto(`/writing/${slug}/`);
       const results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze();
       expect(results.violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(' ')).slice(0, 3).join(', ')}`)).toEqual([]);
     });

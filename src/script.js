@@ -1301,7 +1301,7 @@ function revealProject(details, from, to) {
 // everything from where it was to where it now belongs.
 function moveProjects(change) {
     const content = projectDetails[0].closest('.panel-content');
-    const moving = [...content.querySelectorAll('.panel-header, .project, .project-group-title, .more-repos')];
+    const moving = [...content.querySelectorAll('.panel-header, .project, .project-group-title, .writing-list, .more-repos')];
     const before = moving.map(el => el.getBoundingClientRect().top);
     const shown = new Map(projectDetails.map(d => [d, projectReveal(d)]));
     projectSlides.forEach(animation => animation.cancel());
