@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="description" content="How I run Claude Code around the clock on my home NAS, reachable from my phone through Telegram, and the least-privilege choices that keep an AI agent with a shell from reaching anything it doesn't need.">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://xeoul.github.io/writing/ai-agent-on-my-nas/">
+    <meta property="og:title" content="Giving an AI agent a home on my NAS, with as little power as possible - Vincent Lam">
+    <meta property="og:description" content="How I run Claude Code around the clock on my home NAS, reachable from my phone through Telegram, and the least-privilege choices that keep an AI agent with a shell from reaching anything it doesn't need.">
+    <meta property="og:image" content="https://xeoul.github.io/images/og/ai-agent-on-my-nas.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="Giving an AI agent a home on my NAS: Claude Code in a locked-down container, reached from Telegram">
+    <meta property="og:site_name" content="Vincent Lam">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="author" content="Vincent Lam">
+    <link rel="canonical" href="https://xeoul.github.io/writing/ai-agent-on-my-nas/">
+    <meta name="theme-color" content="#fafaf9" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#0d0d10" media="(prefers-color-scheme: dark)">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; style-src-attr 'unsafe-inline'; img-src 'self'; connect-src 'self' https://api.github.com; object-src 'none'; base-uri 'self'; form-action 'none';">
+    <meta name="color-scheme" content="light dark">
+    <title>Giving an AI agent a home on my NAS, with as little power as possible - Vincent Lam</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="manifest" href="/manifest.webmanifest">
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="Vincent Lam">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <link rel="preload" href="/fonts/Inter-Variable.woff2" as="font" type="font/woff2" crossorigin>
+    <script src="/theme-init.js"></script>
+    <link rel="stylesheet" href="/styles.css?v=ec6d43a2bc">
+</head>
+<body>
+    <a class="skip-link" href="#main">Skip to content</a>
+
+    <header>
+        <a href="/#home" class="header-title nav-link">
+            <span class="header-name">@Xeoul</span>
+        </a>
+        <nav class="in-menu" aria-label="Primary">
+            <span class="nav-indicator" aria-hidden="true"></span>
+            <a href="/#home" class="nav-link">
+                <svg aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M10,20V14H14V20H19V12H22L12,3L2,12H5V20H10Z"/></svg>
+                Home
+            </a>
+            <a href="/#about" class="nav-link">
+                <svg aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12,4A4,4 0 0,1 16,8A4,4 0 0,1 12,12A4,4 0 0,1 8,8A4,4 0 0,1 12,4M12,14C16.42,14 20,15.79 20,18V20H4V18C4,15.79 7.58,14 12,14Z"/></svg>
+                About
+            </a>
+            <a href="/#projects" class="nav-link active" aria-current="page">
+                <svg aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M10,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V8C22,6.89 21.1,6 20,6H12L10,4Z"/></svg>
+                Projects
+            </a>
+            <a href="/#contact" class="nav-link">
+                <svg aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M20,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V6C22,4.89 21.1,4 20,4M20,8L12,13L4,8V6L12,11L20,6V8Z"/></svg>
+                Contact
+            </a>
+        </nav>
+
+        <button class="theme-toggle" aria-label="Switch to dark theme" aria-pressed="false">
+            <svg aria-hidden="true" focusable="false" class="icon-sun" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                <circle cx="12" cy="12" r="4.5"/>
+                <path d="M12 2.5v2.5M12 19v2.5M4.6 4.6l1.8 1.8M17.6 17.6l1.8 1.8M2.5 12h2.5M19 12h2.5M4.6 19.4l1.8-1.8M17.6 6.4l1.8-1.8"/>
+            </svg>
+            <svg aria-hidden="true" focusable="false" class="icon-moon" width="19" height="19" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M20.7 14.9A8.6 8.6 0 0 1 9.1 3.3a8.6 8.6 0 1 0 11.6 11.6Z"/>
+            </svg>
+        </button>
+
+        <a href="https://github.com/Xeoul" target="_blank" rel="noopener noreferrer" class="github-icon" aria-label="GitHub profile">
+            <svg aria-hidden="true" focusable="false" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.30.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+            </svg>
+        </a>
+    </header>
+
+    <nav class="tab-bar" aria-label="Primary">
+        <a href="/#home" class="nav-link tab-link">
+            <svg aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M10,20V14H14V20H19V12H22L12,3L2,12H5V20H10Z"/></svg>
+            <span>Home</span>
+        </a>
+        <a href="/#about" class="nav-link tab-link">
+            <svg aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12,4A4,4 0 0,1 16,8A4,4 0 0,1 12,12A4,4 0 0,1 8,8A4,4 0 0,1 12,4M12,14C16.42,14 20,15.79 20,18V20H4V18C4,15.79 7.58,14 12,14Z"/></svg>
+            <span>About</span>
+        </a>
+        <a href="/#projects" class="nav-link tab-link active" aria-current="page">
+            <svg aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M10,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V8C22,6.89 21.1,6 20,6H12L10,4Z"/></svg>
+            <span>Projects</span>
+        </a>
+        <a href="/#contact" class="nav-link tab-link">
+            <svg aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M20,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V6C22,4.89 21.1,4 20,4M20,8L12,13L4,8V6L12,11L20,6V8Z"/></svg>
+            <span>Contact</span>
+        </a>
+    </nav>
+
+    <main class="view" id="main">
+        <section id="case" class="panel case-panel active">
+            <div class="case-scroll">
+                <article class="case-study writing">
+                    <a class="case-back" href="/#projects"><span aria-hidden="true">&larr;</span> All projects</a>
+
+                    <div class="case-intro">
+                        <p class="case-kicker">Writing &middot; <time datetime="2026-10">October 2026</time></p>
+                        <h1 class="section-title case-title" tabindex="-1">Giving an AI agent a home on my NAS, with as little power as possible</h1>
+                        <p class="case-lede">I wanted Claude Code on call from my phone without leaving my laptop on. So it lives in a Docker container on my home NAS, and I talk to it through a private Telegram bot. An agent that can run shell commands is exactly the kind of identity you want to give the least access possible, so most of the work went into deciding what it <em>can't</em> reach.</p>
+                    </div>
+
+                    <section class="case-section" aria-labelledby="setup">
+                        <h2 id="setup">The setup</h2>
+                        <p>It's a small project and most of it isn't mine. Anthropic's official Telegram plugin for Claude Code (part of "Channels", a research preview) does the messaging: I send my bot a message, the one Claude Code session in the container reads it, does the work and replies in the chat. It's signed in with my Claude Pro plan, so there's no API bill, and it uses Haiku by default to keep usage low. A tmux session started by the container's own command keeps it running through restarts and reboots, and Remote Control is on, so I can also open the same session from the Claude app.</p>
+                        <p>What I built around it is the box it lives in, a hook that shows me what it's doing, and the fixes for the things that broke along the way.</p>
+                    </section>
+
+                    <section class="case-section" aria-labelledby="threats">
+                        <h2 id="threats">What I was guarding against</h2>
+                        <p>Before writing the Dockerfile I listed what could go wrong. An agent that can run commands is a privileged identity, and the questions are the same ones you'd ask about any service account:</p>
+                        <ul>
+                            <li><strong>Someone else talking to it.</strong> Anyone who finds a Telegram bot can message it.</li>
+                            <li><strong>It doing more than I meant.</strong> A misread request, or instructions hidden in a web page it reads, could have it delete or change things.</li>
+                            <li><strong>Reaching past the container.</strong> The NAS holds my files and runs other services on my network.</li>
+                            <li><strong>Leaking secrets.</strong> The bot token and my Claude login are credentials, and anything it prints might end up somewhere I didn't plan.</li>
+                        </ul>
+                    </section>
+
+                    <section class="case-section" aria-labelledby="locks">
+                        <h2 id="locks">Least privilege, layer by layer</h2>
+                        <ul>
+                            <li><strong>One allowed user.</strong> The bot pairs with my phone using a one-time code, and then the plugin's allowlist policy means it only answers my Telegram account. Everyone else is ignored.</li>
+                            <li><strong>Nothing mounted.</strong> No NAS shares, no other services' config and no Docker socket go into the container (the socket would effectively be root on the host). The only volume is its own home folder, for its login and settings. It can't see my files because they aren't there.</li>
+                            <li><strong>No root.</strong> It runs as an ordinary <code>bot</code> user, and <code>no-new-privileges</code> stops anything inside from gaining more, even through a setuid program.</li>
+                            <li><strong>Bounded.</strong> A 2 GB memory cap means a runaway process can't starve the NAS.</li>
+                            <li><strong>No way in.</strong> No ports are opened on the container, the NAS or the router. The bot only makes outgoing connections to Telegram and Anthropic, so there's nothing on my network for anyone to reach.</li>
+                            <li><strong>Its permission checks stay on.</strong> Claude Code asks before risky actions unless you switch that off with "bypass permissions". The setup notes say never to, and that's the one rule that matters most if the other layers ever slip.</li>
+                            <li><strong>Credentials treated as passwords.</strong> If the bot token leaks, it's revoked in @BotFather and replaced in one command.</li>
+                        </ul>
+<pre tabindex="0"><code># docker-compose.yml
+services:
+  claude-bot:
+    build: .
+    restart: unless-stopped
+    mem_limit: 2g
+    security_opt:
+      - no-new-privileges:true
+    volumes:
+      - claude-home:/home/bot   # its own home, and nothing else</code></pre>
+                    </section>
+
+                    <section class="case-section" aria-labelledby="feed">
+                        <h2 id="feed">Watching what it does, without leaking</h2>
+                        <p>From a phone, I only saw the bot's final answer, not what it ran to get there. That's the wrong way round for anything with a shell, so I wrote a 40-line <code>PostToolUse</code> hook in TypeScript that sends every tool call and its raw output to my chat as a silent message, like an audit log I can scroll. It calls the Telegram Bot API directly, so the feed costs no Claude usage. It skips the bot's own Telegram replies, trims long output to fit, gives up after 8 seconds, and never blocks Claude if Telegram is down.</p>
+                        <p>The catch is the obvious one: anything a command prints goes to Telegram, secrets included. So the bot's instructions tell it never to print keys, tokens or <code>.env</code> files, and the feed can be muted with one file (or by asking the bot to mute it). I'm honest with myself that an instruction is a request, not a control: the real fix is for the hook to redact anything shaped like a token before sending, and that's next on the list.</p>
+                    </section>
+
+                    <section class="case-section" aria-labelledby="gotchas">
+                        <h2 id="gotchas">Three things that broke</h2>
+                        <ul>
+                            <li><strong>The plugin wouldn't start after a restart.</strong> The container started Claude through a login shell, and a login shell resets <code>PATH</code> from <code>/etc/profile</code>, which hid Bun, the runtime the Telegram plugin needs. A plain shell keeps the container's <code>PATH</code>.</li>
+                            <li><strong>It asked to be trusted on every start.</strong> Claude Code doesn't remember folder trust for a home directory, so after each restart it waited on a prompt nobody could answer. It now runs from <code>~/bot</code>, where trust sticks.</li>
+                            <li><strong>Haiku sometimes answered into the void.</strong> It would show "typing" in Telegram and then reply in the terminal, where I can't see it. A short <code>CLAUDE.md</code> in its working folder fixed it: every Telegram message must be answered with the Telegram reply tool, kept short and phone-friendly.</li>
+                        </ul>
+                    </section>
+
+                    <section class="case-section" aria-labelledby="limits">
+                        <h2 id="limits">What it costs, and what's next</h2>
+                        <p>It shares my Pro allowance with the Claude app, so Haiku handles quick questions and I switch to a bigger model only for harder jobs; if I hit the limit it just pauses until usage resets. The Telegram plugin is a research preview, so its commands may change.</p>
+                        <p>Next: redacting secrets in the feed hook, and giving the bot read-only access to my Pi-hole's stats ("what got blocked today?") through a scoped API token rather than its config files, so it can answer without being able to change anything.</p>
+                    </section>
+                </article>
+            </div>
+        </section>
+    </main>
+
+    <script src="/script.js?v=4f4983e1a3" defer></script>
+</body>
+</html>
