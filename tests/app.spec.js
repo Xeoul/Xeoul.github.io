@@ -5,7 +5,7 @@ const { test, expect } = require('@playwright/test');
 const { execFileSync } = require('node:child_process');
 const path = require('node:path');
 
-const PAGES = ['/', '/404.html', '/writing/cedar-in-the-browser/', ...['aegis', 'installous', 'nagare', 'privacy-blocker', 'sous-chef'].map((slug) => `/projects/${slug}/`)];
+const PAGES = ['/', '/404.html', '/writing/cedar-in-the-browser/', '/writing/ai-agent-on-my-nas/', ...['aegis', 'installous', 'nagare', 'privacy-blocker', 'sous-chef'].map((slug) => `/projects/${slug}/`)];
 
 test('docs/ matches what npm run build makes from src/', () => {
   // Throws (failing the test) if any built file or page link is stale.
