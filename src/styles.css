@@ -2616,6 +2616,11 @@ header {
   .about-grid > .intro-text { max-width: 1000px; }
   .about-grid { column-gap: 80px; }
 
+  .project-body:has(.project-preview) { grid-template-columns: minmax(0, 1fr) 420px; grid-template-rows: repeat(3, auto) 1fr; column-gap: 56px; }
+  .project-preview { grid-row: 1 / span 4; }
+  .project-description { max-width: 820px; }
+  .case-demo p { max-width: 820px; }
+
   .case-panel { --case-w: 1120px; }
   .case-lede { max-width: 900px; }
   .case-section p,
@@ -2626,6 +2631,10 @@ header {
   :root { --container-width: 1500px; }
 
   .hero-title .name { font-size: 92px; }
+
+  .project-body:has(.project-preview) { grid-template-columns: minmax(0, 1fr) 520px; }
+  .project-description { max-width: 960px; }
+  .case-demo p { max-width: 960px; }
 
   .case-panel { --case-w: 1280px; }
   .case-lede { max-width: 1000px; }
