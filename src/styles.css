@@ -2156,7 +2156,9 @@ html.printing *::after {
   overflow: hidden;
   --wave-y: 0.55;
   --wave-scale: 1;
-  --safe-mask: linear-gradient(to right, black 0, black calc(50% - 440px), transparent calc(50% - 380px), transparent calc(50% + 380px), black calc(50% + 440px));
+  /* --case-w is the article's column width; the dots stay clear of it (and a margin around it). */
+  --case-w: 680px;
+  --safe-mask: linear-gradient(to right, black 0, black calc(50% - (var(--case-w) / 2 + 100px)), transparent calc(50% - (var(--case-w) / 2 + 40px)), transparent calc(50% + (var(--case-w) / 2 + 40px)), black calc(50% + (var(--case-w) / 2 + 100px)));
 }
 
 .case-scroll {
@@ -2167,7 +2169,7 @@ html.printing *::after {
 }
 
 .case-study {
-  max-width: 680px;
+  max-width: var(--case-w, 680px);
   margin: 0 auto;
 }
 
@@ -2595,4 +2597,72 @@ header {
     padding-left: calc(20px + env(safe-area-inset-left, 0px));
     padding-right: calc(20px + env(safe-area-inset-right, 0px));
   }
+}
+
+/* ============================================================
+   LARGE DESKTOP SCREENS
+   The layout above is sized for laptops and phones. On a big monitor
+   it left a narrow column of small type in the middle of a lot of
+   empty space, so from 1440px up the containers get wider and the type
+   steps up (again from 1800px). Everything here is min-width only, so
+   phones, tablets and small laptops render exactly as before.
+   ============================================================ */
+@media screen and (min-width: 1440px) {
+  :root {
+    --container-width: 1240px;
+    --nav-height: 72px;
+  }
+
+  header { font-size: 15px; }
+
+  .hero-title .name { font-size: clamp(68px, 5.2vw, 96px); }
+  .hero-title .role { font-size: 28px; }
+  .hero-description { font-size: 19px; max-width: 620px; }
+
+  .section-title { font-size: 40px; }
+  .intro-text { font-size: 17px; }
+  .about-grid > .intro-text { max-width: 980px; }
+  .about-grid { column-gap: 72px; }
+  .timeline-date, .skill-category dt { font-size: 12px; }
+  .timeline-role, .skill-category dd { font-size: 16px; }
+  .timeline-org { font-size: 14.5px; }
+
+  .project-summary { padding: 17px 0; }
+  .project-title { font-size: 21px; }
+  .project-tagline { font-size: 16px; }
+  .project-description { font-size: 17px; }
+
+  .case-panel { --case-w: 920px; }
+  .case-scroll { padding-top: 56px; }
+  .case-title { font-size: 54px; }
+  .case-lede { font-size: 21px; max-width: 800px; }
+  .case-meta { font-size: 15px; }
+  .case-meta > div { grid-template-columns: 84px 1fr; }
+  .case-section { margin-top: 48px; }
+  .case-section h2 { font-size: 28px; }
+  .case-section h3 { font-size: 19px; }
+  .case-section p,
+  .case-section li { font-size: 18px; line-height: 1.7; max-width: 80ch; }
+  .case-back, .case-links { font-size: 14px; }
+}
+
+@media screen and (min-width: 1800px) {
+  :root { --container-width: 1400px; }
+
+  .hero-title .name { font-size: 112px; }
+  .hero-title .role { font-size: 32px; }
+  .hero-description { font-size: 21px; max-width: 700px; }
+
+  .section-title { font-size: 46px; }
+  .intro-text { font-size: 19px; }
+  .timeline-role, .skill-category dd { font-size: 17px; }
+
+  .project-title { font-size: 23px; }
+  .project-description { font-size: 18px; }
+
+  .case-panel { --case-w: 1040px; }
+  .case-title { font-size: 60px; }
+  .case-lede { font-size: 23px; max-width: 880px; }
+  .case-section p,
+  .case-section li { font-size: 19px; max-width: 84ch; }
 }
