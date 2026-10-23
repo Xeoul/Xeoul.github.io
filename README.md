@@ -13,6 +13,7 @@ A single-screen site with four panels (Home, About, Projects, Contact) that slid
 - **Contact card:** a vCard (`vincent-lam.vcf`) to save to your contacts in one tap.
 - **Navigation:** tab bar and swipe on phones; header nav, arrow keys, 1–4, and a ⌘K / Ctrl+K command menu on desktop.
 - **Accessibility:** skip link, `aria-current`, off-screen panels made `inert`, focus moved to each panel's heading, and visible focus styles.
+- **Resume:** a one-page PDF (`docs/Vincent_Lam_Resume.pdf`) rendered from `resume/resume.html` by `node scripts/build-resume.mjs`; edit the HTML and re-run it.
 - **Print / save as PDF:** a clean light-theme layout of every panel.
 - **Installable and offline:** a web app manifest and home-screen icons, so it opens full screen like an app, and a service worker that keeps the site's files on the device: repeat visits load from it and every page works offline. It only handles the portfolio's own paths, never the demo apps that share the domain.
 - **Light and dark themes**, a matching 404 page, and a strict Content Security Policy.

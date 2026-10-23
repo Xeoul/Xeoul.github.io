@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Vincent Lam: Resume</title>
+<style>
+  /* Carlito is the metric-compatible, open-licensed twin of Calibri. scripts/build-resume.mjs
+     downloads it next to this file (resume/fonts/, not committed) before rendering. */
+  @font-face { font-family: "Carlito"; src: url("fonts/Carlito-Regular.ttf"); font-weight: 400; font-style: normal; }
+  @font-face { font-family: "Carlito"; src: url("fonts/Carlito-Bold.ttf"); font-weight: 700; font-style: normal; }
+  @font-face { font-family: "Carlito"; src: url("fonts/Carlito-Italic.ttf"); font-weight: 400; font-style: italic; }
+  @font-face { font-family: "Carlito"; src: url("fonts/Carlito-BoldItalic.ttf"); font-weight: 700; font-style: italic; }
+  @page { size: Letter; margin: 0.4in 0.5in 0.36in; }
+  :root { --ink: #111; --accent: #1f3a7a; --muted: #333; }
+  * { box-sizing: border-box; }
+  body { font: 9.4pt/1.23 "Carlito", sans-serif; color: var(--ink); margin: 0; }
+  a { color: var(--accent); text-decoration: none; }
+  header { text-align: center; }
+  h1 { font-size: 20pt; line-height: 1.1; margin: 0; letter-spacing: 0.2pt; }
+  .tag { color: var(--accent); font-weight: 700; margin: 1pt 0 0; font-size: 10pt; }
+  .contact { margin: 1pt 0 0; }
+  .contact span { color: var(--accent); }
+  .summary { margin: 4pt 0 0; }
+  h2 { font-size: 10.2pt; letter-spacing: 1.1pt; text-transform: uppercase; color: var(--accent); border-bottom: 1.1pt solid var(--accent); margin: 5.5pt 0 2.5pt; padding-bottom: 0.5pt; }
+  .skills p { margin: 0; }
+  .row { display: flex; justify-content: space-between; align-items: baseline; gap: 10pt; }
+  .row .when { white-space: nowrap; font-style: italic; }
+  .row .links { white-space: nowrap; }
+  .proj, .job { margin-top: 2.5pt; }
+  .proj:first-of-type, .job:first-of-type { margin-top: 0; }
+  .sub { font-style: italic; }
+  ul { margin: 1pt 0 0; padding-left: 12pt; }
+  li { margin: 0 0 0.6pt; padding-left: 0; }
+  li::marker { font-size: 8pt; }
+  b.lead { font-weight: 700; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Vincent Lam</h1>
+  <p class="tag">IAM &amp; Security Engineering &nbsp;|&nbsp; AI Agents &amp; LLM Security &nbsp;|&nbsp; Open to remote</p>
+  <p class="contact">Sacramento, CA <span>|</span> <a href="mailto:v812.io@gmail.com">v812.io@gmail.com</a> <span>|</span> <a href="https://xeoul.github.io">xeoul.github.io</a> <span>|</span> <a href="https://github.com/Xeoul">github.com/Xeoul</a> <span>|</span> <a href="https://www.linkedin.com/in/vincentlam812">linkedin.com/in/vincentlam812</a></p>
+</header>
+
+<p class="summary">Identity and security engineer (B.S. Computer Science, 2025) who makes least privilege something the system enforces, not a policy document: zero-standing-privilege access, policy-as-code, and LLM features that hold up against prompt injection. Takes projects end to end (threat model, code, CI gates, live demo) and brings 2+ years of compliance- and accuracy-critical work for the State of California.</p>
+
+<h2>Skills</h2>
+<div class="skills">
+  <p><b>Identity &amp; access:</b> Least privilege, ABAC/RBAC, Cedar policy-as-code, SCIM 2.0, access reviews, OIDC/JWT, MFA, AWS IAM &amp; STS</p>
+  <p><b>AI &amp; agents:</b> Claude API, tool use, structured outputs, prompt injection defense, agent permissioning, Pydantic / Zod</p>
+  <p><b>Security:</b> STRIDE threat modeling, NIST 800-53 / SOC 2 mapping, audit logging, detection rules, SIEM (OCSF), CodeQL, Bandit</p>
+  <p><b>Languages &amp; tools:</b> Python, TypeScript, JavaScript, SQL, Java, R, FastAPI, Next.js, React, Docker, GitHub Actions, Power Automate</p>
+</div>
+
+<h2>Projects (2026)</h2>
+
+<div class="proj">
+  <div class="row"><div><b>Aegis</b> &ndash; Just-in-time access platform, zero standing privilege &nbsp;|&nbsp; Python, FastAPI, Cedar, OIDC, SCIM, AWS STS</div><div class="links"><a href="https://xeoul.github.io/aegis/">Live demo</a> | <a href="https://github.com/Xeoul/aegis">Code</a></div></div>
+  <ul>
+    <li><b class="lead">Removed standing access.</b> Cedar policies decide each request on real user and resource attributes; restricted access needs MFA step-up and a second approver; approved grants become scoped AWS STS credentials that expire on their own (2&ndash;72 hours by sensitivity, 1-hour break-glass) and are revoked on SCIM 2.0 joiner/mover/leaver events.</li>
+    <li><b class="lead">Made an LLM safe to put in front of access decisions.</b> Claude only extracts fields from untrusted text, injection detection sends manipulated requests to a human, and tests with a fully hijacked parser check that policy still decides.</li>
+    <li><b class="lead">Made every decision auditable.</b> HMAC-chained audit log with signed checkpoints that catch truncation, recertification campaigns, 6 detection rules with OCSF SIEM export, a STRIDE threat model and a NIST 800-53 / SOC 2 / ISO 27001 control map.</li>
+    <li><b class="lead">Shipped it like production code.</b> 186 tests at 93% coverage gated in CI by CodeQL, Bandit, mypy and pip-audit, OIDC sign-in verified against Keycloak, and a live demo that runs the real Cedar engine in the browser.</li>
+  </ul>
+</div>
+
+<div class="proj">
+  <div class="row"><div><b>Kumo</b> &ndash; Claude Code agent on a home NAS, driven from Telegram &nbsp;|&nbsp; Docker, Bash, Claude Code</div><div class="links"><a href="https://xeoul.github.io/writing/ai-agent-on-my-nas/">Write-up</a></div></div>
+  <ul>
+    <li><b class="lead">Treated the agent as a privileged identity.</b> Listed the threats first (strangers messaging it, injected instructions, reaching the home network, leaked secrets), then bounded it: one allow-listed user, no root, nothing mounted from the NAS, no open ports, destructive commands gated behind one-tap approvals, and a hook that mirrors every command to my phone.</li>
+  </ul>
+</div>
+
+<div class="proj">
+  <div class="row"><div><b>Privacy Blocker</b> &ndash; Local-first data-broker opt-out tool &nbsp;|&nbsp; JavaScript, Web Crypto, GitHub Actions</div><div class="links"><a href="https://xeoul.github.io/privacyblocker/">Live demo</a> | <a href="https://github.com/Xeoul/privacyblocker">Code</a></div></div>
+  <ul>
+    <li><b class="lead">Built so it cannot leak what it protects.</b> Personal data is encrypted in the browser (PBKDF2-SHA256, 600k iterations, then AES-256-GCM) with a 10-minute idle lock, and a CSP of <code style="font-family:inherit">connect-src 'none'</code> blocks all outbound requests.</li>
+    <li><b class="lead">Turned a manual chore into a scheduled job.</b> Sends CCPA deletion requests to ~25 brokers per run on a schedule, logging no personal data.</li>
+  </ul>
+</div>
+
+<div class="proj">
+  <div class="row"><div><b>Installous</b> &ndash; AI stock research agent &nbsp;|&nbsp; TypeScript, Next.js, Claude API</div><div class="links"><a href="https://xeoul.github.io/Installous/">Live demo</a> | <a href="https://github.com/Xeoul/Installous">Code</a></div></div>
+  <ul>
+    <li><b class="lead">Grounded the AI advisor in live data.</b> A tool-using Claude advisor gets quotes, fundamentals and news through Zod-validated tools and shares a per-datatype cache (1&ndash;60 min) with the app, so follow-up questions never refetch.</li>
+    <li><b class="lead">Tested the scoring model in the open.</b> A rules-only $100k paper fund trades its five-factor score of ~50 large caps every 30 minutes via GitHub Actions and logs every trade's reason to a public history benchmarked against SPY, backed by a 5-year backtest.</li>
+  </ul>
+</div>
+
+<div class="proj">
+  <div class="row"><div><b>W.E.M.U 2.0</b> &ndash; Senior project, team of 8, for the CA Dept. of Consumer Affairs &nbsp;|&nbsp; Node.js, Selenium</div></div>
+  <ul>
+    <li><b class="lead">Moved licensing forms to a new system at scale.</b> Co-built the form-migration system for 3.4M licenses across 36 entities; wrote the back-end logic for the site's button actions; owned the production stage, contact forms page and Selenium role-based access tests.</li>
+  </ul>
+</div>
+
+<h2>Experience</h2>
+
+<div class="job">
+  <div class="row"><div><b>Office of Legislative Counsel</b> &ndash; <i>Office Technician (Typing)</i></div><div class="when">Sep 2026 &ndash; Present</div></div>
+  <ul><li>Produce and publish legislation in document-workflow systems on a 5-person team, delivering finals through secure channels.</li></ul>
+</div>
+
+<div class="job">
+  <div><b>California Department of Health Care Services</b></div>
+  <div class="row"><div class="sub">Student Assistant &ndash; Public Hospital Redirection Payments &amp; Veterans Homes Programs</div><div class="when">Jan 2025 &ndash; Jun 2025</div></div>
+  <ul><li><b class="lead">Caught and resolved discrepancies before payment release.</b> Reconciled thousands of claims and financial reports per cycle from hospitals, doctors and other providers statewide for state and federal reimbursement programs, with fiscal and policy stakeholders.</li></ul>
+  <div class="row" style="margin-top:2pt"><div class="sub">Student Assistant &ndash; SharePoint Program &amp; Records Support</div><div class="when">Nov 2022 &ndash; Apr 2024</div></div>
+  <ul>
+    <li><b class="lead">Replaced manual document sends.</b> Helped build a Power Automate flow for the monthly, quarterly and annual sends; handed it off.</li>
+    <li><b class="lead">Gave staff one place to find liaisons.</b> Built the landing page on the Outlook Global Address List, with access limited to designated staff.</li>
+    <li><b class="lead">Kept SharePoint healthy.</b> Resolved access issues, broken links and version conflicts; QA'd accuracy, metadata and accessibility.</li>
+  </ul>
+</div>
+
+<div class="job">
+  <div class="row"><div><b>California Housing Finance Agency</b> &ndash; <i>Student Assistant, Loan Operations &amp; Data Quality</i></div><div class="when">May 2022 &ndash; Oct 2022</div></div>
+  <ul><li><b class="lead">Sped up loan-data review</b> by adding features to 3+ existing Python and R data-validation scripts.</li></ul>
+</div>
+
+<h2>Education</h2>
+<div class="row"><div><b>California State University, Sacramento</b> &ndash; B.S. Computer Science</div><div class="when" style="font-style:normal">Aug 2025</div></div>
+<p style="margin:0"><b>Coursework:</b> Computer System Attacks &amp; Countermeasures, Computer Networks, Operating Systems, Databases, Data Mining</p>
+</body>
+</html>
