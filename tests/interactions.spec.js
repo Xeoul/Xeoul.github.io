@@ -787,7 +787,7 @@ test.describe('project links, case studies and the contact card', () => {
     expect(overflow).toEqual({ page: false, article: false });
     await page.locator('.case-back').click();
     await expect(page).toHaveURL(back);
-    await expect(page.locator(`a[href="/writing/${slug}/"]`).first()).toBeVisible();
+    await expect(page.locator(`.writing-link[href="/writing/${slug}/"]`)).toBeVisible();
     expect(errors).toEqual([]);
   });
 
