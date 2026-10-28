@@ -27,6 +27,7 @@ const PRECACHE = [
     '/projects/privacy-blocker/',
     '/projects/sous-chef/',
     '/writing/cedar-in-the-browser/',
+    '/writing/iphone-backup/',
     '/writing/ai-agent-on-my-nas/',
     STYLES,
     SCRIPT,

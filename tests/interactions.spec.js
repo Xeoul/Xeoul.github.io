@@ -8,7 +8,7 @@ const { GITHUB_FIXTURES, mockGitHub, watchErrors, navLink, panelOffsets, expectS
 const PANELS = ['home', 'about', 'projects', 'contact'];
 const CASE_STUDIES = ['aegis', 'installous', 'nagare', 'privacy-blocker', 'sous-chef'];
 // Each write-up, and where its back link goes.
-const WRITE_UPS = [['cedar-in-the-browser', /\/projects\/aegis\/$/], ['ai-agent-on-my-nas', /\/#projects$/]];
+const WRITE_UPS = [['cedar-in-the-browser', /\/projects\/aegis\/$/], ['ai-agent-on-my-nas', /\/#projects$/], ['iphone-backup', /\/#projects$/]];
 
 // ---------------------------------------------------------------- print
 
@@ -741,7 +741,7 @@ test.describe('project links, case studies and the contact card', () => {
     await expect(page.locator('.toast')).toHaveText('Link copied');
     expect(await page.evaluate(() => navigator.clipboard.readText())).toBe('http://127.0.0.1:4173/#projects/nagare');
     // Every project gets one, including those without links of their own.
-    await expect(page.locator('.project-copy-link')).toHaveCount(7);
+    await expect(page.locator('.project-copy-link')).toHaveCount(8);
   });
 
   test('Copy link falls back to the address bar when the clipboard is refused', async ({ page }) => {
@@ -778,7 +778,8 @@ test.describe('project links, case studies and the contact card', () => {
     const errors = watchErrors(page);
     await page.goto(`/writing/${slug}/`);
     await expect(page.locator('.case-section h2').first()).toBeVisible();
-    expect(await page.locator('.case-section pre').count()).toBeGreaterThan(0);
+    // The iphone-backup write-up has no code samples; the others do.
+    if (slug !== 'iphone-backup') expect(await page.locator('.case-section pre').count()).toBeGreaterThan(0);
     const overflow = await page.evaluate(() => ({
       page: document.documentElement.scrollWidth > window.innerWidth,
       article: document.querySelector('.case-scroll').scrollWidth > document.querySelector('.case-scroll').clientWidth,
@@ -786,7 +787,7 @@ test.describe('project links, case studies and the contact card', () => {
     expect(overflow).toEqual({ page: false, article: false });
     await page.locator('.case-back').click();
     await expect(page).toHaveURL(back);
-    await expect(page.locator(`a[href="/writing/${slug}/"]`).first()).toBeVisible();
+    await expect(page.locator(`a[href="/writing/${slug}/"]`).filter({ visible: true }).first()).toBeVisible();
     expect(errors).toEqual([]);
   });
 

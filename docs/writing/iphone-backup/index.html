@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="description" content="A containerized service on a home NAS that backs up an iPhone over Wi-Fi every night, and the three network problems I had to track down to make it work: a VPN route, Wi-Fi 7 MLO multicast and a file-permission crash loop.">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://xeoul.github.io/writing/iphone-backup/">
+    <meta property="og:title" content="Backing up my iPhone to my NAS over Wi-Fi - Vincent Lam">
+    <meta property="og:description" content="A containerized service on a home NAS that backs up an iPhone over Wi-Fi every night, and the three network problems I had to track down to make it work: a VPN route, Wi-Fi 7 MLO multicast and a file-permission crash loop.">
+    <meta property="og:image" content="https://xeoul.github.io/images/og/iphone-backup.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="Backing up my iPhone to my NAS over Wi-Fi: a Docker service using netmuxd and libimobiledevice">
+    <meta property="og:site_name" content="Vincent Lam">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="author" content="Vincent Lam">
+    <link rel="canonical" href="https://xeoul.github.io/writing/iphone-backup/">
+    <meta name="theme-color" content="#fafaf9" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#0d0d10" media="(prefers-color-scheme: dark)">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; style-src-attr 'unsafe-inline'; img-src 'self'; connect-src 'self' https://api.github.com; object-src 'none'; base-uri 'self'; form-action 'none';">
+    <meta name="color-scheme" content="light dark">
+    <title>Backing up my iPhone to my NAS over Wi-Fi - Vincent Lam</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="manifest" href="/manifest.webmanifest">
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="Vincent Lam">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <link rel="preload" href="/fonts/Inter-Variable.woff2" as="font" type="font/woff2" crossorigin>
+    <script src="/theme-init.js"></script>
+    <link rel="stylesheet" href="/styles.css?v=bccf049625">
+</head>
+<body>
+    <a class="skip-link" href="#main">Skip to content</a>
+
+    <header>
+        <a href="/#home" class="header-title nav-link">
+            <span class="header-name">@Xeoul</span>
+        </a>
+        <nav class="in-menu" aria-label="Primary">
+            <span class="nav-indicator" aria-hidden="true"></span>
+            <a href="/#home" class="nav-link">
+                <svg aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M10,20V14H14V20H19V12H22L12,3L2,12H5V20H10Z"/></svg>
+                Home
+            </a>
+            <a href="/#about" class="nav-link">
+                <svg aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12,4A4,4 0 0,1 16,8A4,4 0 0,1 12,12A4,4 0 0,1 8,8A4,4 0 0,1 12,4M12,14C16.42,14 20,15.79 20,18V20H4V18C4,15.79 7.58,14 12,14Z"/></svg>
+                About
+            </a>
+            <a href="/#projects" class="nav-link active" aria-current="page">
+                <svg aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M10,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V8C22,6.89 21.1,6 20,6H12L10,4Z"/></svg>
+                Projects
+            </a>
+            <a href="/#contact" class="nav-link">
+                <svg aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M20,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V6C22,4.89 21.1,4 20,4M20,8L12,13L4,8V6L12,11L20,6V8Z"/></svg>
+                Contact
+            </a>
+        </nav>
+
+        <button class="theme-toggle" aria-label="Switch to dark theme" aria-pressed="false">
+            <svg aria-hidden="true" focusable="false" class="icon-sun" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                <circle cx="12" cy="12" r="4.5"/>
+                <path d="M12 2.5v2.5M12 19v2.5M4.6 4.6l1.8 1.8M17.6 17.6l1.8 1.8M2.5 12h2.5M19 12h2.5M4.6 19.4l1.8-1.8M17.6 6.4l1.8-1.8"/>
+            </svg>
+            <svg aria-hidden="true" focusable="false" class="icon-moon" width="19" height="19" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M20.7 14.9A8.6 8.6 0 0 1 9.1 3.3a8.6 8.6 0 1 0 11.6 11.6Z"/>
+            </svg>
+        </button>
+
+        <a href="https://github.com/Xeoul" target="_blank" rel="noopener noreferrer" class="github-icon" aria-label="GitHub profile">
+            <svg aria-hidden="true" focusable="false" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.30.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+            </svg>
+        </a>
+    </header>
+
+    <nav class="tab-bar" aria-label="Primary">
+        <a href="/#home" class="nav-link tab-link">
+            <svg aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M10,20V14H14V20H19V12H22L12,3L2,12H5V20H10Z"/></svg>
+            <span>Home</span>
+        </a>
+        <a href="/#about" class="nav-link tab-link">
+            <svg aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12,4A4,4 0 0,1 16,8A4,4 0 0,1 12,12A4,4 0 0,1 8,8A4,4 0 0,1 12,4M12,14C16.42,14 20,15.79 20,18V20H4V18C4,15.79 7.58,14 12,14Z"/></svg>
+            <span>About</span>
+        </a>
+        <a href="/#projects" class="nav-link tab-link active" aria-current="page">
+            <svg aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M10,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V8C22,6.89 21.1,6 20,6H12L10,4Z"/></svg>
+            <span>Projects</span>
+        </a>
+        <a href="/#contact" class="nav-link tab-link">
+            <svg aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M20,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V6C22,4.89 21.1,4 20,4M20,8L12,13L4,8V6L12,11L20,6V8Z"/></svg>
+            <span>Contact</span>
+        </a>
+    </nav>
+
+    <main class="view" id="main">
+        <section id="case" class="panel case-panel active">
+            <div class="case-scroll">
+                <article class="case-study writing">
+                    <a class="case-back" href="/#projects"><span aria-hidden="true">&larr;</span> All projects</a>
+
+                    <div class="case-intro">
+                        <p class="case-kicker">Writing &middot; <time datetime="2026-10">October 2026</time></p>
+                        <h1 class="section-title case-title" tabindex="-1">Backing up my iPhone to my NAS over Wi-Fi</h1>
+                        <p class="case-lede">A containerized service on my home NAS backs up my iPhone every night over Wi-Fi, with no cable and no laptop. Getting there meant tracing three separate network and permission problems.</p>
+                    </div>
+
+                    <section class="case-section" aria-labelledby="why">
+                        <h2 id="why">What it replaced</h2>
+                        <p>Backing up an iPhone normally means plugging it into a computer over USB and remembering to do it. I wanted it to happen on its own, to the NAS, and to land on a second disk for free: the NAS already copies itself to an external drive every night, so each phone backup is stored twice.</p>
+                    </section>
+
+                    <section class="case-section" aria-labelledby="shape">
+                        <h2 id="shape">How it works</h2>
+                        <ul>
+                            <li><strong>A Debian container</strong> (Docker Compose, on a UGREEN NAS) runs <code>netmuxd</code>. It finds the iPhone on the local network through mDNS (Bonjour) and connects with an existing trusted pairing record, so to the backup tools it looks like a USB connection.</li>
+                            <li><strong>A Bash scheduler</strong> runs <code>idevicebackup2</code> at a set time, daily or weekly. Backups are incremental, so each run only transfers what changed.</li>
+                            <li><strong>Retries and a lock.</strong> If the phone isn't on the network, it tries again every 5 minutes for up to 2 hours. A lock file stops two backups from running at once.</li>
+                            <li><strong>Self-healing.</strong> A watchdog restarts <code>netmuxd</code> if it crashes, and Docker's restart policy brings the whole service back after a NAS reboot.</li>
+                            <li><strong>A log line per run</strong> (found, started, OK or failed), so a health check is a quick look at one file.</li>
+                        </ul>
+                    </section>
+
+                    <section class="case-section" aria-labelledby="problems">
+                        <h2 id="problems">Three problems, and how I found each</h2>
+                        <p><strong>1. The phone was unreachable from my laptop.</strong> <code>ip route get</code> showed why: my Tailscale subnet routes were sending local traffic into the VPN tunnel instead of over Wi-Fi. Rather than fight the routes, I moved the service to the NAS, which is wired and sits outside that problem.</p>
+                        <p><strong>2. The NAS couldn't discover the phone.</strong> <code>avahi-browse</code> traced it to Wi-Fi 7 MLO (multi-link operation): the multicast announcements on the MLO network weren't reaching wired devices. Moving the phone to the standard network fixed discovery. Direct port tests showed unicast still worked on MLO, so a connect-by-IP version is a possible later fix.</p>
+                        <p><strong>3. The container crash-looped with exit code 126.</strong> The image copied its scripts in readable only by root, while the container runs as a non-root user so the backup files stay owned by me. Setting explicit 755 permissions fixed it.</p>
+                    </section>
+
+                    <section class="case-section" aria-labelledby="security">
+                        <h2 id="security">Keeping it locked down</h2>
+                        <ul>
+                            <li>No ports are exposed to the internet.</li>
+                            <li>The pairing record is stored with restricted permissions (600 on files, 700 on folders).</li>
+                            <li>The container runs as a non-root user.</li>
+                        </ul>
+                    </section>
+
+                    <section class="case-section" aria-labelledby="outcome">
+                        <h2 id="outcome">Result</h2>
+                        <p>Hands-off iPhone backups to the NAS every night, with a second copy on an external drive. The manual step is gone, and the setup recovers from crashes and reboots by itself. It's the same home-lab approach as the <a href="/writing/ai-agent-on-my-nas/">AI agent on my NAS</a>: a small container with the least access it needs.</p>
+                    </section>
+                </article>
+            </div>
+            </div>
+        </section>
+    </main>
+
+    <script src="/script.js?v=c9707175af" defer></script>
+</body>
+</html>
