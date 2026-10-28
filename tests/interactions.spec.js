@@ -741,7 +741,7 @@ test.describe('project links, case studies and the contact card', () => {
     await expect(page.locator('.toast')).toHaveText('Link copied');
     expect(await page.evaluate(() => navigator.clipboard.readText())).toBe('http://127.0.0.1:4173/#projects/nagare');
     // Every project gets one, including those without links of their own.
-    await expect(page.locator('.project-copy-link')).toHaveCount(7);
+    await expect(page.locator('.project-copy-link')).toHaveCount(8);
   });
 
   test('Copy link falls back to the address bar when the clipboard is refused', async ({ page }) => {
@@ -778,7 +778,8 @@ test.describe('project links, case studies and the contact card', () => {
     const errors = watchErrors(page);
     await page.goto(`/writing/${slug}/`);
     await expect(page.locator('.case-section h2').first()).toBeVisible();
-    expect(await page.locator('.case-section pre').count()).toBeGreaterThan(0);
+    // The iphone-backup write-up has no code samples; the others do.
+    if (slug !== 'iphone-backup') expect(await page.locator('.case-section pre').count()).toBeGreaterThan(0);
     const overflow = await page.evaluate(() => ({
       page: document.documentElement.scrollWidth > window.innerWidth,
       article: document.querySelector('.case-scroll').scrollWidth > document.querySelector('.case-scroll').clientWidth,
