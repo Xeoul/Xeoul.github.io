@@ -372,6 +372,28 @@
                             </div>
                         </div>
                     </details>
+
+                    <details class="project reveal" name="project" style="--i:5" data-slug="iphone-backup">
+                        <summary class="project-summary">
+                            <span class="project-heading">
+                                <h3 class="project-title">Wireless iPhone Backup</h3>
+                                <span class="project-tagline">Nightly Wi-Fi backups to my NAS</span>
+                            </span>
+                        </summary>
+                        <div class="project-body">
+                            <p class="project-description">A containerized service on my home NAS that backs up my iPhone every night over Wi-Fi, replacing manual USB backups. netmuxd finds the phone over mDNS and libimobiledevice runs incremental backups on a schedule, with retries, a lock file, a watchdog and a restart policy so it runs unattended. Each backup also lands on a second disk through the NAS's nightly copy. Getting it working meant tracing a Tailscale route that swallowed local traffic, Wi-Fi 7 MLO multicast that never reached wired devices, and a permissions crash loop.</p>
+                            <div class="tech-tags">
+                                <span class="tech-tag">Docker Compose</span>
+                                <span class="tech-tag">Bash</span>
+                                <span class="tech-tag">libimobiledevice</span>
+                                <span class="tech-tag">mDNS</span>
+                                <span class="tech-tag">Tailscale</span>
+                            </div>
+                            <div class="project-links">
+                                <a href="/writing/iphone-backup/">Write-up <span aria-hidden="true">&rarr;</span></a>
+                            </div>
+                        </div>
+                    </details>
                 </div>
 
                 <!-- Coursework from Sacramento State, kept in its own
@@ -424,6 +446,12 @@
                         <li>
                             <a class="writing-link" href="/writing/ai-agent-on-my-nas/">
                                 <span class="writing-title">AI agent on a NAS</span>
+                                <span class="writing-meta">Home lab &middot; Oct 2026</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="writing-link" href="/writing/iphone-backup/">
+                                <span class="writing-title">Backing up my iPhone to my NAS over Wi-Fi</span>
                                 <span class="writing-meta">Home lab &middot; Oct 2026</span>
                             </a>
                         </li>

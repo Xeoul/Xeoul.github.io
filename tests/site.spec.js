@@ -40,7 +40,7 @@ test('every panel is reachable from the navigation', async ({ page, isMobile }) 
 });
 
 test('every local file the pages reference exists', async ({ page, request }) => {
-  const pages = ['/', '/404.html', '/writing/cedar-in-the-browser/', '/writing/ai-agent-on-my-nas/', ...['aegis', 'installous', 'nagare', 'privacy-blocker', 'sous-chef'].map((slug) => `/projects/${slug}/`)];
+  const pages = ['/', '/404.html', '/writing/cedar-in-the-browser/', '/writing/ai-agent-on-my-nas/', '/writing/iphone-backup/', ...['aegis', 'installous', 'nagare', 'privacy-blocker', 'sous-chef'].map((slug) => `/projects/${slug}/`)];
   for (const pagePath of pages) {
     await page.goto(pagePath);
     // Scripts, styles, images, and every same-site link (case studies,
@@ -59,7 +59,7 @@ test('every local file the pages reference exists', async ({ page, request }) =>
 });
 
 test('every page has one h1 and a link-preview image that sharing sites can show', async ({ page, request }) => {
-  const pages = ['/', '/writing/cedar-in-the-browser/', '/writing/ai-agent-on-my-nas/', ...['aegis', 'installous', 'nagare', 'privacy-blocker', 'sous-chef'].map((slug) => `/projects/${slug}/`)];
+  const pages = ['/', '/writing/cedar-in-the-browser/', '/writing/ai-agent-on-my-nas/', '/writing/iphone-backup/', ...['aegis', 'installous', 'nagare', 'privacy-blocker', 'sous-chef'].map((slug) => `/projects/${slug}/`)];
   for (const path of pages) {
     await page.goto(path);
     await expect(page.locator('h1'), path).toHaveCount(1);

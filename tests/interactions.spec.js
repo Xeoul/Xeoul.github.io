@@ -8,7 +8,7 @@ const { GITHUB_FIXTURES, mockGitHub, watchErrors, navLink, panelOffsets, expectS
 const PANELS = ['home', 'about', 'projects', 'contact'];
 const CASE_STUDIES = ['aegis', 'installous', 'nagare', 'privacy-blocker', 'sous-chef'];
 // Each write-up, and where its back link goes.
-const WRITE_UPS = [['cedar-in-the-browser', /\/projects\/aegis\/$/], ['ai-agent-on-my-nas', /\/#projects$/]];
+const WRITE_UPS = [['cedar-in-the-browser', /\/projects\/aegis\/$/], ['ai-agent-on-my-nas', /\/#projects$/], ['iphone-backup', /\/#projects$/]];
 
 // ---------------------------------------------------------------- print
 
