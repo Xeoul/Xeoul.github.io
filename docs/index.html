@@ -377,11 +377,11 @@
                         <summary class="project-summary">
                             <span class="project-heading">
                                 <h3 class="project-title">Wireless iPhone Backup</h3>
-                                <span class="project-tagline">Nightly Wi-Fi backups to my NAS</span>
+                                <span class="project-tagline">Weekly Wi-Fi backups to my NAS</span>
                             </span>
                         </summary>
                         <div class="project-body">
-                            <p class="project-description">A containerized service on my home NAS that backs up my iPhone every night over Wi-Fi, replacing manual USB backups. It finds the phone over mDNS with netmuxd and, if that fails, falls back to a direct connection with pymobiledevice3 that scans the subnet and matches the stored pairing record, so it needs no fixed IP and works on a Wi-Fi 7 MLO network. Backups are incremental, with retries, a lock file, a watchdog and a restart policy so it runs unattended, and each one also lands on a second disk through the NAS's nightly copy. I also tested backing up over cellular and found iOS refuses it over a VPN, and traced a Tailscale route that swallowed local traffic and a permissions crash loop.</p>
+                            <p class="project-description">A containerized service on my home NAS that backs up my iPhone over Wi-Fi every Sunday night, replacing manual USB backups. It finds the phone over mDNS with netmuxd and, if that fails, falls back to a direct connection with pymobiledevice3 that scans the subnet and matches the stored pairing record, so it needs no fixed IP and works on a Wi-Fi 7 MLO network. Backups are incremental, with retries, a lock file, a watchdog and a restart policy so it runs unattended, and each one also lands on a second disk through the NAS's nightly copy. I also tested backing up over cellular and found iOS refuses it over a VPN, and traced a Tailscale route that swallowed local traffic and a permissions crash loop.</p>
                             <div class="tech-tags">
                                 <span class="tech-tag">Docker Compose</span>
                                 <span class="tech-tag">Bash</span>
