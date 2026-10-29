@@ -3,11 +3,11 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-    <meta name="description" content="A containerized service on a home NAS that backs up an iPhone over Wi-Fi every night, with a direct-connection fallback when mDNS fails, and the problems I tracked down: a VPN route, Wi-Fi 7 MLO multicast, a permission crash loop and iOS refusing cellular backups.">
+    <meta name="description" content="A containerized service on a home NAS that backs up an iPhone over Wi-Fi every Sunday night, with a direct-connection fallback when mDNS fails, and the problems I tracked down: a VPN route, Wi-Fi 7 MLO multicast, a permission crash loop and iOS refusing cellular backups.">
     <meta property="og:type" content="article">
     <meta property="og:url" content="https://xeoul.github.io/writing/iphone-backup/">
     <meta property="og:title" content="Backing up my iPhone to my NAS over Wi-Fi - Vincent Lam">
-    <meta property="og:description" content="A containerized service on a home NAS that backs up an iPhone over Wi-Fi every night, with a direct-connection fallback when mDNS fails, and the problems I tracked down: a VPN route, Wi-Fi 7 MLO multicast, a permission crash loop and iOS refusing cellular backups.">
+    <meta property="og:description" content="A containerized service on a home NAS that backs up an iPhone over Wi-Fi every Sunday night, with a direct-connection fallback when mDNS fails, and the problems I tracked down: a VPN route, Wi-Fi 7 MLO multicast, a permission crash loop and iOS refusing cellular backups.">
     <meta property="og:image" content="https://xeoul.github.io/images/og/iphone-backup.png">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
@@ -104,7 +104,7 @@
                     <div class="case-intro">
                         <p class="case-kicker">Writing &middot; <time datetime="2026-10">October 2026</time></p>
                         <h1 class="section-title case-title" tabindex="-1">Backing up my iPhone to my NAS over Wi-Fi</h1>
-                        <p class="case-lede">A containerized service on my home NAS backs up my iPhone every night over Wi-Fi, with no cable and no laptop. It tries the normal Bonjour route first and falls back to a direct connection if the phone isn't found.</p>
+                        <p class="case-lede">A containerized service on my home NAS backs up my iPhone over Wi-Fi every Sunday night, with no cable and no laptop. It tries the normal Bonjour route first and falls back to a direct connection if the phone isn't found.</p>
                     </div>
 
                     <section class="case-section" aria-labelledby="why">
@@ -117,7 +117,7 @@
                         <ul>
                             <li><strong>Path 1, mDNS.</strong> A Debian container (Docker Compose, on a UGREEN NAS) runs <code>netmuxd</code>, which finds the iPhone through mDNS (Bonjour) and connects with an existing trusted pairing record, so to <code>idevicebackup2</code> it looks like a USB connection.</li>
                             <li><strong>Path 2, direct connection.</strong> If the phone isn't discovered, the backup falls back to a plain TCP connection to the phone's lockdown service on port 62078, using the <code>pymobiledevice3</code> Python library. It tries a configured hint IP first, then scans the home subnet for open port 62078 and checks each candidate's <code>UniqueDeviceID</code> against the stored pairing record. It never auto-pairs, so other iPhones on the network never see a "Trust This Computer" prompt. That means no fixed IP is needed.</li>
-                            <li><strong>A Bash scheduler</strong> runs at 9 p.m. daily (weekly with one setting). Backups are incremental, so each run only transfers what changed, into the same backup folder.</li>
+                            <li><strong>A Bash scheduler</strong> runs at 9 p.m. every Sunday (the schedule is one setting, so it can be daily). Backups are incremental, so each run only transfers what changed, into the same backup folder.</li>
                             <li><strong>Retries and a lock.</strong> If the phone can't be reached, it tries again every 5 minutes for up to 2 hours. A lock file stops two backups from running at once.</li>
                             <li><strong>Self-healing.</strong> A watchdog restarts <code>netmuxd</code> if it crashes, and Docker's restart policy brings the whole service back after a NAS reboot.</li>
                             <li><strong>A log line per run</strong> (found, started, OK or failed), kept separately for each path, so a health check is a quick look at one file.</li>
@@ -144,13 +144,13 @@
                             <li>No ports are exposed to the internet.</li>
                             <li>The pairing record is stored with restricted permissions (600 on files, 700 on folders).</li>
                             <li>The container runs as a non-root user.</li>
-                            <li>iOS requires the passcode on the phone for each backup, as a security feature. I kept that in place instead of weakening device security, and chose a 9 p.m. schedule so the prompt arrives when I'm usually around.</li>
+                            <li>iOS requires the passcode on the phone for each backup, as a security feature. I kept that in place instead of weakening device security, and chose Sunday at 9 p.m. so the prompt arrives when I'm usually around.</li>
                         </ul>
                     </section>
 
                     <section class="case-section" aria-labelledby="outcome">
                         <h2 id="outcome">Result</h2>
-                        <p>Hands-off iPhone backups to the NAS every night, with a second copy on an external drive. The manual step is gone, and the setup recovers from crashes and reboots by itself. It's the same home-lab approach as the <a href="/writing/ai-agent-on-my-nas/">AI agent on my NAS</a>: a small container with the least access it needs.</p>
+                        <p>Hands-off iPhone backups to the NAS every Sunday night, with a second copy on an external drive. The manual step is gone, and the setup recovers from crashes and reboots by itself. It's the same home-lab approach as the <a href="/writing/ai-agent-on-my-nas/">AI agent on my NAS</a>: a small container with the least access it needs.</p>
                         <p>I built this with AI assistance, and I can walk through the troubleshooting myself.</p>
                     </section>
                 </article>
