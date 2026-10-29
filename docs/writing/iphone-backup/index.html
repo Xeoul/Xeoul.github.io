@@ -3,11 +3,11 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-    <meta name="description" content="A containerized service on a home NAS that backs up an iPhone over Wi-Fi every night, and the three network problems I had to track down to make it work: a VPN route, Wi-Fi 7 MLO multicast and a file-permission crash loop.">
+    <meta name="description" content="A containerized service on a home NAS that backs up an iPhone over Wi-Fi every night, with a direct-connection fallback when mDNS fails, and the problems I tracked down: a VPN route, Wi-Fi 7 MLO multicast, a permission crash loop and iOS refusing cellular backups.">
     <meta property="og:type" content="article">
     <meta property="og:url" content="https://xeoul.github.io/writing/iphone-backup/">
     <meta property="og:title" content="Backing up my iPhone to my NAS over Wi-Fi - Vincent Lam">
-    <meta property="og:description" content="A containerized service on a home NAS that backs up an iPhone over Wi-Fi every night, and the three network problems I had to track down to make it work: a VPN route, Wi-Fi 7 MLO multicast and a file-permission crash loop.">
+    <meta property="og:description" content="A containerized service on a home NAS that backs up an iPhone over Wi-Fi every night, with a direct-connection fallback when mDNS fails, and the problems I tracked down: a VPN route, Wi-Fi 7 MLO multicast, a permission crash loop and iOS refusing cellular backups.">
     <meta property="og:image" content="https://xeoul.github.io/images/og/iphone-backup.png">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
@@ -104,7 +104,7 @@
                     <div class="case-intro">
                         <p class="case-kicker">Writing &middot; <time datetime="2026-10">October 2026</time></p>
                         <h1 class="section-title case-title" tabindex="-1">Backing up my iPhone to my NAS over Wi-Fi</h1>
-                        <p class="case-lede">A containerized service on my home NAS backs up my iPhone every night over Wi-Fi, with no cable and no laptop. Getting there meant tracing three separate network and permission problems.</p>
+                        <p class="case-lede">A containerized service on my home NAS backs up my iPhone every night over Wi-Fi, with no cable and no laptop. It tries the normal Bonjour route first and falls back to a direct connection if the phone isn't found.</p>
                     </div>
 
                     <section class="case-section" aria-labelledby="why">
@@ -115,19 +115,27 @@
                     <section class="case-section" aria-labelledby="shape">
                         <h2 id="shape">How it works</h2>
                         <ul>
-                            <li><strong>A Debian container</strong> (Docker Compose, on a UGREEN NAS) runs <code>netmuxd</code>. It finds the iPhone on the local network through mDNS (Bonjour) and connects with an existing trusted pairing record, so to the backup tools it looks like a USB connection.</li>
-                            <li><strong>A Bash scheduler</strong> runs <code>idevicebackup2</code> at a set time, daily or weekly. Backups are incremental, so each run only transfers what changed.</li>
-                            <li><strong>Retries and a lock.</strong> If the phone isn't on the network, it tries again every 5 minutes for up to 2 hours. A lock file stops two backups from running at once.</li>
+                            <li><strong>Path 1, mDNS.</strong> A Debian container (Docker Compose, on a UGREEN NAS) runs <code>netmuxd</code>, which finds the iPhone through mDNS (Bonjour) and connects with an existing trusted pairing record, so to <code>idevicebackup2</code> it looks like a USB connection.</li>
+                            <li><strong>Path 2, direct connection.</strong> If the phone isn't discovered, the backup falls back to a plain TCP connection to the phone's lockdown service on port 62078, using the <code>pymobiledevice3</code> Python library. It tries a configured hint IP first, then scans the home subnet for open port 62078 and checks each candidate's <code>UniqueDeviceID</code> against the stored pairing record. It never auto-pairs, so other iPhones on the network never see a "Trust This Computer" prompt. That means no fixed IP is needed.</li>
+                            <li><strong>A Bash scheduler</strong> runs at 9 p.m. daily (weekly with one setting). Backups are incremental, so each run only transfers what changed, into the same backup folder.</li>
+                            <li><strong>Retries and a lock.</strong> If the phone can't be reached, it tries again every 5 minutes for up to 2 hours. A lock file stops two backups from running at once.</li>
                             <li><strong>Self-healing.</strong> A watchdog restarts <code>netmuxd</code> if it crashes, and Docker's restart policy brings the whole service back after a NAS reboot.</li>
-                            <li><strong>A log line per run</strong> (found, started, OK or failed), so a health check is a quick look at one file.</li>
+                            <li><strong>A log line per run</strong> (found, started, OK or failed), kept separately for each path, so a health check is a quick look at one file.</li>
                         </ul>
                     </section>
 
                     <section class="case-section" aria-labelledby="problems">
-                        <h2 id="problems">Three problems, and how I found each</h2>
+                        <h2 id="problems">Problems, and how I found each</h2>
                         <p><strong>1. The phone was unreachable from my laptop.</strong> <code>ip route get</code> showed why: my Tailscale subnet routes were sending local traffic into the VPN tunnel instead of over Wi-Fi. Rather than fight the routes, I moved the service to the NAS, which is wired and sits outside that problem.</p>
-                        <p><strong>2. The NAS couldn't discover the phone.</strong> <code>avahi-browse</code> traced it to Wi-Fi 7 MLO (multi-link operation): the multicast announcements on the MLO network weren't reaching wired devices. Moving the phone to the standard network fixed discovery. Direct port tests showed unicast still worked on MLO, so a connect-by-IP version is a possible later fix.</p>
+                        <p><strong>2. The NAS couldn't discover the phone.</strong> <code>avahi-browse</code> traced it to Wi-Fi 7 MLO (multi-link operation): the multicast announcements on the MLO network weren't reaching wired devices. Direct port tests showed unicast still worked on MLO, so I moved the phone to the standard network for a while and then built the direct-connection path above. It removes the dependency on mDNS, so the phone can now stay on the MLO network full-time. Discovery on MLO was later confirmed to work too.</p>
                         <p><strong>3. The container crash-looped with exit code 126.</strong> The image copied its scripts in readable only by root, while the container runs as a non-root user so the backup files stay owned by me. Setting explicit 755 permissions fixed it.</p>
+                        <p><strong>4. Remote access changed after a Tailscale login.</strong> <code>tailscale login</code> had reset <code>--accept-routes</code> to the Linux default (off), which changed how my laptop reached home-network addresses. I restored it with <code>tailscale set</code> and switched to Tailscale's stable 100.x addresses for remote access.</p>
+                        <p><strong>5. An async library.</strong> The current <code>pymobiledevice3</code> API is async, so I read its function signatures to adapt the code, and used <code>full=False</code> for incremental backups. The container image moved to <code>python:3.12-slim</code> to include it.</p>
+                    </section>
+
+                    <section class="case-section" aria-labelledby="cellular">
+                        <h2 id="cellular">Can it back up over cellular?</h2>
+                        <p>I tested backing up over Tailscale while the phone was on cellular. <code>tailscale ping</code> reached the phone, but iOS actively refused the connection on the lockdown port. My conclusion: iOS only accepts sync and backup connections over its Wi-Fi interface, not over a VPN or cellular. I wrote down two possible workarounds: a travel router running Tailscale, so the phone sees a local Wi-Fi connection, or a sideloaded on-device app that uses the idevice Rust crate's <code>mobilebackup2</code> module over a loopback VPN. The on-device app is a possible future project. I haven't built either.</p>
                     </section>
 
                     <section class="case-section" aria-labelledby="security">
@@ -136,12 +144,14 @@
                             <li>No ports are exposed to the internet.</li>
                             <li>The pairing record is stored with restricted permissions (600 on files, 700 on folders).</li>
                             <li>The container runs as a non-root user.</li>
+                            <li>iOS requires the passcode on the phone for each backup, as a security feature. I kept that in place instead of weakening device security, and chose a 9 p.m. schedule so the prompt arrives when I'm usually around.</li>
                         </ul>
                     </section>
 
                     <section class="case-section" aria-labelledby="outcome">
                         <h2 id="outcome">Result</h2>
                         <p>Hands-off iPhone backups to the NAS every night, with a second copy on an external drive. The manual step is gone, and the setup recovers from crashes and reboots by itself. It's the same home-lab approach as the <a href="/writing/ai-agent-on-my-nas/">AI agent on my NAS</a>: a small container with the least access it needs.</p>
+                        <p>I built this with AI assistance, and I can walk through the troubleshooting myself.</p>
                     </section>
                 </article>
             </div>
