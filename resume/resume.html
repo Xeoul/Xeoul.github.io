@@ -38,18 +38,18 @@
 <body>
 <header>
   <h1>Vincent Lam</h1>
-  <p class="tag">IAM &amp; Security Engineering &nbsp;|&nbsp; AI Agents &amp; LLM Security &nbsp;|&nbsp; Open to remote</p>
+  <p class="tag">Software Engineering &nbsp;|&nbsp; Security &amp; AI Agents &nbsp;|&nbsp; Open to remote</p>
   <p class="contact">Sacramento, CA <span>|</span> <a href="mailto:v812.io@gmail.com">v812.io@gmail.com</a> <span>|</span> <a href="https://xeoul.github.io">xeoul.github.io</a> <span>|</span> <a href="https://github.com/Xeoul">github.com/Xeoul</a> <span>|</span> <a href="https://www.linkedin.com/in/vincentlam812">linkedin.com/in/vincentlam812</a></p>
 </header>
 
-<p class="summary">Identity and security engineer (B.S. Computer Science, 2025) who makes least privilege something the system enforces, not a policy document: zero-standing-privilege access, policy-as-code, and LLM features that hold up against prompt injection. Takes projects end to end (threat model, code, CI gates, live demo) and brings 2+ years of compliance- and accuracy-critical work for the State of California.</p>
+<p class="summary">Software engineer (B.S. Computer Science, 2025) who ships full-stack and AI-agent projects end to end: design or threat model, code, automated tests, CI gates and a live demo. Security-minded by default (least privilege, policy-as-code, LLM features that resist prompt injection), with 2+ years of accuracy-critical work for the State of California.</p>
 
 <h2>Skills</h2>
 <div class="skills">
   <p><b>Identity &amp; access:</b> Least privilege, ABAC/RBAC, Cedar policy-as-code, SCIM 2.0, access reviews, OIDC/JWT, MFA, AWS IAM &amp; STS</p>
   <p><b>AI &amp; agents:</b> Claude API, tool use, structured outputs, prompt injection defense, agent permissioning, Pydantic / Zod</p>
   <p><b>Security:</b> STRIDE threat modeling, NIST 800-53 / SOC 2 mapping, audit logging, detection rules, SIEM (OCSF), CodeQL, Bandit</p>
-  <p><b>Languages &amp; tools:</b> Python, TypeScript, JavaScript, SQL, Java, R, FastAPI, Next.js, React, Docker, GitHub Actions, Power Automate</p>
+  <p><b>Languages &amp; tools:</b> Python, TypeScript, JavaScript, SQL, Java, R, FastAPI, Next.js, React, Docker, Git, GitHub Actions, pytest, Vitest</p>
 </div>
 
 <h2>Projects (2026)</h2>
@@ -57,40 +57,45 @@
 <div class="proj">
   <div class="row"><div><b>Aegis</b> &ndash; Just-in-time access platform, zero standing privilege &nbsp;|&nbsp; Python, FastAPI, Cedar, OIDC, SCIM, AWS STS</div><div class="links"><a href="https://xeoul.github.io/aegis/">Live demo</a> | <a href="https://github.com/Xeoul/aegis">Code</a></div></div>
   <ul>
-    <li><b class="lead">Removed standing access.</b> Cedar policies decide each request on real user and resource attributes; restricted access needs MFA step-up and a second approver; approved grants become scoped AWS STS credentials that expire on their own (2&ndash;72 hours by sensitivity, 1-hour break-glass) and are revoked on SCIM 2.0 joiner/mover/leaver events.</li>
-    <li><b class="lead">Made an LLM safe to put in front of access decisions.</b> Claude only extracts fields from untrusted text, injection detection sends manipulated requests to a human, and tests with a fully hijacked parser check that policy still decides.</li>
-    <li><b class="lead">Made every decision auditable.</b> HMAC-chained audit log with signed checkpoints that catch truncation, recertification campaigns, 6 detection rules with OCSF SIEM export, a STRIDE threat model and a NIST 800-53 / SOC 2 / ISO 27001 control map.</li>
-    <li><b class="lead">Shipped it like production code.</b> 186 tests at 93% coverage gated in CI by CodeQL, Bandit, mypy and pip-audit, OIDC sign-in verified against Keycloak, and a live demo that runs the real Cedar engine in the browser.</li>
+    <li><b class="lead">Removed standing access.</b> Cedar policies decide each request on user and resource attributes; restricted access needs MFA step-up and a second approver; approved grants become scoped AWS STS credentials that expire on their own and are revoked on SCIM 2.0 joiner/mover/leaver events.</li>
+    <li><b class="lead">Made an LLM safe to put in front of access decisions.</b> Claude only extracts fields from untrusted text, injection detection sends manipulated requests to a human, and tests with a hijacked parser confirm policy still decides.</li>
+    <li><b class="lead">Made every decision auditable and shipped it like production code.</b> HMAC-chained audit log with signed checkpoints, 6 detection rules with OCSF SIEM export, a STRIDE threat model and a NIST 800-53 / SOC 2 map; 186 tests at 93% coverage gated in CI by CodeQL, Bandit, mypy and pip-audit, plus a live demo that runs the real Cedar engine in the browser.</li>
   </ul>
 </div>
 
 <div class="proj">
-  <div class="row"><div><b>Kumo</b> &ndash; Claude Code agent on a home NAS, driven from Telegram &nbsp;|&nbsp; Docker, Bash, Claude Code</div><div class="links"><a href="https://xeoul.github.io/writing/ai-agent-on-my-nas/">Write-up</a></div></div>
+  <div class="row"><div><b>Nagare</b> &ndash; Japanese reader that teaches as you read &nbsp;|&nbsp; TypeScript, Next.js, React, IndexedDB</div><div class="links"><a href="https://xeoul.github.io/nagare/">Live demo</a> | <a href="https://github.com/Xeoul/nagare">Code</a></div></div>
   <ul>
-    <li><b class="lead">Treated the agent as a privileged identity.</b> Listed the threats first (strangers messaging it, injected instructions, reaching the home network, leaked secrets), then bounded it: one allow-listed user, no root, nothing mounted from the NAS, no open ports, destructive commands gated behind one-tap approvals, and a hook that mirrors every command to my phone.</li>
+    <li><b class="lead">Built a reader with no backend.</b> Imports .txt, .epub and .pdf, splits Japanese into words in the browser (kuromoji.js) and looks up about 22,000 JMdict words tagged by JLPT level; progress and spaced-repetition flashcards live in IndexedDB. A script levels about 30 classic novels by their vocabulary, and a proofreading pass fixed 222 wrong word meanings.</li>
+  </ul>
+</div>
+
+<div class="proj">
+  <div class="row"><div><b>Kumo</b> &ndash; Claude Code agent on a home NAS, driven from Telegram &nbsp;|&nbsp; Docker, Bash, TypeScript, Claude API</div><div class="links"><a href="https://xeoul.github.io/writing/ai-agent-on-my-nas/">Write-up</a></div></div>
+  <ul>
+    <li><b class="lead">Treated the agent as a privileged identity.</b> Threat-modeled it first, then bounded it: one allow-listed user, no root, no open ports, destructive commands behind one-tap approvals, and scripts it writes run in a no-network Docker container.</li>
+    <li><b class="lead">Built a Japanese-learning companion on it.</b> Replies stay within the learner's known vocabulary, weak words return on a spaced-repetition schedule inside normal chat, and prompt caching halved reply cost; 275 tests run against a fake model.</li>
   </ul>
 </div>
 
 <div class="proj">
   <div class="row"><div><b>Privacy Blocker</b> &ndash; Local-first data-broker opt-out tool &nbsp;|&nbsp; JavaScript, Web Crypto, GitHub Actions</div><div class="links"><a href="https://xeoul.github.io/privacyblocker/">Live demo</a> | <a href="https://github.com/Xeoul/privacyblocker">Code</a></div></div>
   <ul>
-    <li><b class="lead">Built so it cannot leak what it protects.</b> Personal data is encrypted in the browser (PBKDF2-SHA256, 600k iterations, then AES-256-GCM) with a 10-minute idle lock, and a CSP of <code style="font-family:inherit">connect-src 'none'</code> blocks all outbound requests.</li>
-    <li><b class="lead">Turned a manual chore into a scheduled job.</b> Sends CCPA deletion requests to ~25 brokers per run on a schedule, logging no personal data.</li>
+    <li><b class="lead">Built so it cannot leak what it protects.</b> Data is encrypted in the browser (PBKDF2-SHA256, then AES-256-GCM) and a CSP of <code style="font-family:inherit">connect-src 'none'</code> blocks outbound requests; a scheduled GitHub Actions job sends CCPA deletion requests to ~25 brokers per run.</li>
   </ul>
 </div>
 
 <div class="proj">
   <div class="row"><div><b>Installous</b> &ndash; AI stock research agent &nbsp;|&nbsp; TypeScript, Next.js, Claude API</div><div class="links"><a href="https://xeoul.github.io/Installous/">Live demo</a> | <a href="https://github.com/Xeoul/Installous">Code</a></div></div>
   <ul>
-    <li><b class="lead">Grounded the AI advisor in live data.</b> A tool-using Claude advisor gets quotes, fundamentals and news through Zod-validated tools and shares a per-datatype cache (1&ndash;60 min) with the app, so follow-up questions never refetch.</li>
-    <li><b class="lead">Tested the scoring model in the open.</b> A rules-only $100k paper fund trades its five-factor score of ~50 large caps every 30 minutes via GitHub Actions and logs every trade's reason to a public history benchmarked against SPY, backed by a 5-year backtest.</li>
+    <li><b class="lead">Grounded the AI advisor in live data and tested the model in the open.</b> A Claude advisor reads quotes and news through Zod-validated tools; a rules-only $100k paper fund trades a five-factor score on a schedule, logs each trade's reason and is benchmarked against SPY.</li>
   </ul>
 </div>
 
 <div class="proj">
   <div class="row"><div><b>W.E.M.U 2.0</b> &ndash; Senior project, team of 8, for the CA Dept. of Consumer Affairs &nbsp;|&nbsp; Node.js, Selenium</div></div>
   <ul>
-    <li><b class="lead">Moved licensing forms to a new system at scale.</b> Co-built the form-migration system for 3.4M licenses across 36 entities; wrote the back-end logic for the site's button actions; owned the production stage, contact forms page and Selenium role-based access tests.</li>
+    <li><b class="lead">Moved licensing forms to a new system at scale.</b> Co-built the form migration for 3.4M licenses across 36 entities; wrote back-end logic for the site's button actions and owned the production stage, contact forms page and Selenium role-based access tests.</li>
   </ul>
 </div>
 
@@ -108,8 +113,7 @@
   <div class="row" style="margin-top:2pt"><div class="sub">Student Assistant &ndash; SharePoint Program &amp; Records Support</div><div class="when">Nov 2022 &ndash; Apr 2024</div></div>
   <ul>
     <li><b class="lead">Replaced manual document sends.</b> Helped build a Power Automate flow for the monthly, quarterly and annual sends; handed it off.</li>
-    <li><b class="lead">Gave staff one place to find liaisons.</b> Built the landing page on the Outlook Global Address List, with access limited to designated staff.</li>
-    <li><b class="lead">Kept SharePoint healthy.</b> Resolved access issues, broken links and version conflicts; QA'd accuracy, metadata and accessibility.</li>
+    <li><b class="lead">Gave staff one place to find liaisons and kept SharePoint healthy.</b> Built the landing page on the Outlook Global Address List (access limited to designated staff); resolved access issues and broken links, and QA'd accuracy, metadata and accessibility.</li>
   </ul>
 </div>
 
