@@ -57,7 +57,7 @@
 <div class="proj">
   <div class="row"><div><b>Aegis</b> &ndash; Just-in-time access platform, zero standing privilege &nbsp;|&nbsp; Python, FastAPI, Cedar, OIDC, SCIM, AWS STS</div><div class="links"><a href="https://xeoul.github.io/aegis/">Live demo</a> | <a href="https://github.com/Xeoul/aegis">Code</a></div></div>
   <ul>
-    <li><b class="lead">Removed standing access.</b> Cedar policies decide each request on user and resource attributes; restricted access needs MFA step-up and a second approver; approved grants become scoped AWS STS credentials that expire on their own and are revoked on SCIM 2.0 joiner/mover/leaver events.</li>
+    <li><b class="lead">Removed standing access.</b> Cedar policies decide each request on user and resource attributes; restricted access needs MFA step-up and a second approver; approved grants become scoped AWS STS credentials that expire on their own (2&ndash;72 hours by sensitivity, 1-hour break-glass) and are revoked on SCIM 2.0 joiner/mover/leaver events.</li>
     <li><b class="lead">Made an LLM safe to put in front of access decisions.</b> Claude only extracts fields from untrusted text, injection detection sends manipulated requests to a human, and tests with a hijacked parser confirm policy still decides.</li>
     <li><b class="lead">Made every decision auditable and shipped it like production code.</b> HMAC-chained audit log with signed checkpoints, 6 detection rules with OCSF SIEM export, a STRIDE threat model and a NIST 800-53 / SOC 2 map; 186 tests at 93% coverage gated in CI by CodeQL, Bandit, mypy and pip-audit, plus a live demo that runs the real Cedar engine in the browser.</li>
   </ul>
@@ -73,15 +73,8 @@
 <div class="proj">
   <div class="row"><div><b>Kumo</b> &ndash; Claude Code agent on a home NAS, driven from Telegram &nbsp;|&nbsp; Docker, Bash, TypeScript, Claude API</div><div class="links"><a href="https://xeoul.github.io/writing/ai-agent-on-my-nas/">Write-up</a></div></div>
   <ul>
-    <li><b class="lead">Treated the agent as a privileged identity.</b> Threat-modeled it first, then bounded it: one allow-listed user, no root, no open ports, destructive commands behind one-tap approvals, and scripts it writes run in a no-network Docker container.</li>
-    <li><b class="lead">Built a Japanese-learning companion on it.</b> Replies stay within the learner's known vocabulary, weak words return on a spaced-repetition schedule inside normal chat, and prompt caching halved reply cost; 275 tests run against a fake model.</li>
-  </ul>
-</div>
-
-<div class="proj">
-  <div class="row"><div><b>Privacy Blocker</b> &ndash; Local-first data-broker opt-out tool &nbsp;|&nbsp; JavaScript, Web Crypto, GitHub Actions</div><div class="links"><a href="https://xeoul.github.io/privacyblocker/">Live demo</a> | <a href="https://github.com/Xeoul/privacyblocker">Code</a></div></div>
-  <ul>
-    <li><b class="lead">Built so it cannot leak what it protects.</b> Data is encrypted in the browser (PBKDF2-SHA256, then AES-256-GCM) and a CSP of <code style="font-family:inherit">connect-src 'none'</code> blocks outbound requests; a scheduled GitHub Actions job sends CCPA deletion requests to ~25 brokers per run.</li>
+    <li><b class="lead">Treated the agent as a privileged identity.</b> Threat-modeled it first (strangers messaging it, injected instructions, network reach, leaked secrets), then bounded it: one allow-listed user, no root, no open ports, destructive commands behind one-tap approvals, and scripts it writes run in a no-network Docker container.</li>
+    <li><b class="lead">Built a Japanese-learning companion on it.</b> Replies stay within the learner's known vocabulary, self-checking data with backups and model fallback, weak words return on a spaced-repetition schedule inside normal chat, and prompt caching halved reply cost; 275 tests run against a fake model.</li>
   </ul>
 </div>
 
