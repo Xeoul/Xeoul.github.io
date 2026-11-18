@@ -679,6 +679,22 @@ test.describe('project links, case studies and the contact card', () => {
     expect(await aegis.evaluate((d) => d.open)).toBe(false);
   });
 
+  test('an About timeline entry opens on click to show what was done, and closes on a second click', async ({ page }) => {
+    await page.goto('/#about');
+    await expectSettled(page, 'about');
+    const item = page.locator('#about .timeline-item').nth(2);
+    const toggle = item.locator('.timeline-toggle');
+    await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    await expect(item.locator('.timeline-more')).toHaveCSS('grid-template-rows', /^0px|none/);
+    await toggle.click();
+    await expect(toggle).toHaveAttribute('aria-expanded', 'true');
+    await expect(item).toHaveClass(/is-open/);
+    await expect(item.locator('.timeline-more-inner')).toContainText('Power Automate');
+    await toggle.click();
+    await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    await expect(item).not.toHaveClass(/is-open/);
+  });
+
   test('the About timeline lists each role with the current one first', async ({ page }) => {
     await page.goto('/#about');
     await expectSettled(page, 'about');
