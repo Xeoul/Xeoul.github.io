@@ -1479,32 +1479,32 @@ document.querySelectorAll('.timeline-item').forEach(item => {
 });
 
 // PIXEL PET
-// A small pixel cat that wanders along the bottom edge of the header: it
+// A small golden-brown pixel chihuahua that wanders along the bottom edge of the header: it
 // walks, stops for a while, turns around at the ends. Drawn on a canvas
-// from the character maps below ('.' empty, c fur, s stripe, e eye, n
-// nose); the dark outline is added around whatever is filled. It never
+// from the character maps below ('.' empty, c fur, s ear tip, m muzzle
+// and chest, e eye, n nose); the dark outline is added around whatever is filled. It never
 // takes clicks, sits still when the tab is hidden, and with reduced motion
 // it just sits. (Behaviour beyond wandering comes later.)
 (() => {
     const header = document.querySelector('header');
     if (!header) return;
-    // Shared top part (tail, head, body); only the legs differ between frames.
+    // Shared top part (curled tail, big ears, head, body); only the legs differ between frames.
     const TOP = [
-        '..........c...c.',
-        '..........ccccc.',
+        '..........s...s.',
+        '..........cc.cc.',
+        'cc........ccccc.',
         'c.........ccecc.',
-        'c.........ccccn.',
-        'cccccccccccc....',
-        '.cscsscscsscc...',
-        '.ccccccccccc....',
-        '..ccccccccc.....',
+        '.c........cccmmn',
+        '..cccccccccc....',
+        '..cccccccccmm...',
+        '...cccccccc.....',
     ];
     const LEGS = {
-        stand: ['..c.c.....c.c...', '..c.c.....c.c...'],
+        stand: ['...c.c...c.c....', '...c.c...c.c....'],
         stepA: ['..c...c...c...c.', '..c...c...c...c.'],
-        stepB: ['...cc......cc...', '...cc......cc...'],
+        stepB: ['....cc.....cc...', '....cc.....cc...'],
     };
-    const COLORS = { c: '#f0a35e', s: '#d9843a', e: '#2a2438', n: '#f48fb1', o: '#2a2438' };
+    const COLORS = { c: '#c8883a', s: '#9a5f22', m: '#e8bc78', e: '#1d1a24', n: '#2a2020', o: '#2a2438' };
     const W = 16, H = 10, PX = 2;
     const frame = legs => {
         const map = [...TOP, ...legs].map(r => r.padEnd(W, '.'));
