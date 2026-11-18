@@ -1479,16 +1479,22 @@ document.querySelectorAll('.timeline-item').forEach(item => {
 });
 
 // PIXEL PET
-// A small golden-brown pixel chihuahua that wanders along the bottom edge of the header: it
-// walks, stops for a while, turns around at the ends. Drawn on a canvas
-// from the character maps below ('.' empty, c fur, s ear tip, m muzzle
-// and chest, e eye, n nose); the dark outline is added around whatever is filled. It never
-// takes clicks, sits still when the tab is hidden, and with reduced motion
-// it just sits. (Behaviour beyond wandering comes later.)
+// A small golden-brown pixel chihuahua that lives on the bottom edge of the
+// header. It is drawn on a canvas from the character maps below ('.' empty,
+// c fur, s ear tip, m muzzle and chest, e eye, n nose); the
+// dark outline is added around whatever is filled.
+//   - It follows the pointer along the x axis: a run when the pointer is far,
+//     a walk when it is closer, and it sits and wags when it has arrived. On a
+//     touch screen it runs to wherever you last tapped.
+//   - With nothing happening it wanders, then lies down and sleeps; any
+//     movement wakes it.
+//   - Clicking or tapping it makes it jump and bark.
+// It never takes clicks itself (the page decides from the click position),
+// stops when the tab is hidden, and with reduced motion it only sits.
 (() => {
     const header = document.querySelector('header');
     if (!header) return;
-    // Shared top part (curled tail, big ears, head, body); only the legs differ between frames.
+    const W = 16, H = 10, PX = 2, SIZE = (W + 2) * PX;
     const TOP = [
         '..........s...s.',
         '..........cc.cc.',
@@ -1499,15 +1505,21 @@ document.querySelectorAll('.timeline-item').forEach(item => {
         '..cccccccccmm...',
         '...cccccccc.....',
     ];
+    const TAIL_FLICK = ['..', 'cc', '.c']; // the tail dropped, for the wag
     const LEGS = {
         stand: ['...c.c...c.c....', '...c.c...c.c....'],
         stepA: ['..c...c...c...c.', '..c...c...c...c.'],
         stepB: ['....cc.....cc...', '....cc.....cc...'],
+        sit:   ['..cccc....c.c...', '..cccc....c.c...'],
     };
+    const LIE = [
+        '................', '................', '................',
+        '..........s...s.', '..........cc.cc.', '..........ccccc.', 'cc........ccecc.',
+        '.cccccccccccmmn.'.padEnd(16, '.'), '..cccccccccccc..', '...cccccccccc...',
+    ];
     const COLORS = { c: '#c8883a', s: '#9a5f22', m: '#e8bc78', e: '#1d1a24', n: '#2a2020', o: '#2a2438' };
-    const W = 16, H = 10, PX = 2;
-    const frame = legs => {
-        const map = [...TOP, ...legs].map(r => r.padEnd(W, '.'));
+    const frame = rows => {
+        const map = rows.map(r => r.padEnd(W, '.'));
         const cv = document.createElement('canvas');
         cv.width = W + 2; cv.height = H + 2;
         const g = cv.getContext('2d');
@@ -1522,42 +1534,98 @@ document.querySelectorAll('.timeline-item').forEach(item => {
         }
         return cv;
     };
-    const frames = { stand: frame(LEGS.stand), stepA: frame(LEGS.stepA), stepB: frame(LEGS.stepB) };
+    const stand = (legs, flick) => {
+        const rows = [...TOP, ...legs];
+        if (flick) for (let i = 0; i < 3; i++) rows[2 + i] = TAIL_FLICK[i] + rows[2 + i].slice(2);
+        return rows;
+    };
+    const frames = {
+        stand: frame(stand(LEGS.stand)), stepA: frame(stand(LEGS.stepA)), stepB: frame(stand(LEGS.stepB)),
+        sit: frame(stand(LEGS.sit)), sitWag: frame(stand(LEGS.sit, true)),
+        lie: frame(LIE),
+    };
     const pet = document.createElement('canvas');
     pet.className = 'pixel-pet';
     pet.width = W + 2; pet.height = H + 2;
-    pet.style.width = (W + 2) * PX + 'px';
+    pet.style.width = SIZE + 'px';
     pet.style.height = (H + 2) * PX + 'px';
     pet.setAttribute('aria-hidden', 'true');
     header.appendChild(pet);
+    const bubble = document.createElement('span');
+    bubble.className = 'pixel-pet-bubble';
+    bubble.setAttribute('aria-hidden', 'true');
+    header.appendChild(bubble);
     const ctx = pet.getContext('2d');
-    const draw = name => { ctx.clearRect(0, 0, pet.width, pet.height); ctx.drawImage(frames[name], 0, 0); };
+    let shown = '';
+    const draw = name => { if (name === shown) return; shown = name; ctx.clearRect(0, 0, pet.width, pet.height); ctx.drawImage(frames[name], 0, 0); };
 
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
-    let x = 40, dir = 1, mode = 'idle', until = 0, last = 0, stepAt = 0, step = false;
-    const SPEED = 26; // px per second
-    const place = () => { pet.style.transform = 'translateX(' + Math.round(x) + 'px) scaleX(' + dir + ')'; };
-    const choose = now => {
-        if (mode === 'walk' || Math.random() < 0.25) { mode = 'idle'; until = now + 1500 + Math.random() * 3500; }
-        else { mode = 'walk'; dir = Math.random() < 0.5 ? -1 : 1; until = now + 1500 + Math.random() * 4000; }
+    const maxX = () => Math.max(8, header.clientWidth - SIZE - 8);
+    const clamp = v => Math.min(maxX(), Math.max(8, v));
+    let x = Math.min(40, maxX()), dir = 1, mode = 'idle', until = 0, last = 0, stepAt = 0, step = false, wagAt = 0, wag = false;
+    let target = null, lastInput = 0, jumpAt = 0, barkUntil = 0, sleeping = false;
+    const FOLLOW_MS = 12000, SLEEP_MS = 30000;
+
+    const place = (now) => {
+        let y = 0;
+        if (now - jumpAt < 450) y = -Math.sin(((now - jumpAt) / 450) * Math.PI) * 12;
+        pet.style.transform = 'translate(' + Math.round(x) + 'px,' + Math.round(y) + 'px) scaleX(' + dir + ')';
+        if (now < barkUntil) { bubble.style.transform = 'translate(' + Math.round(x + (dir > 0 ? SIZE - 4 : -26)) + 'px,0)'; }
+    };
+    const bark = now => {
+        jumpAt = now; barkUntil = now + 900; lastInput = now; sleeping = false; bubble.classList.remove('zz');
+        bubble.textContent = 'woof!'; bubble.classList.add('show');
+        setTimeout(() => { if (!sleeping) bubble.classList.remove('show'); }, 900);
+    };
+    const seek = px => { target = clamp(px - SIZE / 2); lastInput = performance.now(); };
+
+    document.addEventListener('pointermove', e => { if (e.pointerType === 'mouse') seek(e.clientX); }, { passive: true });
+    document.documentElement.addEventListener('mouseleave', () => { target = null; });
+    document.addEventListener('pointerdown', e => {
+        const r = pet.getBoundingClientRect();
+        const onPet = e.clientX >= r.left - 4 && e.clientX <= r.right + 4 && e.clientY >= r.top - 14 && e.clientY <= r.bottom + 4;
+        if (onPet && !reduce.matches) bark(performance.now());
+        else if (e.pointerType !== 'mouse') seek(e.clientX);
+    }, { passive: true });
+
+    const wander = (now, dt) => {
+        if (now > until) {
+            if (mode === 'walk' || Math.random() < 0.25) { mode = 'idle'; until = now + 1500 + Math.random() * 3500; }
+            else { mode = 'walk'; dir = Math.random() < 0.5 ? -1 : 1; until = now + 1500 + Math.random() * 4000; }
+        }
+        if (mode === 'walk') {
+            x += dir * 26 * dt;
+            if (x <= 8) { x = 8; dir = 1; } else if (x >= maxX()) { x = maxX(); dir = -1; }
+            if (now - stepAt > 170) { stepAt = now; step = !step; }
+            draw(step ? 'stepA' : 'stepB');
+        } else draw('stand');
     };
     const tick = now => {
         requestAnimationFrame(tick);
         const dt = Math.min(0.1, (now - (last || now)) / 1000); last = now;
         if (document.hidden || reduce.matches) return;
-        if (now > until) choose(now);
-        if (mode === 'walk') {
-            const max = header.clientWidth - (W + 2) * PX - 8;
-            x += dir * SPEED * dt;
-            if (x < 8) { x = 8; dir = 1; } else if (x > max) { x = max; dir = -1; }
-            if (now - stepAt > 170) { stepAt = now; step = !step; }
-            draw(step ? 'stepA' : 'stepB');
-        } else draw('stand');
-        place();
+        const idleFor = now - lastInput;
+        if (target !== null && idleFor < FOLLOW_MS) {
+            const d = target - x, far = Math.abs(d);
+            if (far > 24) {
+                dir = d > 0 ? 1 : -1;
+                const run = far > 120;
+                x = clamp(x + dir * (run ? 200 : 70) * dt);
+                if (now - stepAt > (run ? 85 : 160)) { stepAt = now; step = !step; }
+                draw(step ? 'stepA' : 'stepB');
+            } else {
+                if (now - wagAt > 220) { wagAt = now; wag = !wag; }
+                draw(wag ? 'sitWag' : 'sit');
+            }
+        } else if (idleFor > SLEEP_MS) {
+            draw('lie');
+            if (!sleeping) { sleeping = true; bubble.textContent = 'z z z'; bubble.classList.add('show', 'zz'); barkUntil = Infinity; }
+        } else wander(now, dt);
+        if (sleeping && (idleFor <= SLEEP_MS)) { sleeping = false; barkUntil = 0; bubble.classList.remove('show', 'zz'); }
+        place(now);
     };
-    x = Math.min(x, Math.max(8, header.clientWidth - 44));
-    draw('stand'); place();
-    if (!reduce.matches) requestAnimationFrame(tick);
+    draw('stand'); place(0);
+    if (!reduce.matches) { lastInput = performance.now(); requestAnimationFrame(tick); }
 })();
 
 // OFFLINE AND INSTANT REPEAT VISITS

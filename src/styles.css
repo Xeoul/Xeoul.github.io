@@ -218,6 +218,37 @@ header {
   will-change: transform;
 }
 
+/* "woof!" above the dog when it is clicked: a small pixel-style tag that
+   fades in and out. */
+.pixel-pet-bubble {
+  position: absolute;
+  left: 0;
+  bottom: 26px;
+  padding: 1px 6px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  line-height: 1.4;
+  color: var(--color-ink);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border-strong);
+  border-radius: 4px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  z-index: 2;
+  white-space: nowrap;
+}
+
+.pixel-pet-bubble.zz {
+  background: none;
+  border-color: transparent;
+  color: var(--color-ink-soft);
+}
+
+.pixel-pet-bubble.show {
+  opacity: 1;
+}
+
 .header-title {
   text-decoration: none;
   color: inherit;
