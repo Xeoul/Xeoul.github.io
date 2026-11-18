@@ -1242,6 +1242,9 @@ header {
 
 .timeline-more-inner p {
   margin: 6px 0 0;
+  font-size: inherit;
+  line-height: inherit;
+  color: inherit;
 }
 
 .timeline-more-inner li + li {
