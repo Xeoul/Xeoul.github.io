@@ -206,6 +206,18 @@ header {
   box-sizing: border-box;
 }
 
+/* The pixel pet (PIXEL PET in script.js): it walks along the bottom edge
+   of the header, in front of the bar but never in the way of clicks. */
+.pixel-pet {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  image-rendering: pixelated;
+  pointer-events: none;
+  z-index: 1;
+  will-change: transform;
+}
+
 .header-title {
   text-decoration: none;
   color: inherit;
