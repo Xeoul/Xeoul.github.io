@@ -12,9 +12,9 @@
 // VERSION, STYLES and SCRIPT are written by `npm run build` (see
 // scripts/build.mjs), so each build gets a fresh cache and the old one
 // is cleared out.
-const VERSION = '9fbe29e570';
-const STYLES = '/styles.css?v=bccf049625';
-const SCRIPT = '/script.js?v=c9707175af';
+const VERSION = 'c1bd6230ad';
+const STYLES = '/styles.css?v=8c68e406d8';
+const SCRIPT = '/script.js?v=7d6cc2d6b1';
 const CACHE = `portfolio-${VERSION}`;
 
 // Pages and files to have on hand from the first visit, so the whole

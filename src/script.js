@@ -1457,6 +1457,27 @@ document.addEventListener('DOMContentLoaded', () => {
     syncThemeToggle();
 });
 
+// ABOUT TIMELINE
+// Each role opens to show what was done there. Hovering previews it (only
+// with a real pointer, so a touch screen never opens things by accident);
+// a click or tap pins it open, and clicking again closes it.
+document.querySelectorAll('.timeline-item').forEach(item => {
+    const toggle = item.querySelector('.timeline-toggle');
+    if (!toggle) return;
+    let pinned = false;
+    const set = open => {
+        item.classList.toggle('is-open', open);
+        toggle.setAttribute('aria-expanded', String(open));
+    };
+    const canHover = () => window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+    item.addEventListener('mouseenter', () => { if (canHover()) set(true); });
+    item.addEventListener('mouseleave', () => { if (canHover() && !pinned) set(false); });
+    toggle.addEventListener('click', () => {
+        pinned = !pinned;
+        set(pinned);
+    });
+});
+
 // OFFLINE AND INSTANT REPEAT VISITS
 // sw.js keeps the site's files on this device, so after the first visit
 // pages open straight away, work with no connection, and the site can be

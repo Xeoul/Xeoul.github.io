@@ -1124,6 +1124,113 @@ header {
   border: 2px solid var(--color-accent);
 }
 
+/* Each entry is a button that opens what was done there: it opens on hover
+   (where there is a real pointer) or on tap/click, which keeps it open. The
+   panel grows from 0fr to 1fr rather than animating a height, and the lines
+   inside rise in one after another. */
+.timeline-toggle {
+  position: relative;
+  display: grid;
+  gap: 1px;
+  width: 100%;
+  padding: 0 22px 0 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.timeline-toggle:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+.timeline-chevron {
+  position: absolute;
+  right: 4px;
+  top: 8px;
+  width: 7px;
+  height: 7px;
+  border-right: 1.5px solid var(--color-ink-soft);
+  border-bottom: 1.5px solid var(--color-ink-soft);
+  transform: rotate(45deg);
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.2s;
+}
+
+.timeline-item.is-open .timeline-chevron {
+  transform: translateY(3px) rotate(-135deg);
+  border-color: var(--color-accent);
+}
+
+.timeline-item::before {
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.35s;
+}
+
+.timeline-item.is-open::before {
+  transform: scale(1.25);
+  box-shadow: 0 0 0 4px var(--color-accent-tint);
+}
+
+.timeline-more {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.timeline-item.is-open .timeline-more {
+  grid-template-rows: 1fr;
+}
+
+.timeline-more-inner {
+  overflow: hidden;
+  min-height: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--color-ink-soft);
+}
+
+.timeline-more-inner ul {
+  margin: 6px 0 0;
+  padding-left: 16px;
+}
+
+.timeline-more-inner p {
+  margin: 6px 0 0;
+}
+
+.timeline-more-inner li + li {
+  margin-top: 4px;
+}
+
+.timeline-more-inner strong {
+  font-weight: 500;
+  color: var(--color-ink);
+}
+
+.timeline-more-inner > * {
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 0.3s ease, transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.timeline-item.is-open .timeline-more-inner > * {
+  opacity: 1;
+  transform: none;
+  transition-delay: 0.12s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .timeline-more,
+  .timeline-more-inner > *,
+  .timeline-chevron,
+  .timeline-item::before {
+    transition: none;
+  }
+}
+
 .timeline-date {
   font-family: var(--font-mono);
   font-size: 11px;
