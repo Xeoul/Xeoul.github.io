@@ -1478,6 +1478,88 @@ document.querySelectorAll('.timeline-item').forEach(item => {
     });
 });
 
+// PIXEL PET
+// A small pixel cat that wanders along the bottom edge of the header: it
+// walks, stops for a while, turns around at the ends. Drawn on a canvas
+// from the character maps below ('.' empty, c fur, s stripe, e eye, n
+// nose); the dark outline is added around whatever is filled. It never
+// takes clicks, sits still when the tab is hidden, and with reduced motion
+// it just sits. (Behaviour beyond wandering comes later.)
+(() => {
+    const header = document.querySelector('header');
+    if (!header) return;
+    // Shared top part (tail, head, body); only the legs differ between frames.
+    const TOP = [
+        '..........c...c.',
+        '..........ccccc.',
+        'c.........ccecc.',
+        'c.........ccccn.',
+        'cccccccccccc....',
+        '.cscsscscsscc...',
+        '.ccccccccccc....',
+        '..ccccccccc.....',
+    ];
+    const LEGS = {
+        stand: ['..c.c.....c.c...', '..c.c.....c.c...'],
+        stepA: ['..c...c...c...c.', '..c...c...c...c.'],
+        stepB: ['...cc......cc...', '...cc......cc...'],
+    };
+    const COLORS = { c: '#f0a35e', s: '#d9843a', e: '#2a2438', n: '#f48fb1', o: '#2a2438' };
+    const W = 16, H = 10, PX = 2;
+    const frame = legs => {
+        const map = [...TOP, ...legs].map(r => r.padEnd(W, '.'));
+        const cv = document.createElement('canvas');
+        cv.width = W + 2; cv.height = H + 2;
+        const g = cv.getContext('2d');
+        const filled = (x, y) => x >= 0 && y >= 0 && x < W && y < H && map[y][x] !== '.';
+        for (let y = -1; y <= H; y++) for (let x = -1; x <= W; x++) {
+            if (filled(x, y)) continue;
+            if (filled(x - 1, y) || filled(x + 1, y) || filled(x, y - 1) || filled(x, y + 1)) { g.fillStyle = COLORS.o; g.fillRect(x + 1, y + 1, 1, 1); }
+        }
+        for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+            const ch = map[y][x]; if (ch === '.') continue;
+            g.fillStyle = COLORS[ch] || COLORS.c; g.fillRect(x + 1, y + 1, 1, 1);
+        }
+        return cv;
+    };
+    const frames = { stand: frame(LEGS.stand), stepA: frame(LEGS.stepA), stepB: frame(LEGS.stepB) };
+    const pet = document.createElement('canvas');
+    pet.className = 'pixel-pet';
+    pet.width = W + 2; pet.height = H + 2;
+    pet.style.width = (W + 2) * PX + 'px';
+    pet.style.height = (H + 2) * PX + 'px';
+    pet.setAttribute('aria-hidden', 'true');
+    header.appendChild(pet);
+    const ctx = pet.getContext('2d');
+    const draw = name => { ctx.clearRect(0, 0, pet.width, pet.height); ctx.drawImage(frames[name], 0, 0); };
+
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
+    let x = 40, dir = 1, mode = 'idle', until = 0, last = 0, stepAt = 0, step = false;
+    const SPEED = 26; // px per second
+    const place = () => { pet.style.transform = 'translateX(' + Math.round(x) + 'px) scaleX(' + dir + ')'; };
+    const choose = now => {
+        if (mode === 'walk' || Math.random() < 0.25) { mode = 'idle'; until = now + 1500 + Math.random() * 3500; }
+        else { mode = 'walk'; dir = Math.random() < 0.5 ? -1 : 1; until = now + 1500 + Math.random() * 4000; }
+    };
+    const tick = now => {
+        requestAnimationFrame(tick);
+        const dt = Math.min(0.1, (now - (last || now)) / 1000); last = now;
+        if (document.hidden || reduce.matches) return;
+        if (now > until) choose(now);
+        if (mode === 'walk') {
+            const max = header.clientWidth - (W + 2) * PX - 8;
+            x += dir * SPEED * dt;
+            if (x < 8) { x = 8; dir = 1; } else if (x > max) { x = max; dir = -1; }
+            if (now - stepAt > 170) { stepAt = now; step = !step; }
+            draw(step ? 'stepA' : 'stepB');
+        } else draw('stand');
+        place();
+    };
+    x = Math.min(x, Math.max(8, header.clientWidth - 44));
+    draw('stand'); place();
+    if (!reduce.matches) requestAnimationFrame(tick);
+})();
+
 // OFFLINE AND INSTANT REPEAT VISITS
 // sw.js keeps the site's files on this device, so after the first visit
 // pages open straight away, work with no connection, and the site can be
