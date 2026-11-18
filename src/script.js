@@ -1489,6 +1489,9 @@ document.querySelectorAll('.timeline-item').forEach(item => {
 //   - With nothing happening it wanders, then lies down and sleeps; any
 //     movement wakes it.
 //   - Clicking or tapping it makes it jump and bark.
+//   - Bring the pointer up into the header, next to him, and he plays: he
+//     jumps at it, higher the higher it is, and snaps at it at the top of
+//     each jump.
 // It never takes clicks itself (the page decides from the click position),
 // stops when the tab is hidden, and with reduced motion it only sits.
 (() => {
@@ -1512,6 +1515,8 @@ document.querySelectorAll('.timeline-item').forEach(item => {
         stepB: ['....cc.....cc...', '....cc.....cc...'],
         sit:   ['..cccc....c.c...', '..cccc....c.c...'],
     };
+    // Mouth open: a gap before the nose.
+    const chompRows = () => { const r = stand(LEGS.stand); r[4] = r[4].slice(0, 13) + '..n'; return r; };
     const LIE = [
         '................', '................', '................',
         '..........s...s.', '..........cc.cc.', '..........ccccc.', 'cc........ccecc.',
@@ -1542,7 +1547,7 @@ document.querySelectorAll('.timeline-item').forEach(item => {
     const frames = {
         stand: frame(stand(LEGS.stand)), stepA: frame(stand(LEGS.stepA)), stepB: frame(stand(LEGS.stepB)),
         sit: frame(stand(LEGS.sit)), sitWag: frame(stand(LEGS.sit, true)),
-        lie: frame(LIE),
+        lie: frame(LIE), chomp: frame(chompRows()),
     };
     const pet = document.createElement('canvas');
     pet.className = 'pixel-pet';
@@ -1563,24 +1568,24 @@ document.querySelectorAll('.timeline-item').forEach(item => {
     const maxX = () => Math.max(8, header.clientWidth - SIZE - 8);
     const clamp = v => Math.min(maxX(), Math.max(8, v));
     let x = Math.min(40, maxX()), dir = 1, mode = 'idle', until = 0, last = 0, stepAt = 0, step = false, wagAt = 0, wag = false;
-    let target = null, lastInput = 0, jumpAt = 0, barkUntil = 0, sleeping = false;
+    let target = null, lastInput = 0, jumpAt = 0, jumpMs = 450, jumpH = 12, barkUntil = 0, sleeping = false, pointerY = 9999, playing = false;
     const FOLLOW_MS = 12000, SLEEP_MS = 30000;
 
     const place = (now) => {
         let y = 0;
-        if (now - jumpAt < 450) y = -Math.sin(((now - jumpAt) / 450) * Math.PI) * 12;
+        if (now - jumpAt < jumpMs) y = -Math.sin(((now - jumpAt) / jumpMs) * Math.PI) * jumpH;
         pet.style.transform = 'translate(' + Math.round(x) + 'px,' + Math.round(y) + 'px) scaleX(' + dir + ')';
         if (now < barkUntil) { bubble.style.transform = 'translate(' + Math.round(x + (dir > 0 ? SIZE - 4 : -26)) + 'px,0)'; }
     };
     const bark = now => {
-        jumpAt = now; barkUntil = now + 900; lastInput = now; sleeping = false; bubble.classList.remove('zz');
+        jumpAt = now; jumpMs = 450; jumpH = 12; barkUntil = now + 900; lastInput = now; sleeping = false; bubble.classList.remove('zz');
         bubble.textContent = 'woof!'; bubble.classList.add('show');
         setTimeout(() => { if (!sleeping) bubble.classList.remove('show'); }, 900);
     };
     const seek = px => { target = clamp(px - SIZE / 2); lastInput = performance.now(); };
 
-    document.addEventListener('pointermove', e => { if (e.pointerType === 'mouse') seek(e.clientX); }, { passive: true });
-    document.documentElement.addEventListener('mouseleave', () => { target = null; });
+    document.addEventListener('pointermove', e => { if (e.pointerType === 'mouse') { seek(e.clientX); pointerY = e.clientY; } }, { passive: true });
+    document.documentElement.addEventListener('mouseleave', () => { target = null; pointerY = 9999; });
     document.addEventListener('pointerdown', e => {
         const r = pet.getBoundingClientRect();
         const onPet = e.clientX >= r.left - 4 && e.clientX <= r.right + 4 && e.clientY >= r.top - 14 && e.clientY <= r.bottom + 4;
@@ -1605,7 +1610,20 @@ document.querySelectorAll('.timeline-item').forEach(item => {
         const dt = Math.min(0.1, (now - (last || now)) / 1000); last = now;
         if (document.hidden || reduce.matches) return;
         const idleFor = now - lastInput;
-        if (target !== null && idleFor < FOLLOW_MS) {
+        const headerBottom = header.getBoundingClientRect().bottom;
+        playing = target !== null && idleFor < FOLLOW_MS && pointerY <= headerBottom + 6 && Math.abs(target - x) < 90;
+        if (playing) {
+            // Close to the pointer up in the header: jump at it (higher when it is higher), snap at the top, then go again.
+            const petTop = pet.getBoundingClientRect().bottom - (H + 2) * PX;
+            if (Math.abs(target - x) > 6) dir = target > x ? 1 : -1;
+            x = clamp(x + (target - x) * Math.min(1, 6 * dt));
+            const air = now - jumpAt < jumpMs;
+            if (!air && now - jumpAt > jumpMs + 140) {
+                jumpAt = now; jumpMs = 520; jumpH = Math.max(12, Math.min(header.clientHeight - 28, petTop - pointerY + 8));
+            }
+            const p = (now - jumpAt) / jumpMs;
+            draw(air && p > 0.35 && p < 0.7 ? 'chomp' : air ? 'stepA' : 'stand');
+        } else if (target !== null && idleFor < FOLLOW_MS) {
             const d = target - x, far = Math.abs(d);
             if (far > 24) {
                 dir = d > 0 ? 1 : -1;
